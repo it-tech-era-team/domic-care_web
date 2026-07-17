@@ -1,0 +1,181 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+:root {
+  --font-sans: 'Inter', sans-serif;
+  --font-outfit: 'Outfit', sans-serif;
+
+  /* HSL Palette */
+  --primary: 215 85% 45%;      /* Safe Medical Blue */
+  --primary-light: 215 100% 95%;
+  --secondary: 175 75% 35%;    /* Healing Teal */
+  --secondary-light: 175 80% 95%;
+  --accent: 38 92% 50%;        /* Warm Amber for Alerts/Pending */
+  --accent-light: 38 100% 96%;
+  --success: 142 70% 45%;      /* Success Green */
+  --danger: 0 84% 60%;         /* Error Red */
+  
+  /* Background / Foregrounds */
+  --background: 210 40% 98%;
+  --foreground: 222 47% 11%;
+  
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  
+  --border: 214 32% 91%;
+  --ring: 215 85% 45%;
+}
+
+.dark {
+  --primary: 215 90% 55%;
+  --primary-light: 215 40% 12%;
+  --secondary: 175 70% 45%;
+  --secondary-light: 175 40% 12%;
+  
+  --background: 222 47% 6%;
+  --foreground: 210 40% 98%;
+  
+  --card: 222 47% 9%;
+  --card-foreground: 210 40% 98%;
+  
+  --border: 217 33% 17%;
+  --ring: 215 90% 55%;
+}
+
+@theme inline {
+  --font-sans: var(--font-sans);
+  --font-heading: var(--font-outfit);
+  
+  --color-primary: hsl(var(--primary));
+  --color-primary-light: hsl(var(--primary-light));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-light: hsl(var(--secondary-light));
+  --color-accent: hsl(var(--accent));
+  --color-accent-light: hsl(var(--accent-light));
+  --color-success: hsl(var(--success));
+  --color-danger: hsl(var(--danger));
+  --color-bg-custom: hsl(var(--background));
+  --color-fg-custom: hsl(var(--foreground));
+  --color-card-custom: hsl(var(--card));
+  --color-card-fg-custom: hsl(var(--card-foreground));
+  --color-border-custom: hsl(var(--border));
+  --color-ring-custom: hsl(var(--ring));
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-outfit), var(--font-sans);
+  letter-spacing: -0.02em;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Glassmorphism Classes */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Keyframes & Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseSlow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.02); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-pulse-slow {
+  animation: pulseSlow 4s ease-in-out infinite;
+}
+
+/* Rating Stars Glow */
+.star-glow {
+  filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.5));
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(100px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Custom Leaflet Map styling */
+.leaflet-container {
+  font-family: var(--font-sans) !important;
+  width: 100%;
+  height: 100%;
+  border-radius: 24px;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 16px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid #f1f5f9 !important;
+  padding: 8px !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+}
+
+.leaflet-popup-tip-container {
+  display: none !important;
+}
+
+.custom-pulse-icon {
+  background: transparent;
+  border: none;
+}
+
+.custom-caregiver-marker {
+  background: transparent;
+  border: none;
+}
