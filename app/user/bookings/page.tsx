@@ -7,6 +7,75 @@ import {
   CheckCircle2, XCircle, ChevronRight, X, Heart
 } from 'lucide-react';
 
+/* ------------------------------------------------------------------ */
+/*  Looping bloom / wilt flower illustration                          */
+/*  (replaces the static calendar graphic)                            */
+/* ------------------------------------------------------------------ */
+
+function BloomingFlower() {
+  return (
+    <div className="relative h-32 w-32 sm:h-40 sm:w-40 shrink-0">
+      <style>{`
+        @keyframes bloomWilt {
+          0%   { transform: scale(0.15); opacity: 0; }
+          10%  { opacity: 1; }
+          35%  { transform: scale(1);    opacity: 1; }
+          55%  { transform: scale(1);    opacity: 1; }
+          80%  { transform: scale(0.15); opacity: 0.3; }
+          100% { transform: scale(0.15); opacity: 0; }
+        }
+        @keyframes swayStem {
+          0%, 100% { transform: rotate(-2deg); }
+          50%      { transform: rotate(2deg); }
+        }
+        @keyframes petalGlow {
+          0%, 100% { opacity: 0.55; }
+          50%      { opacity: 1; }
+        }
+        .flower-stem {
+          transform-origin: 100px 190px;
+          animation: swayStem 3.2s ease-in-out infinite;
+        }
+        .flower-bloom {
+          transform-origin: 100px 95px;
+          animation: bloomWilt 4.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+        }
+        .flower-petal {
+          animation: petalGlow 4.5s ease-in-out infinite;
+        }
+      `}</style>
+      <svg viewBox="0 0 200 220" className="h-full w-full">
+        {/* pot */}
+        <path d="M70 190 L130 190 L122 215 L78 215 Z" fill="#BFDBFE" />
+        <rect x="66" y="182" width="68" height="12" rx="4" fill="#93C5FD" />
+
+        {/* stem + leaves (always visible, gentle sway) */}
+        <g className="flower-stem">
+          <path d="M100 190 C100 150 100 130 100 100" stroke="#4ADE80" strokeWidth="4" fill="none" strokeLinecap="round" />
+          <path d="M100 160 C80 155 70 140 72 128 C90 132 100 145 100 160 Z" fill="#86EFAC" />
+          <path d="M100 145 C120 140 130 125 128 113 C110 117 100 130 100 145 Z" fill="#4ADE80" />
+        </g>
+
+        {/* blooming flower head — loops: bloom in, hold, wilt out, repeat */}
+        <g className="flower-bloom">
+          <g className="flower-petal">
+            <ellipse cx="100" cy="70" rx="16" ry="26" fill="#93C5FD" />
+            <ellipse cx="100" cy="120" rx="16" ry="26" fill="#93C5FD" />
+            <ellipse cx="72" cy="95" rx="26" ry="16" fill="#BFDBFE" />
+            <ellipse cx="128" cy="95" rx="26" ry="16" fill="#BFDBFE" />
+            <ellipse cx="80" cy="78" rx="18" ry="14" fill="#DBEAFE" transform="rotate(-40 80 78)" />
+            <ellipse cx="120" cy="78" rx="18" ry="14" fill="#DBEAFE" transform="rotate(40 120 78)" />
+            <ellipse cx="80" cy="112" rx="18" ry="14" fill="#DBEAFE" transform="rotate(40 80 112)" />
+            <ellipse cx="120" cy="112" rx="18" ry="14" fill="#DBEAFE" transform="rotate(-40 120 112)" />
+          </g>
+          <circle cx="100" cy="95" r="14" fill="#2563EB" />
+          <circle cx="100" cy="95" r="14" fill="#3B82F6" opacity="0.6" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
 export default function UserBookings() {
   const { currentUser, bookings, updateBookingStatus, submitReview } = useCareConnect();
 
@@ -68,17 +137,38 @@ export default function UserBookings() {
     closeReviewModal();
   };
 
+  // Purely presentational counts derived from existing data — no new logic/state
+  const tabCounts = {
+    all: userBookings.length,
+    pending: userBookings.filter(b => b.status === 'pending').length,
+    accepted: userBookings.filter(b => b.status === 'accepted').length,
+    completed: userBookings.filter(b => b.status === 'completed').length,
+    cancelled: userBookings.filter(b => b.status === 'cancelled' || b.status === 'rejected').length,
+  };
+
+  const cardBorderColor = (status: Booking['status']) => {
+    switch (status) {
+      case 'accepted': return 'border-l-green-500';
+      case 'completed': return 'border-l-blue-500';
+      case 'pending': return 'border-l-amber-400';
+      default: return 'border-l-red-400';
+    }
+  };
+
   return (
     <div className="space-y-6 sm:space-y-8 max-w-4xl w-full mx-auto animate-fade-in">
-      
-      {/* Title */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-          My Care Bookings
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-500 mt-1">
-          Review, schedule, and evaluate booking requests for your family.
-        </p>
+
+      {/* Title + illustration */}
+      <div className="rounded-3xl bg-gradient-to-br from-blue-50 via-white to-white border border-slate-100 p-6 sm:p-8 flex items-center justify-between gap-6 overflow-hidden">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            My Care Bookings
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-sm">
+            Review, schedule, and evaluate booking requests for your family.
+          </p>
+        </div>
+        <BloomingFlower />
       </div>
 
       {/* Tabs Menu */}
@@ -88,13 +178,18 @@ export default function UserBookings() {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`
-              pb-3 px-3 sm:px-4 text-xs font-bold capitalize transition-all border-b-2 -mb-[2px] cursor-pointer
+              flex items-center gap-1.5 pb-3 px-3 sm:px-4 text-xs font-bold capitalize transition-all border-b-2 -mb-[2px] cursor-pointer
               ${activeTab === tab
                 ? 'border-blue-600 text-blue-700'
                 : 'border-transparent text-slate-400 hover:text-slate-600'}
             `}
           >
             {tab}
+            <span className={`h-5 min-w-5 px-1 rounded-full text-[10px] flex items-center justify-center font-bold ${
+              activeTab === tab ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'
+            }`}>
+              {tabCounts[tab]}
+            </span>
           </button>
         ))}
       </div>
@@ -115,7 +210,7 @@ export default function UserBookings() {
           filteredBookings.map((b) => (
             <div
               key={b.id}
-              className="bg-white rounded-3xl border border-slate-100 p-5 sm:p-6 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row md:items-start justify-between gap-6"
+              className={`bg-white rounded-3xl border border-slate-100 border-l-4 ${cardBorderColor(b.status)} p-5 sm:p-6 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row md:items-start justify-between gap-6`}
             >
               {/* Left caregiver details */}
               <div className="flex items-start gap-4">
@@ -129,7 +224,7 @@ export default function UserBookings() {
                   <span className="inline-flex rounded-lg bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 border border-blue-100">
                     {b.serviceName}
                   </span>
-                  
+
                   {b.notes && (
                     <p className="text-xs text-slate-500 leading-relaxed font-normal bg-slate-50 border border-slate-100/50 rounded-xl p-2.5 max-w-lg">
                       <strong>Client notes:</strong> &ldquo;{b.notes}&rdquo;
