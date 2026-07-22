@@ -112,6 +112,44 @@ export async function PATCH(
       });
     }
 
+    // 5. If booking is accepted, automatically activate/create conversation and post welcome message
+    if (status === "accepted") {
+      try {
+        const { data: existingConv } = await supabase
+          .from("conversations")
+          .select("id")
+          .eq("user_id", b.user_id)
+          .eq("caregiver_id", b.caregiver_id)
+          .maybeSingle();
+
+        let conversationId = existingConv?.id;
+
+        if (!conversationId) {
+          const { data: newConv } = await supabase
+            .from("conversations")
+            .insert({
+              user_id: b.user_id,
+              caregiver_id: b.caregiver_id,
+            })
+            .select("id")
+            .single();
+
+          conversationId = newConv?.id;
+        }
+
+        if (conversationId) {
+          await supabase.from("messages").insert({
+            conversation_id: conversationId,
+            sender_id: b.caregiver_id,
+            message: `Booking Confirmed! 🎉 Your ${serviceName} care session for ${dateOnly} is accepted. You can now chat directly here for schedule details and care instructions.`,
+            read: false,
+          });
+        }
+      } catch (convErr) {
+        console.error("[PATCH /api/bookings/[id]] Conversation Auto-Create Error:", convErr);
+      }
+    }
+
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[PATCH /api/bookings/[id]]", err);

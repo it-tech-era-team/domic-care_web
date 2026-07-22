@@ -27,6 +27,14 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // Mark unread messages sent by peer as read
+    await supabase
+      .from("messages")
+      .update({ read: true })
+      .eq("conversation_id", conversationId)
+      .neq("sender_id", user.id)
+      .eq("read", false);
+
     const { data: messagesData, error } = await supabase
       .from("messages")
       .select("*")

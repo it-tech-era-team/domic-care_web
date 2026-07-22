@@ -68,7 +68,8 @@ export async function GET(req: NextRequest) {
           id,
           document_type,
           file_url,
-          status
+          status,
+          uploaded_at
         ),
         reviews (
           rating
@@ -104,6 +105,7 @@ export async function GET(req: NextRequest) {
         type: doc.document_type,
         fileUrl: doc.file_url,
         status: doc.status,
+        uploaded_at: doc.uploaded_at,
       })) || [];
 
       const reviews = cg.reviews || [];

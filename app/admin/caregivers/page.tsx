@@ -157,6 +157,8 @@ export default function AdminCaregiversPage() {
 
   const [actionLoading, setActionLoading] = useState(false);
 
+  const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
+
   async function loadCaregivers() {
     try {
       setLoading(true);
@@ -1188,16 +1190,15 @@ export default function AdminCaregiversPage() {
                             {doc.status}
                           </span>
 
-                          {doc.fileUrl && (
-                            <a
-                              href={doc.fileUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-blue-700"
+                          {(doc.fileUrl || doc.url) && (
+                            <button
+                              type="button"
+                              onClick={() => setPreviewDoc(doc)}
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-bold text-white transition hover:bg-blue-700 cursor-pointer shadow-sm active:scale-95"
                             >
-                              <Eye size={13} />
+                              <Eye size={14} />
                               View
-                            </a>
+                            </button>
                           )}
                         </div>
                       </div>
@@ -1478,6 +1479,102 @@ export default function AdminCaregiversPage() {
 
           </div>
 
+        </div>
+      )}
+
+      {/* ================= DOCUMENT PREVIEW MODAL ================= */}
+      {previewDoc && (
+        <div className="fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl border border-slate-100 max-w-3xl w-full p-6 space-y-5 shadow-2xl relative max-h-[90vh] flex flex-col">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                  <FileText size={20} />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-900 text-base">{previewDoc.label || previewDoc.type}</h3>
+                  <p className="text-xs text-slate-400 font-semibold">Verification Credential Document</p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setPreviewDoc(null)}
+                className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 p-2 text-slate-500 transition shadow-sm cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Preview Container */}
+            <div className="flex-1 overflow-auto bg-slate-950/5 rounded-2xl border border-slate-200/80 p-4 flex items-center justify-center min-h-[320px] max-h-[60vh] relative">
+              {(previewDoc.fileUrl || previewDoc.url) ? (
+                (previewDoc.fileUrl || previewDoc.url || '').startsWith('data:application/pdf') || (previewDoc.fileUrl || previewDoc.url || '').endsWith('.pdf') ? (
+                  <iframe
+                    src={previewDoc.fileUrl || previewDoc.url}
+                    title={previewDoc.type}
+                    className="w-full h-full min-h-[450px] rounded-xl border-0"
+                  />
+                ) : (previewDoc.fileUrl || previewDoc.url || '').startsWith('data:image') || (previewDoc.fileUrl || previewDoc.url || '').match(/\.(jpeg|jpg|png|gif|webp|svg)/i) || (previewDoc.fileUrl || previewDoc.url || '').includes('placehold.co') || (previewDoc.fileUrl || previewDoc.url || '').includes('unsplash.com') || (previewDoc.fileUrl || previewDoc.url || '').startsWith('http') ? (
+                  <img
+                    src={previewDoc.fileUrl || previewDoc.url}
+                    alt={previewDoc.type}
+                    className="max-h-[55vh] max-w-full rounded-xl object-contain shadow-md border border-slate-200 bg-white"
+                  />
+                ) : (
+                  <div className="text-center p-8 space-y-3">
+                    <FileText size={48} className="mx-auto text-blue-500 animate-pulse" />
+                    <p className="text-xs font-bold text-slate-700">Verification Document Loaded</p>
+                    <p className="text-[10px] text-slate-400 max-w-md mx-auto truncate bg-white p-2 rounded-lg border">{(previewDoc.fileUrl || previewDoc.url || '').slice(0, 120)}...</p>
+                  </div>
+                )
+              ) : (
+                <div className="text-center p-8 text-slate-400">
+                  <ImageOff size={40} className="mx-auto text-slate-300 mb-2" />
+                  <p className="text-xs font-semibold">No file content found for this document.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer controls */}
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+              <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold capitalize ${
+                previewDoc.status === 'approved' ? 'bg-green-100 text-green-700 border-green-200' :
+                previewDoc.status === 'rejected' ? 'bg-red-100 text-red-700 border-red-200' :
+                'bg-yellow-100 text-yellow-700 border-yellow-200'
+              }`}>
+                Status: {previewDoc.status || 'pending'}
+              </span>
+
+              <div className="flex items-center gap-3">
+                {(previewDoc.fileUrl || previewDoc.url) && (
+                  <button
+                    onClick={() => {
+                      const fileTarget = previewDoc.fileUrl || previewDoc.url || '';
+                      const a = document.createElement('a');
+                      a.href = fileTarget;
+                      a.download = `${(previewDoc.type || 'document').replace(/\s+/g, '_')}`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm transition cursor-pointer"
+                  >
+                    <span>Download File</span>
+                  </button>
+                )}
+
+                <button
+                  onClick={() => setPreviewDoc(null)}
+                  className="rounded-xl bg-slate-900 hover:bg-slate-800 px-5 py-2.5 text-xs font-bold text-white shadow-md transition cursor-pointer"
+                >
+                  Close Preview
+                </button>
+              </div>
+            </div>
+
+          </div>
         </div>
       )}
 

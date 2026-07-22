@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { useCareConnect, CaregiverProfile } from '@/context/useCareConnect';
 import {
   Users, Stethoscope, Calendar, DollarSign, ShieldAlert,
   CheckCircle2, AlertCircle, FileText, Eye, Check, X,
-  Activity, Clock
+  Activity, Clock, UserCheck
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -60,14 +61,33 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6 sm:space-y-8 max-w-6xl w-full mx-auto animate-fade-in">
       
-      {/* Title */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-          Admin Operations Dashboard
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-500 mt-1">
-          Monitor marketplace health, review verification documents, and audit credentials.
-        </p>
+      {/* Title Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Admin Operations Dashboard
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            Monitor marketplace health, review verification documents, and audit credentials.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+          <Link
+            href="/admin/users"
+            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2.5 text-xs font-bold shadow-sm transition-all cursor-pointer"
+          >
+            <UserCheck className="h-4 w-4 text-blue-600" />
+            <span>User Management</span>
+          </Link>
+          <Link
+            href="/admin/caregivers"
+            className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 text-xs font-bold shadow-md shadow-blue-500/15 transition-all cursor-pointer"
+          >
+            <Stethoscope className="h-4 w-4" />
+            <span>Caregiver Management</span>
+          </Link>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -388,12 +408,18 @@ export default function AdminDashboard() {
                     <div key={doc.id} className="p-3 border border-slate-100 rounded-2xl bg-slate-50/50 space-y-2">
                       <div className="flex justify-between items-center text-xs">
                         <span className="font-bold text-slate-800">{doc.type}</span>
-                        <span className="text-[9px] uppercase font-bold text-amber-600">Pending Review</span>
+                        <span className={`text-[9px] uppercase font-bold px-2 py-0.5 rounded-full border ${
+                          doc.status === 'approved' ? 'bg-green-50 text-green-700 border-green-100' :
+                          doc.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-100' :
+                          'bg-amber-50 text-amber-700 border-amber-100'
+                        }`}>
+                          {doc.status || 'pending'}
+                        </span>
                       </div>
                       
                       {/* Document Preview Card */}
                       <div className="rounded-xl border border-slate-200 bg-white p-3 flex flex-col items-center justify-center min-h-[120px] text-center">
-                        {doc.fileUrl.startsWith('data:') ? (
+                        {doc.fileUrl && (doc.fileUrl.startsWith('data:image') || doc.fileUrl.match(/\.(jpeg|jpg|png|gif|webp|svg)/i) || doc.fileUrl.includes('placehold.co') || doc.fileUrl.includes('unsplash.com')) ? (
                           <img
                             src={doc.fileUrl}
                             alt={doc.type}
@@ -402,17 +428,24 @@ export default function AdminDashboard() {
                         ) : (
                           <>
                             <FileText className="h-8 w-8 text-blue-500 mb-1" />
-                            <span className="text-2xs font-bold text-slate-400 uppercase">Mock {doc.type} preview</span>
+                            <span className="text-2xs font-bold text-slate-600 uppercase">{doc.type}</span>
                           </>
                         )}
-                        <a
-                          href={doc.fileUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-[10px] text-blue-600 font-semibold mt-2 hover:underline"
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!doc.fileUrl) return;
+                            const a = document.createElement('a');
+                            a.href = doc.fileUrl;
+                            a.download = `${(doc.type || 'document').replace(/\s+/g, '_')}`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                          }}
+                          className="text-[10px] text-blue-600 font-bold mt-2 hover:underline cursor-pointer inline-flex items-center gap-1"
                         >
-                          View Source Link
-                        </a>
+                          <span>Download / Save Document File</span>
+                        </button>
                       </div>
                     </div>
                   ))}

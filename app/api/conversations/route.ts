@@ -46,11 +46,33 @@ export async function GET(req: NextRequest) {
 
     const conversations = [];
     for (const conv of (conversationsData || [])) {
-      // Fetch latest message for details
+      // Fetch latest message
       const { data: msg } = await supabase
         .from("messages")
-        .select("message, created_at")
+        .select("message, created_at, sender_id, read")
         .eq("conversation_id", conv.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      // Fetch unread count for current user
+      const { count: unreadCount } = await supabase
+        .from("messages")
+        .select("id", { count: "exact", head: true })
+        .eq("conversation_id", conv.id)
+        .eq("read", false)
+        .neq("sender_id", user.id);
+
+      // Fetch active booking context
+      const { data: activeBooking } = await supabase
+        .from("bookings")
+        .select(`
+          status,
+          start_date,
+          services ( name )
+        `)
+        .eq("user_id", conv.user_id)
+        .eq("caregiver_id", conv.caregiver_id)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -60,15 +82,22 @@ export async function GET(req: NextRequest) {
       const caregiverProfileObj = Array.isArray(c.caregiver_profiles) ? c.caregiver_profiles[0] : c.caregiver_profiles;
       const caregiverSubProfileObj = caregiverProfileObj ? (Array.isArray(caregiverProfileObj.profiles) ? caregiverProfileObj.profiles[0] : caregiverProfileObj.profiles) : null;
 
+      const bkServ = activeBooking as any;
+      const serviceName = (Array.isArray(bkServ?.services) ? bkServ?.services[0]?.name : bkServ?.services?.name) || "Care Service";
+
       conversations.push({
         id: c.id,
         userId: c.user_id,
-        userFullName: clientProfileObj?.full_name || "",
+        userFullName: clientProfileObj?.full_name || "Client",
         userAvatar: clientProfileObj?.avatar_url || "",
         caregiverId: c.caregiver_id,
-        caregiverFullName: caregiverSubProfileObj?.full_name || "",
+        caregiverFullName: caregiverSubProfileObj?.full_name || "Caregiver",
         caregiverAvatar: caregiverSubProfileObj?.avatar_url || "",
         lastMessage: msg?.message || "",
+        unreadCount: unreadCount || 0,
+        bookingStatus: bkServ?.status || null,
+        bookingService: serviceName,
+        bookingStartDate: bkServ?.start_date || null,
         updatedAt: msg?.created_at || c.created_at,
       });
     }

@@ -7,7 +7,7 @@ import { useCareConnect } from '@/context/useCareConnect';
 import {
   Heart, LayoutDashboard, Search, CalendarDays,
   MessageSquare, UserCircle, Bell, ShieldCheck,
-  ClipboardList, LogOut, Menu, X
+  ClipboardList, LogOut, Menu, X, Users
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -52,6 +52,8 @@ export default function Sidebar({ role }: SidebarProps) {
     ],
     admin: [
       { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+      { label: 'Caregivers', href: '/admin/caregivers', icon: Users },
+      { label: 'Users', href: '/admin/users', icon: UserCircle },
     ],
   };
 

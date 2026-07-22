@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { useCareConnect, Booking } from '@/context/useCareConnect';
 import {
   Calendar, Clock, Star, AlertTriangle, CheckCircle2,
@@ -8,7 +9,8 @@ import {
 } from 'lucide-react';
 
 export default function CaregiverBookings() {
-  const { currentUser, bookings, updateBookingStatus } = useCareConnect();
+  const router = useRouter();
+  const { currentUser, bookings, updateBookingStatus, createConversation } = useCareConnect();
 
   // Tab State
   const [activeTab, setActiveTab] = useState<'all' | 'accepted' | 'completed' | 'cancelled'>('all');
@@ -157,12 +159,29 @@ export default function CaregiverBookings() {
 
                   {/* Actions */}
                   {b.status === 'accepted' && (
-                    <button
-                      onClick={() => updateBookingStatus(b.id, 'completed')}
-                      className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-[11px] font-bold shadow-sm transition-all cursor-pointer"
-                    >
-                      Mark Completed
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={async () => {
+                          const convId = await createConversation(currentUser.id);
+                          if (convId) {
+                            router.push(`/caregiver/messages?conv=${convId}`);
+                          } else {
+                            router.push('/caregiver/messages');
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 px-3 py-1 text-[11px] font-bold transition-all cursor-pointer"
+                      >
+                        <MessageSquare className="h-3.5 w-3.5" />
+                        <span>Chat with Client</span>
+                      </button>
+
+                      <button
+                        onClick={() => updateBookingStatus(b.id, 'completed')}
+                        className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-[11px] font-bold shadow-sm transition-all cursor-pointer"
+                      >
+                        Mark Completed
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>

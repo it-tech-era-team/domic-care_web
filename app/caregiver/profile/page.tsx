@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCareConnect, CaregiverProfile } from '@/context/useCareConnect';
 import MediaPicker from '@/components/MediaPicker';
@@ -20,6 +20,8 @@ export default function CaregiverProfileBuilder() {
 
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [isSaved, setIsSaved] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
   // --- Step 1: Personal Details ---
   const [bio, setBio] = useState(existingProfile?.bio || '');
@@ -80,11 +82,44 @@ export default function CaregiverProfileBuilder() {
 
   // --- Step 5: Verification Documents ---
   const [documents, setDocuments] = useState<{ id: string; type: string; fileUrl: string; status: 'pending' | 'approved' | 'rejected' }[]>(
-    existingProfile?.documents || [
-      { id: 'doc-1', type: 'CNIC / Identity Card', fileUrl: 'https://placehold.co/600x400/png?text=Identity+Card', status: 'pending' },
-      { id: 'doc-2', type: 'Nursing Certificate', fileUrl: 'https://placehold.co/600x400/png?text=Nursing+Certificate', status: 'pending' },
-    ]
+    existingProfile?.documents || []
   );
+
+  // Fetch real profile from backend on mount to ensure freshness
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch('/api/caregivers/profile');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.profile) {
+            const p = data.profile;
+            setBio(p.bio || '');
+            setGender(p.gender || 'Female');
+            setDob(p.dob || '1990-01-01');
+            setAddress(p.address || '');
+            setCity(p.city || 'New York');
+            setExperienceYears(p.experienceYears || 2);
+            setHourlyRate(p.hourlyRate || 20);
+            if (p.services && p.services.length > 0) setSelectedServices(p.services);
+            if (p.availability && Object.keys(p.availability).length > 0) setAvailability(p.availability);
+            setDocuments(p.documents || []);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching caregiver profile:', err);
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  useEffect(() => {
+    if (existingProfile?.documents && existingProfile.documents.length > 0 && documents.length === 0) {
+      setDocuments(existingProfile.documents);
+    }
+  }, [existingProfile]);
   
   const [newDocType, setNewDocType] = useState('Nursing License');
   const [newDocUrl, setNewDocUrl] = useState('');
@@ -108,9 +143,23 @@ export default function CaregiverProfileBuilder() {
     setDocuments(prev => prev.filter(d => d.id !== docId));
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentUser) return;
+    if (!currentUser || isSubmitting) return;
+
+    setIsSubmitting(true);
+
+    let finalDocs = [...documents];
+    if (newDocUrl.trim()) {
+      finalDocs.push({
+        id: `doc-${Math.random().toString(36).substr(2, 9)}`,
+        type: newDocType,
+        fileUrl: newDocUrl.trim(),
+        status: 'pending' as const,
+      });
+      setDocuments(finalDocs);
+      setNewDocUrl('');
+    }
 
     const updatedData = {
       fullName: currentUser.fullName,
@@ -126,16 +175,19 @@ export default function CaregiverProfileBuilder() {
       longitude: existingProfile?.longitude || -74.0060,
       services: selectedServices,
       availability,
-      documents,
+      documents: finalDocs,
     };
 
-    submitCaregiverApplication(updatedData);
-    setIsSaved(true);
+    const success = await submitCaregiverApplication(updatedData);
+    setIsSubmitting(false);
 
-    setTimeout(() => {
-      setIsSaved(false);
-      router.push('/caregiver/dashboard');
-    }, 1800);
+    if (success) {
+      setIsSaved(true);
+      setTimeout(() => {
+        setIsSaved(false);
+        router.push('/caregiver/dashboard');
+      }, 1800);
+    }
   };
 
   return (
@@ -503,10 +555,18 @@ export default function CaregiverProfileBuilder() {
           ) : (
             <button
               onClick={handleFormSubmit}
-              className="rounded-xl bg-teal-600 hover:bg-teal-700 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-500/10 inline-flex items-center gap-1.5 cursor-pointer ml-auto"
+              disabled={isSubmitting}
+              className={`
+                rounded-xl bg-teal-600 hover:bg-teal-700 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-500/10 inline-flex items-center gap-1.5 cursor-pointer ml-auto
+                ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}
+              `}
             >
-              <span>Submit Registration Application</span>
-              <CheckCircle2 className="h-4 w-4" />
+              <span>{isSubmitting ? 'Saving Application...' : 'Submit Registration Application'}</span>
+              {isSubmitting ? (
+                <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4" />
+              )}
             </button>
           )}
         </div>

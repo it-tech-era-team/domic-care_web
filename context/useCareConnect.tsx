@@ -79,6 +79,10 @@ export interface Conversation {
   caregiverFullName: string;
   caregiverAvatar: string;
   lastMessage?: string;
+  unreadCount?: number;
+  bookingStatus?: string | null;
+  bookingService?: string;
+  bookingStartDate?: string | null;
   updatedAt: string;
 }
 
@@ -141,7 +145,7 @@ interface CareConnectContextType {
   approveCaregiver: (caregiverId: string) => Promise<void>;
   rejectCaregiver: (caregiverId: string) => Promise<void>;
   updateCaregiverProfile: (profile: Partial<CaregiverProfile>) => Promise<void>;
-  submitCaregiverApplication: (data: Omit<CaregiverProfile, 'id' | 'approvalStatus' | 'rating' | 'reviewsCount'>) => Promise<void>;
+  submitCaregiverApplication: (data: Omit<CaregiverProfile, 'id' | 'approvalStatus' | 'rating' | 'reviewsCount'>) => Promise<boolean>;
   updateUserProfile: (profileData: { fullName?: string; email?: string; phone?: string; avatarUrl?: string }) => Promise<boolean>;
   caregiverFilters: any;
   updateCaregiverFilters: (filters: any) => Promise<void>;
@@ -234,7 +238,29 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
       const cgRes = await fetch(url);
       if (cgRes.ok) {
         const data = await cgRes.json();
-        setCaregivers(data.caregivers || []);
+        let list: CaregiverProfile[] = data.caregivers || [];
+
+        // If current user is a caregiver, fetch their own profile so it's always in state even if pending/rejected
+        if (user.role === 'caregiver') {
+          try {
+            const myProfRes = await fetch('/api/caregivers/profile');
+            if (myProfRes.ok) {
+              const myData = await myProfRes.json();
+              if (myData.profile) {
+                const idx = list.findIndex(c => c.id === myData.profile.id);
+                if (idx !== -1) {
+                  list[idx] = myData.profile;
+                } else {
+                  list = [myData.profile, ...list];
+                }
+              }
+            }
+          } catch (e) {
+            console.error('Error fetching own caregiver profile:', e);
+          }
+        }
+
+        setCaregivers(list);
       }
 
       // 6. Fetch admin logs if role is admin
@@ -544,7 +570,7 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
-  const submitCaregiverApplication = async (data: Omit<CaregiverProfile, 'id' | 'approvalStatus' | 'rating' | 'reviewsCount'>) => {
+  const submitCaregiverApplication = async (data: Omit<CaregiverProfile, 'id' | 'approvalStatus' | 'rating' | 'reviewsCount'>): Promise<boolean> => {
     try {
       // First update the profile details
       const updateRes = await fetch('/api/caregivers/profile', {
@@ -553,19 +579,30 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
         body: JSON.stringify(data),
       });
 
-      if (updateRes.ok) {
-        // Then submit the application to reset status to pending
-        const submitRes = await fetch('/api/caregivers/application', {
-          method: 'POST',
-        });
-
-        if (submitRes.ok) {
-          showToast('Application Submitted', 'Admin will review your verification details shortly.', 'success');
-          await refreshData();
-        }
+      if (!updateRes.ok) {
+        const errData = await updateRes.json().catch(() => ({}));
+        showToast('Update Failed', errData.error || 'Failed to save profile documents', 'error');
+        return false;
       }
+
+      // Then submit the application to reset status to pending
+      const submitRes = await fetch('/api/caregivers/application', {
+        method: 'POST',
+      });
+
+      if (!submitRes.ok) {
+        const errData = await submitRes.json().catch(() => ({}));
+        showToast('Submission Failed', errData.error || 'Failed to submit application', 'error');
+        return false;
+      }
+
+      showToast('Application Submitted', 'Admin will review your verification details shortly.', 'success');
+      await refreshData();
+      return true;
     } catch (err) {
       console.error('Application submission failed:', err);
+      showToast('Submission Error', 'An error occurred while saving your application.', 'error');
+      return false;
     }
   };
 

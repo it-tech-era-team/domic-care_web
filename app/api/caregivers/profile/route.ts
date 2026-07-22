@@ -43,7 +43,8 @@ export async function GET(req: NextRequest) {
           id,
           document_type,
           file_url,
-          status
+          status,
+          uploaded_at
         ),
         reviews (
           rating
@@ -74,6 +75,7 @@ export async function GET(req: NextRequest) {
       type: doc.document_type,
       fileUrl: doc.file_url,
       status: doc.status,
+      uploaded_at: doc.uploaded_at,
     })) || [];
 
     const reviews = cg.reviews || [];
@@ -133,6 +135,7 @@ export async function PATCH(req: NextRequest) {
       longitude,
       services,
       availability,
+      documents,
     } = body;
 
     const supabase = createServerSupabaseClient();
@@ -218,6 +221,43 @@ export async function PATCH(req: NextRequest) {
         await supabase
           .from("caregiver_availability")
           .insert(rowsToInsert);
+      }
+    }
+
+    // Update caregiver verification documents if provided
+    if (Array.isArray(documents)) {
+      // 1. Delete existing documents
+      const { error: delErr } = await supabase
+        .from("caregiver_documents")
+        .delete()
+        .eq("caregiver_id", user.id);
+
+      if (delErr) {
+        console.error("[PATCH /api/caregivers/profile] Document deletion error:", delErr);
+        return NextResponse.json({ error: delErr.message }, { status: 400 });
+      }
+
+      // 2. Insert new documents
+      if (documents.length > 0) {
+        const rowsToInsert = documents
+          .map((doc: any) => ({
+            caregiver_id: user.id,
+            document_type: doc.type || "Verification Document",
+            file_url: doc.fileUrl || doc.url || "",
+            status: doc.status || "pending",
+          }))
+          .filter((doc: any) => doc.file_url.trim() !== "");
+
+        if (rowsToInsert.length > 0) {
+          const { error: insErr } = await supabase
+            .from("caregiver_documents")
+            .insert(rowsToInsert);
+
+          if (insErr) {
+            console.error("[PATCH /api/caregivers/profile] Document insertion error:", insErr);
+            return NextResponse.json({ error: insErr.message }, { status: 400 });
+          }
+        }
       }
     }
 

@@ -49,7 +49,8 @@ export async function GET(
           id,
           document_type,
           file_url,
-          status
+          status,
+          uploaded_at
         )
       `)
       .eq("id", id)
@@ -97,6 +98,7 @@ export async function GET(
       type: doc.document_type,
       fileUrl: doc.file_url,
       status: doc.status,
+      uploaded_at: doc.uploaded_at,
     })) || [];
 
     // Format reviews
