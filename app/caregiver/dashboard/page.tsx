@@ -100,7 +100,7 @@ const canCompleteBooking = (endDate: string) => {
               href="/caregiver/calendar"
               className="inline-flex items-center gap-2 whitespace-nowrap rounded-2xl bg-gradient-to-r from-[#16a34a] via-[#15803d] to-[#111827] hover:from-[#15803d] hover:via-[#166534] hover:to-black text-white px-5 py-3 text-sm font-bold shadow-lg shadow-green-600/25 transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
             >
-              <CalendarDays className="h-4 w-4 text-white"/>
+              <CalendarDays className="h-4 w-4 text-white"  />
               <span>My Schedule</span>
             </Link>
 
