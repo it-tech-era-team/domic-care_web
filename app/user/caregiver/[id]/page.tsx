@@ -32,11 +32,14 @@ export default function CaregiverProfileDetail({ params }: PageProps) {
   // Booking Form State
   const [bookingDate, setBookingDate] = useState('');
   const [selectedService, setSelectedService] = useState('');
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState('09:00 - 13:00');
+const [fromTime, setFromTime] = useState("");
+const [toTime, setToTime] = useState("");
+const [timeError, setTimeError] = useState("");
   const [bookingNotes, setBookingNotes] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [isBookingSubmitting, setIsBookingSubmitting] = useState(false);
 
+  
   // Fetch details from backend
   useEffect(() => {
     let active = true;
@@ -81,14 +84,31 @@ export default function CaregiverProfileDetail({ params }: PageProps) {
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!bookingDate || !selectedService || !selectedTimeSlot || !caregiver) return;
+    const today = new Date().toISOString().split("T")[0];
+
+if (bookingDate === today) {
+  const now = new Date();
+
+  const [hours, minutes] = fromTime.split(":").map(Number);
+
+  const selectedTime = new Date();
+  selectedTime.setHours(hours, minutes, 0, 0);
+
+  if (selectedTime <= now) {
+    setTimeError("Selected time has already passed. Please choose a future time.");
+    return;
+  }
+}
+
+setTimeError("");
+    if (!bookingDate || !selectedService ||!fromTime || !toTime  || !caregiver) return;
 
     setIsBookingSubmitting(true);
     await requestBooking(
       caregiver.id,
       selectedService,
       bookingDate,
-      selectedTimeSlot,
+     `${fromTime} - ${toTime}`,
       bookingNotes
     );
 
@@ -346,18 +366,40 @@ export default function CaregiverProfileDetail({ params }: PageProps) {
               </div>
 
               {/* Time Slots */}
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-slate-700">Time Interval</label>
-                <select
-                  value={selectedTimeSlot}
-                  onChange={(e) => setSelectedTimeSlot(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-800 focus:border-blue-600 focus:bg-white focus:outline-none"
-                >
-                  <option value="09:00 - 13:00">Morning (09:00 AM - 01:00 PM)</option>
-                  <option value="14:00 - 18:00">Afternoon (02:00 PM - 06:00 PM)</option>
-                  <option value="09:00 - 17:00">Full Day (09:00 AM - 05:00 PM)</option>
-                </select>
-              </div>
+             {/* Time Interval */}
+<div className="space-y-1">
+  <label className="block text-xs font-bold text-slate-700">
+    Time Interval
+  </label>
+
+  <div className="grid grid-cols-2 gap-2">
+    <input
+      type="time"
+      required
+      value={fromTime}
+      onChange={(e) => {
+        setFromTime(e.target.value);
+        setTimeError("");
+      }}
+      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-800 focus:border-blue-600 focus:bg-white focus:outline-none"
+    />
+
+    <input
+      type="time"
+      required
+      value={toTime}
+      min={fromTime}
+      onChange={(e) => setToTime(e.target.value)}
+      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-800 focus:border-blue-600 focus:bg-white focus:outline-none"
+    />
+  </div>
+
+  {timeError && (
+    <p className="text-xs text-red-600 font-medium mt-1">
+      {timeError}
+    </p>
+  )}
+</div>
 
               {/* Notes */}
               <div className="space-y-1">

@@ -33,7 +33,12 @@ export default function CaregiverDashboard() {
       </div>
     );
   }
+  // yh check krega ke completed wala button kb enable krna ha 
+const canCompleteBooking = (endDate: string) => {
+  if (!endDate) return false;
 
+  return new Date() >= new Date(endDate);
+};
   // Find caregiver profile info
   const profile = caregivers.find((cg) => cg.id === currentUser.id);
 
@@ -91,11 +96,11 @@ export default function CaregiverDashboard() {
           </div>
 
           <div className="flex items-center gap-3 self-start lg:self-auto">
-            <Link
+           <Link
               href="/caregiver/calendar"
-              className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-5 py-3 text-sm font-bold shadow-sm transition cursor-pointer"
+              className="inline-flex items-center gap-2 whitespace-nowrap rounded-2xl bg-gradient-to-r from-[#16a34a] via-[#15803d] to-[#111827] hover:from-[#15803d] hover:via-[#166534] hover:to-black text-white px-5 py-3 text-sm font-bold shadow-lg shadow-green-600/25 transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
             >
-              <CalendarDays className="h-4 w-4 text-blue-600" />
+              <CalendarDays className="h-4 w-4 text-white" />
               <span>My Schedule</span>
             </Link>
 
@@ -190,15 +195,21 @@ export default function CaregiverDashboard() {
           </div>
 
           {/* Pending Job Requests */}
-          <div className="rounded-3xl border border-amber-200 bg-white p-7 shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
+          <div className="rounded-3xl border border-orange-200 bg-white p-7 shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
             <div className="flex items-center justify-between">
-              <AlertTriangle className="text-amber-600" size={34} />
-              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">
+              <AlertTriangle className="text-orange-600" size={34} />
+              <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-700">
                 Pending
               </span>
             </div>
-            <h2 className="mt-8 text-5xl font-black text-amber-500">{pendingRequests.length}</h2>
-            <p className="mt-2 text-slate-500 font-semibold">Job Requests Awaiting</p>
+
+            <h2 className="mt-8 text-5xl font-black text-orange-500">
+              {pendingRequests.length}
+            </h2>
+
+            <p className="mt-2 text-slate-500 font-semibold">
+              Job Requests Awaiting
+            </p>
           </div>
 
           {/* Active Jobs */}
@@ -214,17 +225,21 @@ export default function CaregiverDashboard() {
           </div>
 
           {/* Overall Rating */}
-          <div className="rounded-3xl border border-purple-200 bg-white p-7 shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
+          <div className="rounded-3xl border border-amber-300 bg-amber-50 p-7 shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
             <div className="flex items-center justify-between">
-              <Star className="text-purple-600 fill-purple-500" size={34} />
-              <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-bold text-purple-700">
+              <Star className="text-amber-500 fill-amber-400" size={34} />
+              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800">
                 Rating
               </span>
             </div>
-            <h2 className="mt-8 text-5xl font-black text-purple-600">
-              {profile?.rating ? `${profile.rating}★` : '5.0★'}
+
+            <h2 className="mt-8 text-5xl font-black text-amber-500">
+              {profile?.rating ? `${profile.rating}★` : "5.0★"}
             </h2>
-            <p className="mt-2 text-slate-500 font-semibold">{completedJobs.length} Completed Jobs</p>
+
+            <p className="mt-2 text-slate-500 font-semibold">
+              {completedJobs.length} Completed Jobs
+            </p>
           </div>
 
         </div>
@@ -379,8 +394,14 @@ export default function CaregiverDashboard() {
                         </button>
 
                         <button
-                          onClick={() => updateBookingStatus(job.id, 'completed')}
-                          className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 text-xs font-bold shadow-sm transition cursor-pointer"
+                          onClick={() => updateBookingStatus(job.id, "completed")}
+                          disabled={!canCompleteBooking(job.endDate)}
+                          className={`rounded-xl px-4 py-2.5 text-xs font-bold shadow-sm transition
+                            ${
+                              canCompleteBooking(job.endDate)
+                                ? "bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+                                : "bg-slate-300 text-slate-500 cursor-not-allowed"
+                            }`}
                         >
                           Complete
                         </button>
