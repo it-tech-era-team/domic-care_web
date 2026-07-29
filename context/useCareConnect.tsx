@@ -141,7 +141,9 @@ interface CareConnectContextType {
   submitReview: (bookingId: string, rating: number, comment: string) => Promise<void>;
   sendMessage: (conversationId: string, senderId: string, text: string) => Promise<void>;
   createConversation: (caregiverId: string) => Promise<string>;
+  loadMessages: (conversationId: string) => Promise<void>;
   markNotificationRead: (id: string) => Promise<void>;
+  deleteNotification: (id: string) => Promise<void>;
   approveCaregiver: (caregiverId: string) => Promise<void>;
   rejectCaregiver: (caregiverId: string) => Promise<void>;
   updateCaregiverProfile: (profile: Partial<CaregiverProfile>) => Promise<void>;
@@ -303,20 +305,20 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, [currentUser, caregiverFilters]);
 
   // If viewing a dynamic chat screen, auto-refresh messages when conversations change
-  useEffect(() => {
-    if (conversations.length > 0 && currentUser) {
-      // Find the first conversation if active to hydrate messages
-      const activeConv = conversations[0];
-      if (activeConv) {
-        fetch(`/api/conversations/${activeConv.id}/messages`)
-          .then(res => res.ok ? res.json() : null)
-          .then(data => {
-            if (data?.messages) setMessages(data.messages);
-          })
-          .catch(err => console.error("Error fetching message history:", err));
-      }
-    }
-  }, [conversations, currentUser]);
+  // useEffect(() => {
+  //   if (conversations.length > 0 && currentUser) {
+  //     // Find the first conversation if active to hydrate messages
+  //     const activeConv = conversations[0];
+  //     if (activeConv) {
+  //       fetch(`/api/conversations/${activeConv.id}/messages`)
+  //         .then(res => res.ok ? res.json() : null)
+  //         .then(data => {
+  //           if (data?.messages) setMessages(data.messages);
+  //         })
+  //         .catch(err => console.error("Error fetching message history:", err));
+  //     }
+  //   }
+  // }, [conversations, currentUser]);
 
   const setCurrentUser = (user: UserProfile | null) => {
     setCurrentUserState(user);
@@ -498,13 +500,28 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
       if (res.ok) {
         const data = await res.json();
         // Optimistically add to message state for instant render
-        setMessages(prev => [...prev, data.message]);
+        // setMessages(prev => [...prev, data.message]);
+        await loadMessages(conversationId);
         await refreshData();
       }
     } catch (err) {
       console.error('Error sending message:', err);
     }
   };
+
+  // Fetch latest messages for a conversation and update the global chat state.
+  const loadMessages = async (conversationId: string): Promise<void> => {
+  try {
+    const res = await fetch(`/api/conversations/${conversationId}/messages`);
+
+    if (res.ok) {
+      const data = await res.json();
+      setMessages(data.messages || []);
+    }
+  } catch (err) {
+    console.error("Error loading messages:", err);
+  }
+};
 
   const markNotificationRead = async (id: string) => {
     try {
@@ -519,6 +536,27 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
+//delete notifcation
+ const deleteNotification = async (id: string) => {
+  try {
+    console.log("Deleting notification:", id);
+
+    const res = await fetch(`/api/notifications/${id}`, {
+      method: "DELETE",
+    });
+
+    console.log("Status:", res.status);
+
+    const data = await res.json();
+    console.log("Response:", data);
+
+    if (res.ok) {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }
+  } catch (err) {
+    console.error("Delete Error:", err);
+  }
+};
   // Admin Operations
   const approveCaregiver = async (caregiverId: string) => {
     try {
@@ -707,7 +745,9 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
         submitReview,
         sendMessage,
         createConversation,
+        loadMessages,
         markNotificationRead,
+        deleteNotification,
         approveCaregiver,
         rejectCaregiver,
         updateCaregiverProfile,

@@ -5,6 +5,11 @@ import { CareConnectProvider } from "@/context/useCareConnect";
 export const metadata: Metadata = {
   title: "Domic Care | Premium Elderly Caregiver Marketplace",
   description: "Find trusted, background-checked, and professional caregivers near you for elderly care, nursing, daily assistance, and companionship.",
+ icons: {
+    icon: "/Logo.png", 
+    // shortcut: "/favicon.png",
+    // apple: "/favicon.png",
+  },
 };
 
 export default function RootLayout({

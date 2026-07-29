@@ -18,7 +18,8 @@ import {
   Image as ImageIcon,
   X,
   Phone,
-  AlertCircle
+  AlertCircle,
+  ArrowLeft
 } from 'lucide-react';
 import MediaPicker from '@/components/MediaPicker';
 
@@ -28,7 +29,7 @@ interface ProChatWindowProps {
 }
 
 export default function ProChatWindow({ role, initialConvId }: ProChatWindowProps) {
-  const { currentUser, conversations, messages, sendMessage, createConversation } = useCareConnect();
+  const { currentUser, conversations, messages, sendMessage, createConversation,loadMessages } = useCareConnect();
 
   const [activeConvId, setActiveConvId] = useState<string | null>(initialConvId || null);
   const [inputText, setInputText] = useState('');
@@ -36,6 +37,11 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
   const [showMediaPicker, setShowMediaPicker] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Controls which panel shows on small screens (mobile). Independent from
+  // activeConvId so auto-selecting a conversation for desktop doesn't force
+  // the chat open on mobile before the user taps a conversation themselves.
+  const [isMobileChatOpen, setIsMobileChatOpen] = useState(!!initialConvId);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -81,17 +87,18 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
 
   // Auto poll active conversation every 3.5 seconds for real-time responsiveness
   useEffect(() => {
-    if (!activeConvId) return;
-    const interval = setInterval(async () => {
-      try {
-        await fetch(`/api/conversations/${activeConvId}/messages`);
-      } catch (e) {
-        // silent sync
-      }
-    }, 3500);
+  if (!activeConvId) return;
 
-    return () => clearInterval(interval);
-  }, [activeConvId]);
+  // Load messages immediately when a conversation is opened
+  loadMessages(activeConvId);
+
+  // Keep the currently open conversation in sync
+  const interval = setInterval(() => {
+    loadMessages(activeConvId);
+  }, 2000);
+
+  return () => clearInterval(interval);
+}, [activeConvId]);
 
   const handleSend = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -158,7 +165,7 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
     <div className="flex bg-white rounded-3xl border border-slate-200/90 shadow-2xl overflow-hidden min-h-[calc(100vh-120px)] max-h-[85vh] animate-fade-in">
       
       {/* ================= LEFT SIDEBAR: CONVERSATIONS ================= */}
-      <div className="w-full md:w-80 lg:w-96 border-r border-slate-200/80 flex flex-col bg-slate-50/50 shrink-0">
+      <div className={`w-full md:w-80 lg:w-96 border-r border-slate-200/80 flex-col bg-slate-50/50 shrink-0 ${isMobileChatOpen ? 'hidden md:flex' : 'flex'}`}>
         
         {/* Sidebar Header Banner */}
         <div className="p-5 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white shadow-md space-y-4">
@@ -209,7 +216,10 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
               return (
                 <button
                   key={conv.id}
-                  onClick={() => setActiveConvId(conv.id)}
+                  onClick={() => {
+                    setActiveConvId(conv.id);
+                    setIsMobileChatOpen(true);
+                  }}
                   className={`
                     w-full p-4 text-left flex items-start gap-3.5 transition-all cursor-pointer relative
                     ${isActive
@@ -261,33 +271,41 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
       </div>
 
       {/* ================= RIGHT WORKSPACE: CHAT FEED ================= */}
-      <div className="flex-1 flex flex-col bg-[#F8FAFC] overflow-hidden relative">
+      <div className={`flex-1 flex-col bg-[#F8FAFC] overflow-hidden relative ${isMobileChatOpen ? 'flex' : 'hidden md:flex'}`}>
         {activeConv ? (
           <>
             {/* Active Chat Header */}
-            <div className="bg-white px-6 py-4.5 border-b border-slate-200/80 flex items-center justify-between shadow-xs z-10">
-              <div className="flex items-center gap-4">
-                <div className="relative">
+            <div className="sticky top-0 bg-white px-4 sm:px-6 py-3 sm:py-4.5 border-b border-slate-200/80 flex items-center justify-between shadow-xs z-20">
+              <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                <button
+                  onClick={() => setIsMobileChatOpen(false)}
+                  className="md:hidden p-2 -ml-2 mr-0.5 rounded-2xl text-slate-600 hover:bg-slate-100 transition cursor-pointer shrink-0"
+                  title="Back to conversations"
+                >
+                  <ArrowLeft size={20} />
+                </button>
+
+                <div className="relative shrink-0">
                   <img
                     src={peerAvatar || 'https://api.dicebear.com/7.x/adventurer/svg?seed=User'}
                     alt={peerName}
-                    className="h-12 w-12 rounded-2xl object-cover border-2 border-white shadow-md ring-4 ring-emerald-500/20"
+                    className="h-10 w-10 sm:h-12 sm:w-12 rounded-2xl object-cover border-2 border-white shadow-md ring-4 ring-emerald-500/20"
                   />
                   <span className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-emerald-500 border-2 border-white ring-2 ring-emerald-500/30 animate-pulse" />
                 </div>
 
-                <div>
-                  <div className="flex items-center gap-2.5">
-                    <h2 className="font-heading font-black text-lg text-slate-900 leading-tight">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <h2 className="font-heading font-black text-base sm:text-lg text-slate-900 leading-tight truncate">
                       {peerName}
                     </h2>
-                    <span className="rounded-full bg-slate-100 border border-slate-200/60 px-3 py-0.5 text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">
+                    <span className="hidden sm:inline-block rounded-full bg-slate-100 border border-slate-200/60 px-3 py-0.5 text-[10px] font-extrabold text-slate-700 uppercase tracking-wider shrink-0">
                       {peerRole}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-3 text-xs text-slate-400 mt-1 font-semibold">
-                    <span className="flex items-center gap-1.5 text-emerald-600 font-bold">
+                    <span className="flex items-center gap-1.5 text-emerald-600 font-bold shrink-0">
                       <span className="h-2 w-2 rounded-full bg-emerald-500" />
                       Active Care Channel
                     </span>
@@ -301,7 +319,7 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={() => setIsRefreshing(true)}
                   className="p-2.5 rounded-2xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition cursor-pointer shadow-xs"
@@ -466,11 +484,11 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
             )}
 
             {/* Message Input Bar */}
-            <form onSubmit={handleSend} className="bg-white p-4 border-t border-slate-200/80 flex items-center gap-3 shadow-xl">
+            <form onSubmit={handleSend} className="bg-white p-3 sm:p-4 border-t border-slate-200/80 flex items-center gap-2 sm:gap-3 shadow-xl">
               <button
                 type="button"
                 onClick={() => setShowMediaPicker(!showMediaPicker)}
-                className="p-3 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition cursor-pointer"
+                className="p-2.5 sm:p-3 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition cursor-pointer shrink-0"
                 title="Attach image file"
               >
                 <Paperclip size={20} />
@@ -481,15 +499,15 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder={`Type a message to ${peerName}...`}
-                className="flex-1 rounded-2xl border border-slate-200 bg-slate-50/90 px-4 py-3.5 text-xs sm:text-sm font-semibold text-slate-900 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/10 transition"
+                className="flex-1 min-w-0 rounded-2xl border border-slate-200 bg-slate-50/90 px-4 py-3 sm:py-3.5 text-xs sm:text-sm font-semibold text-slate-900 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/10 transition"
               />
 
               <button
                 type="submit"
                 disabled={!inputText.trim() && !selectedImage}
-                className="rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white px-6 py-3.5 shadow-lg shadow-blue-500/25 disabled:opacity-40 transition-all flex items-center gap-2 cursor-pointer font-black text-xs uppercase tracking-wider active:scale-95"
+                className="shrink-0 whitespace-nowrap rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white px-4 sm:px-6 py-3 sm:py-3.5 shadow-lg shadow-blue-500/25 disabled:opacity-40 transition-all flex items-center gap-2 cursor-pointer font-black text-xs uppercase tracking-wider active:scale-95"
               >
-                <span>Send</span>
+                <span className="hidden sm:inline">Send</span>
                 <Send size={15} />
               </button>
             </form>
