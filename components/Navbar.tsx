@@ -2,10 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCareConnect } from '@/context/useCareConnect';
-import { User, LogOut, Menu, X } from 'lucide-react';
+import { Heart, User, LogOut, Menu, X } from 'lucide-react';
 
 export default function Navbar() {
   const router = useRouter();
@@ -26,16 +25,9 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2 group">
-
-              
-                <Image
-                  src="/Logo.png"
-                  alt="DomicCare Logo"
-                  width={56}
-                  height={56}
-                  className="h-full w-full object-cover"
-                />
-              
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform duration-200">
+                <Heart className="h-5.5 w-5.5 fill-white" />
+              </div>
               <span className="font-heading text-xl font-bold tracking-tight text-slate-900">
                 Domic<span className="text-blue-600">Care</span>
               </span>
@@ -141,7 +133,7 @@ export default function Navbar() {
             For Caregivers
           </Link>
           <hr className="border-slate-100" />
-
+          
           {currentUser ? (
             <div className="space-y-2">
               <button
@@ -185,7 +177,7 @@ export default function Navbar() {
           )}
         </div>
       )}
-
+      
 
     </nav>
   );

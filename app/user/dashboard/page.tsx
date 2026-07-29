@@ -22,7 +22,7 @@ import {
 
 export default function UserDashboard() {
   const router = useRouter();
-  const { currentUser, bookings, notifications, conversations, markNotificationRead,  deleteNotification, createConversation } = useCareConnect();
+  const { currentUser, bookings, notifications, conversations, markNotificationRead, createConversation } = useCareConnect();
 
   if (!currentUser) {
     return (
@@ -130,14 +130,14 @@ export default function UserDashboard() {
           </div>
 
           {/* Chats Active */}
-          <div className="rounded-3xl border border-orange-200 bg-white p-7 shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
+          <div className="rounded-3xl border border-purple-200 bg-white p-7 shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
             <div className="flex items-center justify-between">
-              <MessageSquare className="text-orange-600" size={34} />
-              <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-700">
+              <MessageSquare className="text-purple-600" size={34} />
+              <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-bold text-purple-700">
                 Messages
               </span>
             </div>
-            <h2 className="mt-8 text-5xl font-black text-orange-600">{conversations.length}</h2>
+            <h2 className="mt-8 text-5xl font-black text-purple-600">{conversations.length}</h2>
             <p className="mt-2 text-slate-500 font-semibold">Active Messaging Channels</p>
           </div>
 
@@ -314,25 +314,15 @@ export default function UserDashboard() {
                         <p className="text-[11px] leading-relaxed text-slate-500">{n.message}</p>
                       </div>
                       
-                      <div className="absolute right-3 top-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {!n.isRead && (
-                            <button
-                              onClick={() => markNotificationRead(n.id)}
-                              className="p-1 rounded-lg hover:bg-green-100 text-green-600 cursor-pointer"
-                              title="Mark as Read"
-                            >
-                              <CheckCircle2 className="h-3.5 w-3.5" />
-                            </button>
-                          )}
-
-                          <button
-                            onClick={() => deleteNotification(n.id)}
-                            className="p-1 rounded-lg hover:bg-red-100 text-red-600 cursor-pointer"
-                            title="Delete Notification"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
+                      {!n.isRead && (
+                        <button
+                          onClick={() => markNotificationRead(n.id)}
+                          className="absolute right-3 top-3 p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                          title="Mark as read"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
