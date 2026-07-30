@@ -178,6 +178,10 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       // 1. Fetch available services
       const servRes = await fetch('/api/services');
+      if (servRes.status === 401) {
+        setCurrentUserState(null);
+        return;
+      }
       if (servRes.ok) {
         const data = await servRes.json();
         setServices(data.services || []);
@@ -285,6 +289,9 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
           const data = await res.json();
           setCurrentUserState(data.user);
           await refreshData(data.user);
+        } else if (res.status === 401) {
+          // Token expired or invalid session
+          setCurrentUserState(null);
         }
       } catch (err) {
         console.error('Session hydration failed', err);
