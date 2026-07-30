@@ -64,13 +64,6 @@ export async function GET(req: NextRequest) {
           end_time,
           is_available
         ),
-        caregiver_documents (
-          id,
-          document_type,
-          file_url,
-          status,
-          uploaded_at
-        ),
         reviews (
           rating
         )

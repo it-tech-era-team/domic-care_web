@@ -24,10 +24,14 @@ interface MenuItem {
 export default function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { currentUser, logout, notifications } = useCareConnect();
+  const { currentUser, logout, notifications, conversations, markNotificationRead, markAllNotificationsRead } = useCareConnect();
   const [isOpen, setIsOpen] = useState(false);
+  const [showNotifPopover, setShowNotifPopover] = useState(false);
 
-  const unreadNotifsCount = notifications.filter(n => !n.isRead && n.userId === currentUser?.id).length;
+  const unreadNotifs = notifications.filter(n => !n.isRead && n.userId === currentUser?.id);
+  const unreadNotifsCount = unreadNotifs.length;
+
+  const unreadMessagesCount = conversations.reduce((acc, conv) => acc + (conv.unreadCount || 0), 0);
 
   const handleLogout = () => {
     logout();
@@ -70,14 +74,19 @@ export default function Sidebar({ role }: SidebarProps) {
           <span className="font-heading text-lg font-bold text-slate-900">DomicCare</span>
         </div>
         <div className="flex items-center gap-3">
-          {unreadNotifsCount > 0 && (
-            <div className="relative p-1">
-              <Bell className="h-5 w-5 text-slate-600" />
+          <button
+            onClick={() => setShowNotifPopover(!showNotifPopover)}
+            className="relative p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
+            title="Notifications"
+          >
+            <Bell className="h-5 w-5" />
+            {unreadNotifsCount > 0 && (
               <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center">
                 {unreadNotifsCount}
               </span>
-            </div>
-          )}
+            )}
+          </button>
+
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="p-1 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
@@ -96,18 +105,36 @@ export default function Sidebar({ role }: SidebarProps) {
         `}
       >
         <div className="space-y-6">
-          {/* Logo Section */}
-          <div className="hidden md:flex items-center gap-2.5 pb-2 border-b border-slate-100">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/10">
-              <Heart className="h-5.5 w-5.5 fill-white" />
+          {/* Logo & Notification Section */}
+          <div className="hidden md:flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/10">
+                <Heart className="h-5.5 w-5.5 fill-white" />
+              </div>
+              <div>
+                <span className="font-heading text-lg font-bold tracking-tight text-slate-900 block leading-none">
+                  DomicCare
+                </span>
+                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider mt-1 block">
+                  {role === 'user' ? 'Family Portal' : role === 'caregiver' ? 'Caregiver Portal' : 'Admin Panel'}
+                </span>
+              </div>
             </div>
-            <div>
-              <span className="font-heading text-lg font-bold tracking-tight text-slate-900 block leading-none">
-                DomicCare
-              </span>
-              <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider mt-1 block">
-                {role === 'user' ? 'Family Portal' : role === 'caregiver' ? 'Caregiver Portal' : 'Admin Panel'}
-              </span>
+
+            {/* Desktop Notification Bell */}
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifPopover(!showNotifPopover)}
+                className="relative p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
+                title="Notifications"
+              >
+                <Bell className="h-5 w-5" />
+                {unreadNotifsCount > 0 && (
+                  <span className="absolute top-1 right-1 h-4 w-4 bg-red-500 rounded-full text-[9px] font-extrabold text-white flex items-center justify-center animate-pulse">
+                    {unreadNotifsCount > 9 ? '9+' : unreadNotifsCount}
+                  </span>
+                )}
+              </button>
             </div>
           </div>
 
@@ -116,6 +143,8 @@ export default function Sidebar({ role }: SidebarProps) {
             {activeMenuItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
+              const badgeNum = item.label === 'Messages' ? unreadMessagesCount : unreadNotifsCount;
+
               return (
                 <Link
                   key={item.label}
@@ -133,12 +162,12 @@ export default function Sidebar({ role }: SidebarProps) {
                     <span>{item.label}</span>
                   </div>
                   
-                  {item.badgeCount && unreadNotifsCount > 0 && (
+                  {item.badgeCount && badgeNum > 0 && (
                     <span className={`
-                      text-[10px] font-bold px-1.5 py-0.5 rounded-full
-                      ${isActive ? 'bg-white text-blue-600' : 'bg-red-500 text-white'}
+                      text-[10px] font-bold px-2 py-0.5 rounded-full
+                      ${isActive ? 'bg-white text-blue-600' : item.label === 'Messages' ? 'bg-blue-600 text-white' : 'bg-red-500 text-white'}
                     `}>
-                      {unreadNotifsCount}
+                      {badgeNum}
                     </span>
                   )}
                 </Link>
@@ -177,7 +206,71 @@ export default function Sidebar({ role }: SidebarProps) {
         </div>
       </aside>
 
-      {/* Backdrop for Mobile */}
+      {/* Global Notifications Popover overlay */}
+      {showNotifPopover && (
+        <div className="fixed inset-0 z-50 flex items-start justify-end p-4 md:p-6 pointer-events-none">
+          <div className="w-80 md:w-96 rounded-3xl bg-white border border-slate-200 p-5 shadow-2xl space-y-4 pointer-events-auto animate-fade-in mt-12 md:mt-2 md:mr-64">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Bell className="h-4.5 w-4.5 text-blue-600" />
+                <span className="text-sm font-extrabold text-slate-900">Notifications</span>
+                {unreadNotifsCount > 0 && (
+                  <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700">
+                    {unreadNotifsCount} New
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {unreadNotifsCount > 0 && (
+                  <button
+                    onClick={() => markAllNotificationsRead()}
+                    className="text-[10px] font-bold text-blue-600 hover:underline cursor-pointer"
+                  >
+                    Clear All
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowNotifPopover(false)}
+                  className="text-slate-400 hover:text-slate-600 text-xs font-bold p-1 rounded-lg hover:bg-slate-100 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {unreadNotifs.length === 0 ? (
+              <div className="py-8 text-center text-slate-400 space-y-1">
+                <Bell className="h-8 w-8 text-slate-300 mx-auto opacity-50" />
+                <p className="text-xs font-bold text-slate-600">No unread notifications</p>
+                <p className="text-[10px] text-slate-400">You are all caught up!</p>
+              </div>
+            ) : (
+              <div className="max-h-80 overflow-y-auto space-y-2.5 pr-1">
+                {unreadNotifs.map(n => (
+                  <div
+                    key={n.id}
+                    className="p-3 rounded-2xl bg-slate-50 border border-slate-100 text-xs space-y-1 relative group hover:bg-blue-50/40 transition-colors"
+                  >
+                    <div className="flex items-center justify-between pr-4">
+                      <span className="font-extrabold text-slate-900">{n.title}</span>
+                      <button
+                        onClick={() => markNotificationRead(n.id)}
+                        className="text-[10px] text-slate-400 hover:text-slate-600 font-semibold cursor-pointer"
+                        title="Mark as read"
+                      >
+                        Read
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-slate-600 leading-relaxed">{n.message}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Backdrop for Mobile Sidebar */}
       {isOpen && (
         <div
           onClick={() => setIsOpen(false)}

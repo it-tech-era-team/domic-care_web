@@ -10,12 +10,13 @@ function matchesPrefix(pathname: string, prefixes: string[]) {
   );
 }
 
-export function proxy(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   const token = request.cookies.get("token")?.value;
+  const refreshToken = request.cookies.get("refresh_token")?.value;
   const role = request.cookies.get("user_role")?.value || "";
-  const hasSession = !!token;
+  const hasSession = !!token || !!refreshToken;
 
   const isUserRoute = matchesPrefix(pathname, USER_ROUTES);
   const isCaregiverRoute = matchesPrefix(pathname, CAREGIVER_ROUTES);
@@ -56,6 +57,8 @@ export function proxy(request: NextRequest) {
 
   return NextResponse.next();
 }
+
+export { proxy };
 
 export const config = {
   matcher: [

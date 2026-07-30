@@ -122,6 +122,7 @@ export interface AdminLog {
 interface CareConnectContextType {
   currentUser: UserProfile | null;
   setCurrentUser: (user: UserProfile | null) => void;
+  authLoading: boolean;
   caregivers: CaregiverProfile[];
   bookings: Booking[];
   conversations: Conversation[];
@@ -140,8 +141,10 @@ interface CareConnectContextType {
   updateBookingStatus: (bookingId: string, status: Booking['status']) => Promise<void>;
   submitReview: (bookingId: string, rating: number, comment: string) => Promise<void>;
   sendMessage: (conversationId: string, senderId: string, text: string) => Promise<void>;
+  fetchMessages: (conversationId: string) => Promise<void>;
   createConversation: (caregiverId: string) => Promise<string>;
   markNotificationRead: (id: string) => Promise<void>;
+  markAllNotificationsRead: () => Promise<void>;
   approveCaregiver: (caregiverId: string) => Promise<void>;
   rejectCaregiver: (caregiverId: string) => Promise<void>;
   updateCaregiverProfile: (profile: Partial<CaregiverProfile>) => Promise<void>;
@@ -155,6 +158,7 @@ const CareConnectContext = createContext<CareConnectContextType | undefined>(und
 
 export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUserState] = useState<UserProfile | null>(null);
+  const [authLoading, setAuthLoading] = useState<boolean>(true);
   const [caregiverFilters, setCaregiverFiltersState] = useState<any>({ isActive: false });
   const [caregivers, setCaregivers] = useState<CaregiverProfile[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -176,34 +180,24 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const refreshData = async (user = currentUser, filters = caregiverFilters) => {
     if (!user) return;
     try {
-      // 1. Fetch available services
-      const servRes = await fetch('/api/services');
-      if (servRes.status === 401) {
-        setCurrentUserState(null);
-        return;
-      }
-      if (servRes.ok) {
-        const data = await servRes.json();
-        setServices(data.services || []);
-      }
+      // Execute essential user endpoints in parallel
+      const [bookingsRes, convRes, notifRes] = await Promise.all([
+        fetch('/api/bookings').catch(() => null),
+        fetch('/api/conversations').catch(() => null),
+        fetch('/api/notifications').catch(() => null),
+      ]);
 
-      // 2. Fetch bookings
-      const bookingsRes = await fetch('/api/bookings');
-      if (bookingsRes.ok) {
+      if (bookingsRes?.ok) {
         const data = await bookingsRes.json();
         setBookings(data.bookings || []);
       }
 
-      // 3. Fetch conversations
-      const convRes = await fetch('/api/conversations');
-      if (convRes.ok) {
+      if (convRes?.ok) {
         const data = await convRes.json();
         setConversations(data.conversations || []);
       }
 
-      // 4. Fetch notifications and check for newly received ones to display Toast
-      const notifRes = await fetch('/api/notifications');
-      if (notifRes.ok) {
+      if (notifRes?.ok) {
         const data = await notifRes.json();
         const nextNotifs = data.notifications || [];
         setNotifications(prev => {
@@ -219,14 +213,20 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
         });
       }
 
-      // 5. Fetch caregiver listings (admins fetch all, users/caregivers fetch approved list)
+      // Fetch available services if not yet cached
+      if (services.length === 0) {
+        fetch('/api/services')
+          .then(res => res.ok ? res.json() : null)
+          .then(data => { if (data?.services) setServices(data.services); })
+          .catch(() => {});
+      }
+
+      // Fetch caregiver listings asynchronously
       let url = user.role === 'admin' ? '/api/admin/caregivers' : '/api/caregivers';
       if (user.role !== 'admin') {
         const params = new URLSearchParams();
-        // Always include user Lat / Lng for distance calculation and sorting by distance
         params.append('userLat', '40.7128');
         params.append('userLng', '-74.0060');
-
         if (filters && filters.isActive) {
           if (filters.searchQuery) params.append('search', filters.searchQuery);
           if (filters.selectedService && filters.selectedService !== 'All') params.append('service', filters.selectedService);
@@ -235,45 +235,36 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
           if (filters.maxDistance) params.append('maxDistance', String(filters.maxDistance));
           if (filters.selectedDay && filters.selectedDay !== 'All') params.append('day', filters.selectedDay);
         }
-
         url += '?' + params.toString();
       }
 
-      const cgRes = await fetch(url);
-      if (cgRes.ok) {
-        const data = await cgRes.json();
-        let list: CaregiverProfile[] = data.caregivers || [];
-
-        // If current user is a caregiver, fetch their own profile so it's always in state even if pending/rejected
-        if (user.role === 'caregiver') {
-          try {
-            const myProfRes = await fetch('/api/caregivers/profile');
-            if (myProfRes.ok) {
-              const myData = await myProfRes.json();
-              if (myData.profile) {
-                const idx = list.findIndex(c => c.id === myData.profile.id);
-                if (idx !== -1) {
-                  list[idx] = myData.profile;
-                } else {
-                  list = [myData.profile, ...list];
+      fetch(url)
+        .then(res => res.ok ? res.json() : null)
+        .then(async data => {
+          if (!data) return;
+          let list: CaregiverProfile[] = data.caregivers || [];
+          if (user.role === 'caregiver') {
+            try {
+              const myProfRes = await fetch('/api/caregivers/profile');
+              if (myProfRes?.ok) {
+                const myData = await myProfRes.json();
+                if (myData.profile) {
+                  const idx = list.findIndex(c => c.id === myData.profile.id);
+                  if (idx !== -1) list[idx] = myData.profile;
+                  else list = [myData.profile, ...list];
                 }
               }
-            }
-          } catch (e) {
-            console.error('Error fetching own caregiver profile:', e);
+            } catch (e) {}
           }
-        }
+          setCaregivers(list);
+        })
+        .catch(() => {});
 
-        setCaregivers(list);
-      }
-
-      // 6. Fetch admin logs if role is admin
       if (user.role === 'admin') {
-        const logsRes = await fetch('/api/admin/logs');
-        if (logsRes.ok) {
-          const data = await logsRes.json();
-          setAdminLogs(data.adminLogs || []);
-        }
+        fetch('/api/admin/logs')
+          .then(res => res.ok ? res.json() : null)
+          .then(data => { if (data?.adminLogs) setAdminLogs(data.adminLogs); })
+          .catch(() => {});
       }
     } catch (err) {
       console.error('Error fetching CareConnect state:', err);
@@ -283,47 +274,91 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Hydrate session on mount
   useEffect(() => {
     const hydrateSession = async () => {
+      setAuthLoading(true);
       try {
         const res = await fetch('/api/auth/me');
         if (res.ok) {
           const data = await res.json();
-          setCurrentUserState(data.user);
-          await refreshData(data.user);
-        } else if (res.status === 401) {
-          // Token expired or invalid session
+          if (data.user) {
+            setCurrentUserState(data.user);
+            await refreshData(data.user);
+          } else {
+            setCurrentUserState(null);
+          }
+        } else {
           setCurrentUserState(null);
         }
       } catch (err) {
         console.error('Session hydration failed', err);
+        setCurrentUserState(null);
+      } finally {
+        setAuthLoading(false);
       }
     };
     hydrateSession();
   }, []);
 
-  // Periodic polling for real-time messages / status updates
+  // Periodic lightweight sync polling (45s interval, paused when tab is inactive)
   useEffect(() => {
     if (!currentUser) return;
-    const interval = setInterval(() => {
-      refreshData(currentUser, caregiverFilters);
-    }, 6000);
-    return () => clearInterval(interval);
-  }, [currentUser, caregiverFilters]);
 
-  // If viewing a dynamic chat screen, auto-refresh messages when conversations change
-  useEffect(() => {
-    if (conversations.length > 0 && currentUser) {
-      // Find the first conversation if active to hydrate messages
-      const activeConv = conversations[0];
-      if (activeConv) {
-        fetch(`/api/conversations/${activeConv.id}/messages`)
-          .then(res => res.ok ? res.json() : null)
-          .then(data => {
-            if (data?.messages) setMessages(data.messages);
-          })
-          .catch(err => console.error("Error fetching message history:", err));
+    const performSyncCheck = async () => {
+      if (document.hidden) return; // Do not fetch when tab is minimized or hidden
+      try {
+        const res = await fetch('/api/sync/check');
+        if (res.ok) {
+          const data = await res.json();
+          const currentUnreadNotifs = notifications.filter(n => !n.isRead && n.userId === currentUser.id).length;
+          const currentUnreadMsgs = conversations.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
+
+          let needFullRefresh = false;
+          if (data.unreadNotifsCount !== currentUnreadNotifs) {
+            const notifRes = await fetch('/api/notifications');
+            if (notifRes.ok) {
+              const notifData = await notifRes.json();
+              setNotifications(notifData.notifications || []);
+            }
+            needFullRefresh = true;
+          }
+
+          if (data.unreadMessagesCount !== currentUnreadMsgs) {
+            const convRes = await fetch('/api/conversations');
+            if (convRes.ok) {
+              const convData = await convRes.json();
+              setConversations(convData.conversations || []);
+            }
+            needFullRefresh = true;
+          }
+
+          if (needFullRefresh) {
+            // Also refresh bookings status if new events arrived
+            const bookingsRes = await fetch('/api/bookings');
+            if (bookingsRes.ok) {
+              const bData = await bookingsRes.json();
+              setBookings(bData.bookings || []);
+            }
+          }
+        }
+      } catch (err) {
+        // Silently swallow sync error
       }
-    }
-  }, [conversations, currentUser]);
+    };
+
+    const interval = setInterval(performSyncCheck, 45000);
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        performSyncCheck();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [currentUser, notifications, conversations]);
 
   const setCurrentUser = (user: UserProfile | null) => {
     setCurrentUserState(user);
@@ -350,7 +385,7 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
         };
         setCurrentUserState(loggedInUser);
         showToast('Login Success', `Logged in as ${data.user.fullName}`, 'success');
-        await refreshData(loggedInUser);
+        refreshData(loggedInUser);
         return loggedInUser;
       } else {
         const data = await res.json().catch(() => ({}));
@@ -494,6 +529,23 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
+  const fetchMessages = async (conversationId: string) => {
+    if (!conversationId) return;
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}/messages`);
+      if (res.ok) {
+        const data = await res.json();
+        const fetchedMsgs: Message[] = data.messages || [];
+        setMessages(prev => {
+          const otherMsgs = prev.filter(m => m.conversationId !== conversationId);
+          return [...otherMsgs, ...fetchedMsgs];
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching messages:', err);
+    }
+  };
+
   const sendMessage = async (conversationId: string, senderId: string, text: string) => {
     try {
       const res = await fetch(`/api/conversations/${conversationId}/messages`, {
@@ -523,6 +575,19 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
     } catch (err) {
       console.error('Error marking notification read:', err);
+    }
+  };
+
+  const markAllNotificationsRead = async () => {
+    try {
+      const res = await fetch('/api/notifications/read-all', {
+        method: 'PATCH',
+      });
+      if (res.ok) {
+        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      }
+    } catch (err) {
+      console.error('Error marking all notifications read:', err);
     }
   };
 
@@ -695,6 +760,7 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
       value={{
         currentUser,
         setCurrentUser,
+        authLoading,
         caregivers,
         bookings,
         conversations,
@@ -713,8 +779,10 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
         updateBookingStatus,
         submitReview,
         sendMessage,
+        fetchMessages,
         createConversation,
         markNotificationRead,
+        markAllNotificationsRead,
         approveCaregiver,
         rejectCaregiver,
         updateCaregiverProfile,

@@ -1,13 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyRequestSession } from "@/lib/supabase-auth";
+import { verifyRequestSessionDetails, verifyRequestSession, setAuthCookies } from "@/lib/supabase-auth";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 
 export async function GET(req: NextRequest) {
-  const user = await verifyRequestSession(req);
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const result = await verifyRequestSessionDetails(req);
+  if (!result.user) {
+    return NextResponse.json({ user: null }, { status: 200 });
   }
-  return NextResponse.json({ user });
+
+  const response = NextResponse.json({ user: result.user }, { status: 200 });
+  if (result.refreshedTokens) {
+    setAuthCookies(
+      response,
+      result.refreshedTokens.accessToken,
+      result.refreshedTokens.refreshToken,
+      result.refreshedTokens.role,
+      result.refreshedTokens.expiresIn
+    );
+  }
+  return response;
 }
 
 export async function PATCH(req: NextRequest) {

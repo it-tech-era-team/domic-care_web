@@ -15,7 +15,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ services });
+    const res = NextResponse.json({ services });
+    res.headers.set("Cache-Control", "public, s-maxage=120, stale-while-revalidate=300");
+    return res;
   } catch (err) {
     console.error("[GET /api/services]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

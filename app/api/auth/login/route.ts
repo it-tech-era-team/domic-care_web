@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { setAuthCookies } from "@/lib/supabase-auth";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
@@ -60,23 +61,14 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Set cookie for token
-    response.cookies.set("token", data.session.access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: data.session.expires_in,
-    });
-
-    // Set cookie for role (for middleware access at edge)
-    response.cookies.set("user_role", role, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: data.session.expires_in,
-    });
+    // Set secure HTTP-only auth cookies (token, refresh_token, user_role)
+    setAuthCookies(
+      response,
+      data.session.access_token,
+      data.session.refresh_token,
+      role,
+      data.session.expires_in
+    );
 
     return response;
   } catch (err) {

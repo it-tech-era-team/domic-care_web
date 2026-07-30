@@ -25,6 +25,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
+    // Send notification to caregiver
+    await supabase.from("notifications").insert({
+      user_id: user.id,
+      title: "Application Submitted",
+      message: "Your caregiver application details have been submitted for verification.",
+      type: "approval_update",
+      is_read: false,
+    });
+
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[POST /api/caregivers/application]", err);

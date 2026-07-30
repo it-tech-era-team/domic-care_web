@@ -8,23 +8,15 @@ import { ShieldAlert } from 'lucide-react';
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { currentUser } = useCareConnect();
+  const { currentUser, authLoading } = useCareConnect();
 
   useEffect(() => {
-    // Basic redirect if not logged in
-    if (currentUser === null) {
-      // Delay slightly for hydration check
-      const timer = setTimeout(() => {
-        if (currentUser === null) {
-          router.push('/login');
-        }
-      }, 500);
-      return () => clearTimeout(timer);
+    if (!authLoading && currentUser === null) {
+      router.push('/login');
     }
-  }, [currentUser, router]);
+  }, [authLoading, currentUser, router]);
 
-  // If loading or wrong role, show loading screen
-  if (!currentUser) {
+  if (authLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
         <div className="text-center space-y-4">
@@ -33,6 +25,10 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
         </div>
       </div>
     );
+  }
+
+  if (!currentUser) {
+    return null;
   }
 
   if (currentUser.role !== 'user') {

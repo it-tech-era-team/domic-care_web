@@ -28,7 +28,7 @@ interface ProChatWindowProps {
 }
 
 export default function ProChatWindow({ role, initialConvId }: ProChatWindowProps) {
-  const { currentUser, conversations, messages, sendMessage, createConversation } = useCareConnect();
+  const { currentUser, conversations, messages, sendMessage, fetchMessages, createConversation } = useCareConnect();
 
   const [activeConvId, setActiveConvId] = useState<string | null>(initialConvId || null);
   const [inputText, setInputText] = useState('');
@@ -74,34 +74,38 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
     return messages.filter((m) => m.conversationId === activeConvId);
   }, [messages, activeConvId]);
 
+  // Fetch messages whenever active conversation changes
+  useEffect(() => {
+    if (activeConvId) {
+      fetchMessages(activeConvId);
+    }
+  }, [activeConvId]);
+
   // Smooth scroll to bottom on message updates
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [activeMessages]);
 
-  // Auto poll active conversation every 3.5 seconds for real-time responsiveness
-  useEffect(() => {
+  const handleManualSync = async () => {
     if (!activeConvId) return;
-    const interval = setInterval(async () => {
-      try {
-        await fetch(`/api/conversations/${activeConvId}/messages`);
-      } catch (e) {
-        // silent sync
-      }
-    }, 3500);
-
-    return () => clearInterval(interval);
-  }, [activeConvId]);
+    setIsRefreshing(true);
+    await fetchMessages(activeConvId);
+    setIsRefreshing(false);
+  };
 
   const handleSend = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const contentToSend = selectedImage || inputText.trim();
     if (!contentToSend || !activeConvId || !currentUser) return;
 
-    await sendMessage(activeConvId, currentUser.id, contentToSend);
+    const currentConvId = activeConvId;
+    // Clear input state immediately for responsive UI
     setInputText('');
     setSelectedImage(null);
     setShowMediaPicker(false);
+
+    await sendMessage(currentConvId, currentUser.id, contentToSend);
+    await fetchMessages(currentConvId);
   };
 
   const handleChipClick = (chipText: string) => {
@@ -303,7 +307,7 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setIsRefreshing(true)}
+                  onClick={handleManualSync}
                   className="p-2.5 rounded-2xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition cursor-pointer shadow-xs"
                   title="Sync Messages"
                 >

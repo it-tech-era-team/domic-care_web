@@ -77,7 +77,7 @@ export default function UserDashboard() {
               {getGreeting()}, {currentUser?.fullName || 'Family Client'}
             </h1>
             <p className="mt-2 text-slate-500">
-              Overview of elderly care coordination, upcoming caregiver sessions, and direct communications.
+              Overview of family care coordination, upcoming caregiver sessions, and direct communications.
             </p>
           </div>
 

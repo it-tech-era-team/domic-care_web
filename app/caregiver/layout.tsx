@@ -8,20 +8,15 @@ import { ShieldAlert } from 'lucide-react';
 
 export default function CaregiverLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { currentUser } = useCareConnect();
+  const { currentUser, authLoading } = useCareConnect();
 
   useEffect(() => {
-    if (currentUser === null) {
-      const timer = setTimeout(() => {
-        if (currentUser === null) {
-          router.push('/login');
-        }
-      }, 500);
-      return () => clearTimeout(timer);
+    if (!authLoading && currentUser === null) {
+      router.push('/login');
     }
-  }, [currentUser, router]);
+  }, [authLoading, currentUser, router]);
 
-  if (!currentUser) {
+  if (authLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
         <div className="text-center space-y-4">
@@ -30,6 +25,10 @@ export default function CaregiverLayout({ children }: { children: React.ReactNod
         </div>
       </div>
     );
+  }
+
+  if (!currentUser) {
+    return null;
   }
 
   if (currentUser.role !== 'caregiver') {

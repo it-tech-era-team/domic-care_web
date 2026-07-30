@@ -57,6 +57,15 @@ export async function POST(
       return NextResponse.json({ error: reviewError.message }, { status: 400 });
     }
 
+    // 3. Send notification to caregiver
+    await supabase.from("notifications").insert({
+      user_id: booking.caregiver_id,
+      title: "New Review Received",
+      message: `${user.fullName} submitted a ${parsedRating}-star rating for your care service.`,
+      type: "booking_update",
+      is_read: false,
+    });
+
     return NextResponse.json({ review });
   } catch (err) {
     console.error("[POST /api/bookings/[id]/review]", err);

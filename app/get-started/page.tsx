@@ -74,7 +74,7 @@ export default function GetStarted() {
                       Family / User
                     </span>
                     <span className="block text-xs text-slate-500 leading-relaxed">
-                      I want to find, coordinate, and book trusted, background-checked caregivers for my elderly family members.
+                      I want to find, coordinate, and book trusted, background-checked caregivers for my family members.
                     </span>
                     <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 pt-1">
                       <span>Continue as Family</span>
