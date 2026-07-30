@@ -23,7 +23,8 @@ export async function GET(req: NextRequest) {
         notes,
         created_at,
         profiles (
-          full_name
+          full_name,
+          avatar_url
         ),
         caregiver_profiles (
           profiles (
@@ -62,6 +63,7 @@ export async function GET(req: NextRequest) {
         id: b.id,
         userId: b.user_id,
         userFullName: b.profiles?.full_name || "",
+        userAvatar: b.profiles?.avatar_url || "",
         caregiverId: b.caregiver_id,
         caregiverFullName: b.caregiver_profiles?.profiles?.full_name || "",
         caregiverAvatar: b.caregiver_profiles?.profiles?.avatar_url || "",

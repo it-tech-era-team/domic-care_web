@@ -251,6 +251,26 @@ export async function PATCH(req: NextRequest) {
         .eq("id", id);
 
       if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    } else if (action === "approve_document") {
+      const documentId = searchParams.get("document_id");
+      if (!documentId) return NextResponse.json({ error: "Document ID required" }, { status: 400 });
+
+      const { error } = await supabase
+        .from("caregiver_documents")
+        .update({ status: "approved" })
+        .eq("id", documentId);
+
+      if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    } else if (action === "reject_document") {
+      const documentId = searchParams.get("document_id");
+      if (!documentId) return NextResponse.json({ error: "Document ID required" }, { status: 400 });
+
+      const { error } = await supabase
+        .from("caregiver_documents")
+        .update({ status: "rejected" })
+        .eq("id", documentId);
+
+      if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     } else {
       return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
