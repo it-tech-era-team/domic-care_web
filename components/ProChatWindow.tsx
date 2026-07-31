@@ -74,17 +74,25 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
     return messages.filter((m) => m.conversationId === activeConvId);
   }, [messages, activeConvId]);
 
-  // Fetch messages whenever active conversation changes & poll every 2.5s for real-time updates
+  const isFetchingMsgsRef = useRef(false);
+
+  // Fetch messages whenever active conversation changes & poll every 3.5s with in-flight lock guard
   useEffect(() => {
     if (!activeConvId) return;
 
-    fetchMessages(activeConvId);
-
-    const interval = setInterval(() => {
-      if (!document.hidden) {
-        fetchMessages(activeConvId);
+    const doFetch = async () => {
+      if (document.hidden || isFetchingMsgsRef.current) return;
+      isFetchingMsgsRef.current = true;
+      try {
+        await fetchMessages(activeConvId);
+      } finally {
+        isFetchingMsgsRef.current = false;
       }
-    }, 2500);
+    };
+
+    doFetch();
+
+    const interval = setInterval(doFetch, 3500);
 
     return () => clearInterval(interval);
   }, [activeConvId]);

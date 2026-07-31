@@ -12,7 +12,8 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id: conversationId } = await params;
+    const resolvedParams = params instanceof Promise ? await params : params;
+    const conversationId = resolvedParams?.id;
 
     const supabase = createServerSupabaseClient();
     
@@ -72,7 +73,8 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id: conversationId } = await params;
+    const resolvedParams = params instanceof Promise ? await params : params;
+    const conversationId = resolvedParams?.id;
     const body = await req.json().catch(() => ({}));
     const { message } = body;
 

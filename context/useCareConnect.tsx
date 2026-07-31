@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 
 // --- TypeScript Interfaces ---
 export type Role = 'user' | 'caregiver' | 'admin';
@@ -218,7 +218,7 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
         fetch('/api/services')
           .then(res => res.ok ? res.json() : null)
           .then(data => { if (data?.services) setServices(data.services); })
-          .catch(() => {});
+          .catch(() => { });
       }
 
       // Fetch caregiver listings asynchronously
@@ -254,17 +254,17 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
                   else list = [myData.profile, ...list];
                 }
               }
-            } catch (e) {}
+            } catch (e) { }
           }
           setCaregivers(list);
         })
-        .catch(() => {});
+        .catch(() => { });
 
       if (user.role === 'admin') {
         fetch('/api/admin/logs')
           .then(res => res.ok ? res.json() : null)
           .then(data => { if (data?.adminLogs) setAdminLogs(data.adminLogs); })
-          .catch(() => {});
+          .catch(() => { });
       }
     } catch (err) {
       console.error('Error fetching CareConnect state:', err);
@@ -298,9 +298,15 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
     hydrateSession();
   }, []);
 
+  const notificationsRef = useRef(notifications);
+  notificationsRef.current = notifications;
+
+  const conversationsRef = useRef(conversations);
+  conversationsRef.current = conversations;
+
   const isSyncingRef = useRef(false);
 
-  // Periodic lightweight sync polling (3s interval, paused when tab is inactive)
+  // Periodic lightweight sync polling (12s interval, paused when tab is inactive)
   useEffect(() => {
     if (!currentUser) return;
 
@@ -311,8 +317,8 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
         const res = await fetch('/api/sync/check');
         if (res.ok) {
           const data = await res.json();
-          const currentUnreadNotifs = notifications.filter(n => !n.isRead && n.userId === currentUser.id).length;
-          const currentUnreadMsgs = conversations.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
+          const currentUnreadNotifs = notificationsRef.current.filter(n => !n.isRead && n.userId === currentUser.id).length;
+          const currentUnreadMsgs = conversationsRef.current.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
 
           let needFullRefresh = false;
           if (data.unreadNotifsCount !== currentUnreadNotifs) {
@@ -349,7 +355,7 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
     };
 
-    const interval = setInterval(performSyncCheck, 3000);
+    const interval = setInterval(performSyncCheck, 18000);
 
     const handleVisibilityChange = () => {
       if (!document.hidden) {
@@ -363,7 +369,7 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
       clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [currentUser, notifications, conversations]);
+  }, [currentUser]);
 
   const setCurrentUser = (user: UserProfile | null) => {
     setCurrentUserState(user);

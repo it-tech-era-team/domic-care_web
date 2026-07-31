@@ -34,6 +34,8 @@ export async function GET(req: NextRequest) {
     const convIds = (userConvs || []).map((c) => c.id);
 
     let unreadMessagesCount = 0;
+    let latestMessageId: string | null = null;
+
     if (convIds.length > 0) {
       const { count: msgCount } = await supabase
         .from("messages")
@@ -43,11 +45,25 @@ export async function GET(req: NextRequest) {
         .neq("sender_id", user.id);
       
       unreadMessagesCount = msgCount || 0;
+
+      // Query latest message ID across all user conversations to detect new incoming read/unread messages
+      const { data: latestMsg } = await supabase
+        .from("messages")
+        .select("id")
+        .in("conversation_id", convIds)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (latestMsg) {
+        latestMessageId = latestMsg.id;
+      }
     }
 
     return NextResponse.json({
       unreadNotifsCount: unreadNotifsCount || 0,
       unreadMessagesCount: unreadMessagesCount || 0,
+      latestMessageId: latestMessageId || null,
     });
   } catch (err) {
     console.error("[GET /api/sync/check]", err);

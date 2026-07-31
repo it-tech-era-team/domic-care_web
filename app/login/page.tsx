@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import { useCareConnect } from '@/context/useCareConnect';
-import { Key, Mail, ShieldAlert, ArrowRight } from 'lucide-react';
+import { Key, Mail, ShieldAlert, ArrowRight, Loader2 } from 'lucide-react';
 
 export default function Login() {
   const router = useRouter();
@@ -14,18 +14,28 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
+    if (!email || !password || isSubmitting) return;
 
-    const userProfile = await login(email, password);
-    if (userProfile) {
-      if (userProfile.role === 'user') router.push('/user/dashboard');
-      else if (userProfile.role === 'caregiver') router.push('/caregiver/dashboard');
-      else if (userProfile.role === 'admin') router.push('/admin/dashboard');
-    } else {
-      setError('Invalid login details.');
+    setError('');
+    setIsSubmitting(true);
+
+    try {
+      const userProfile = await login(email, password);
+      if (userProfile) {
+        if (userProfile.role === 'user') router.push('/user/dashboard');
+        else if (userProfile.role === 'caregiver') router.push('/caregiver/dashboard');
+        else if (userProfile.role === 'admin') router.push('/admin/dashboard');
+      } else {
+        setError('Invalid login details.');
+        setIsSubmitting(false);
+      }
+    } catch {
+      setError('An error occurred. Please try again.');
+      setIsSubmitting(false);
     }
   };
 
@@ -67,10 +77,11 @@ export default function Login() {
                     type="email"
                     id="email"
                     required
+                    disabled={isSubmitting}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@example.com"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/10 transition-all"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/10 transition-all disabled:opacity-60"
                   />
                 </div>
               </div>
@@ -91,20 +102,31 @@ export default function Login() {
                     type="password"
                     id="pass"
                     required
+                    disabled={isSubmitting}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/10 transition-all"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/10 transition-all disabled:opacity-60"
                   />
                 </div>
               </div>
 
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 shadow-md shadow-blue-500/10 transition-all cursor-pointer"
+                disabled={isSubmitting}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 shadow-md shadow-blue-500/10 transition-all cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
               >
-                <span>Login</span>
-                <ArrowRight className="h-4.5 w-4.5" />
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                    <span>Logging in...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Login</span>
+                    <ArrowRight className="h-4.5 w-4.5" />
+                  </>
+                )}
               </button>
             </form>
 
