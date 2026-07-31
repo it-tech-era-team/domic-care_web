@@ -618,7 +618,7 @@ export default function Home() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch relative">
               {/* Step 1 */}
-              <div className="group relative flex flex-col items-center text-center rounded-[28px] border border-slate-100 bg-white p-8 pt-10 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 z-10 overflow-hidden">
+              <div className="group relative flex flex-col items-center text-center rounded-[28px] border border-slate-100 bg-white p-8 pt-10 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 z-10">
                 {/* Step Number Badge */}
                 <div className="absolute -top-5 left-1/2 -translate-x-1/2 h-10 w-10 rounded-full bg-blue-600 text-white font-extrabold text-sm flex items-center justify-center shadow-lg shadow-blue-500/30 border-4 border-white z-20">
                   1
@@ -643,7 +643,7 @@ export default function Home() {
               </div>
 
               {/* Step 2 */}
-              <div className="group relative flex flex-col items-center text-center rounded-[28px] border border-slate-100 bg-white p-8 pt-10 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 z-10 overflow-hidden">
+              <div className="group relative flex flex-col items-center text-center rounded-[28px] border border-slate-100 bg-white p-8 pt-10 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 z-10">
                 {/* Step Number Badge */}
                 <div className="absolute -top-5 left-1/2 -translate-x-1/2 h-10 w-10 rounded-full bg-blue-600 text-white font-extrabold text-sm flex items-center justify-center shadow-lg shadow-blue-500/30 border-4 border-white z-20">
                   2
@@ -671,7 +671,7 @@ export default function Home() {
               </div>
 
               {/* Step 3 */}
-              <div className="group relative flex flex-col items-center text-center rounded-[28px] border border-slate-100 bg-white p-8 pt-10 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 z-10 overflow-hidden">
+              <div className="group relative flex flex-col items-center text-center rounded-[28px] border border-slate-100 bg-white p-8 pt-10 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 z-10">
                 {/* Step Number Badge */}
                 <div className="absolute -top-5 left-1/2 -translate-x-1/2 h-10 w-10 rounded-full bg-blue-600 text-white font-extrabold text-sm flex items-center justify-center shadow-lg shadow-blue-500/30 border-4 border-white z-20">
                   3
