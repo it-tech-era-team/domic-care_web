@@ -74,11 +74,19 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
     return messages.filter((m) => m.conversationId === activeConvId);
   }, [messages, activeConvId]);
 
-  // Fetch messages whenever active conversation changes
+  // Fetch messages whenever active conversation changes & poll every 2.5s for real-time updates
   useEffect(() => {
-    if (activeConvId) {
-      fetchMessages(activeConvId);
-    }
+    if (!activeConvId) return;
+
+    fetchMessages(activeConvId);
+
+    const interval = setInterval(() => {
+      if (!document.hidden) {
+        fetchMessages(activeConvId);
+      }
+    }, 2500);
+
+    return () => clearInterval(interval);
   }, [activeConvId]);
 
   // Smooth scroll to bottom on message updates

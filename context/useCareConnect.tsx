@@ -344,7 +344,7 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
     };
 
-    const interval = setInterval(performSyncCheck, 45000);
+    const interval = setInterval(performSyncCheck, 3000);
 
     const handleVisibilityChange = () => {
       if (!document.hidden) {
