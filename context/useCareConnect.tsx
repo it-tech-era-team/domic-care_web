@@ -298,12 +298,15 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
     hydrateSession();
   }, []);
 
-  // Periodic lightweight sync polling (45s interval, paused when tab is inactive)
+  const isSyncingRef = useRef(false);
+
+  // Periodic lightweight sync polling (3s interval, paused when tab is inactive)
   useEffect(() => {
     if (!currentUser) return;
 
     const performSyncCheck = async () => {
-      if (document.hidden) return; // Do not fetch when tab is minimized or hidden
+      if (document.hidden || isSyncingRef.current) return;
+      isSyncingRef.current = true;
       try {
         const res = await fetch('/api/sync/check');
         if (res.ok) {
@@ -341,6 +344,8 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
         }
       } catch (err) {
         // Silently swallow sync error
+      } finally {
+        isSyncingRef.current = false;
       }
     };
 
