@@ -67,10 +67,12 @@ export default function Sidebar({ role }: SidebarProps) {
     <>
       {/* Mobile Top Header (Sidebar Toggle) */}
       <div className="flex md:hidden items-center justify-between bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-40">
-        <div className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white">
-            <Heart className="h-4.5 w-4.5 fill-white" />
-          </div>
+        <div className="flex items-center gap-2.5">
+          <img
+            src="/domic_care_logo_without_text.jpeg"
+            alt="Domic Care Logo"
+            className="h-9 w-9 rounded-lg object-cover shadow-sm"
+          />
           <span className="font-heading text-lg font-bold text-slate-900">DomicCare</span>
         </div>
         <div className="flex items-center gap-3">
@@ -108,9 +110,11 @@ export default function Sidebar({ role }: SidebarProps) {
           {/* Logo & Notification Section */}
           <div className="hidden md:flex items-center justify-between pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/10">
-                <Heart className="h-5.5 w-5.5 fill-white" />
-              </div>
+              <img
+                src="/domic_care_logo_without_text.jpeg"
+                alt="Domic Care Logo"
+                className="h-10 w-10 rounded-xl object-cover shadow-sm"
+              />
               <div>
                 <span className="font-heading text-lg font-bold tracking-tight text-slate-900 block leading-none">
                   DomicCare
