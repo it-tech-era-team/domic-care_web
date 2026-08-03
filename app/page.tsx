@@ -763,80 +763,88 @@ export default function Home() {
           SECTION 6 — IMMEDIATE CARE CTA BANNER
       ══════════════════════════════════════════════════════════════════════════ */}
       <section
-        className="relative overflow-hidden py-16 sm:py-20"
-        style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1e1b4b 100%)' }}
+        className="relative overflow-hidden py-24 sm:py-32 min-h-[500px] flex items-center"
+        style={{ background: 'linear-gradient(135deg, #090d16 0%, #1e3a8a 50%, #172554 100%)' }}
       >
-        {/* Background image overlay */}
-        <div className="absolute inset-0 z-0 opacity-10 pointer-events-none">
+        {/* Background image overlay - clearer visibility & full cover */}
+        <div className="absolute inset-0 z-0 opacity-25 pointer-events-none">
           <img
             src="/Background images/Nurse_checking_senior_woman%27s_bl%E2%80%A6_202607311853.jpeg"
-            alt=""
-            className="w-full h-full object-cover"
+            alt="Nurse checking senior woman"
+            className="w-full h-full object-cover object-center"
           />
+          {/* Gentle vignette gradient to guarantee text contrast */}
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-blue-950/60 to-slate-950/70" />
         </div>
-        {/* Orbs */}
-        <div className="absolute top-0 right-0 z-0 h-64 w-64 rounded-full bg-blue-500/25 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 z-0 h-64 w-64 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none" />
 
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-center">
+        {/* Orbs */}
+        <div className="absolute top-0 right-0 z-0 h-96 w-96 rounded-full bg-blue-500/30 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 z-0 h-96 w-96 rounded-full bg-indigo-500/25 blur-3xl pointer-events-none" />
+
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
 
             {/* Left */}
-            <div className="lg:col-span-1 space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold text-white">
-                <Zap className="h-3 w-3 text-amber-400" />
-                Immediate Response
+            <div className="lg:col-span-5 space-y-6">
+              <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-400/10 px-3.5 py-1.5 text-xs font-bold text-amber-300 shadow-sm">
+                <Zap className="h-3.5 w-3.5 text-amber-400" />
+                Immediate 24/7 Response
               </div>
-              <h2 className="text-3xl sm:text-4xl font-black text-white leading-tight">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-[1.15] tracking-tight">
                 Need Immediate Care?
               </h2>
-              <p className="text-slate-300 font-medium text-sm leading-relaxed">
-                We're here for you. Get professional care at home, whenever you need it.
+              <p className="text-slate-200 font-medium text-base sm:text-lg leading-relaxed max-w-lg">
+                We're here for you. Get compassionate, certified professional care right at home, whenever you need it most.
               </p>
-              <a
-                href="tel:+923000000000"
-                className="inline-flex items-center gap-3 rounded-2xl border-2 border-blue-400/60 bg-blue-600/20 hover:bg-blue-600/40 px-6 py-3.5 text-sm font-bold text-white transition-all hover:scale-[1.02]"
-              >
-                <div className="h-8 w-8 rounded-xl bg-blue-600 flex items-center justify-center shadow-md">
-                  <Phone className="h-4 w-4 text-white" />
-                </div>
-                +92 300 000 0000
-                <span className="text-blue-300 text-xs font-medium">Call Now for Immediate Assistance</span>
-              </a>
+              <div className="pt-2">
+                <a
+                  href="tel:+923000000000"
+                  className="inline-flex items-center gap-3.5 rounded-2xl border-2 border-blue-400/70 bg-blue-600/30 hover:bg-blue-600/50 backdrop-blur-md px-7 py-4 text-base font-bold text-white shadow-xl transition-all hover:scale-[1.03] active:scale-[0.98]"
+                >
+                  <div className="h-10 w-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/40 shrink-0">
+                    <Phone className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <span className="block text-base font-extrabold text-white leading-none">+92 300 000 0000</span>
+                    <span className="block text-xs font-semibold text-blue-200 mt-1">Call Now for Immediate Assistance</span>
+                  </div>
+                </a>
+              </div>
             </div>
 
             {/* Center — metric pills */}
-            <div className="lg:col-span-1 flex flex-col gap-4">
+            <div className="lg:col-span-4 flex flex-col gap-4">
               {[
-                { icon: Clock, label: 'Available', value: '24/7' },
-                { icon: Zap, label: 'Response Time', value: 'Within 30 min' },
-                { icon: MapPin, label: 'Caregivers', value: 'Near You' },
+                { icon: Clock, label: 'Caregiver Availability', value: '24/7 Immediate Dispatch' },
+                { icon: Zap, label: 'Average Response Time', value: 'Within 30 Minutes' },
+                { icon: MapPin, label: 'Nearby Caregivers', value: 'Verified & Local To You' },
               ].map(({ icon: Icon, label, value }) => (
-                <div key={label} className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/10 backdrop-blur-sm px-5 py-4">
-                  <div className="h-10 w-10 rounded-xl bg-blue-600/50 border border-blue-400/30 flex items-center justify-center shrink-0">
-                    <Icon className="h-5 w-5 text-blue-200" />
+                <div key={label} className="flex items-center gap-4 rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md px-6 py-4.5 shadow-lg hover:bg-white/15 transition-all">
+                  <div className="h-12 w-12 rounded-xl bg-blue-600/60 border border-blue-400/40 flex items-center justify-center shrink-0 shadow-md">
+                    <Icon className="h-6 w-6 text-blue-200" />
                   </div>
                   <div>
-                    <p className="text-xs text-slate-400 font-medium">{label}</p>
-                    <p className="text-sm font-extrabold text-white">{value}</p>
+                    <p className="text-xs text-blue-200 font-semibold">{label}</p>
+                    <p className="text-base font-extrabold text-white">{value}</p>
                   </div>
                 </div>
               ))}
             </div>
 
             {/* Right — 30min badge */}
-            <div className="lg:col-span-1 flex justify-center lg:justify-end">
-              <div className="relative flex items-center justify-center">
+            <div className="lg:col-span-3 flex justify-center lg:justify-end">
+              <div className="relative flex items-center justify-center py-6">
                 {/* Pulsing rings */}
-                <div className="absolute h-48 w-48 rounded-full border-2 border-blue-400/30 animate-pulse-slow" />
-                <div className="absolute h-36 w-36 rounded-full border-2 border-blue-400/50 animate-pulse-slow" style={{ animationDelay: '0.5s' }} />
+                <div className="absolute h-56 w-56 rounded-full border-2 border-blue-400/30 animate-pulse-slow" />
+                <div className="absolute h-44 w-44 rounded-full border-2 border-blue-400/50 animate-pulse-slow" style={{ animationDelay: '0.5s' }} />
                 {/* Main badge */}
-                <div className="h-28 w-28 rounded-full bg-blue-600 flex flex-col items-center justify-center shadow-2xl shadow-blue-500/50 animate-pulse-ring">
-                  <span className="text-3xl font-black text-white leading-none">30</span>
-                  <span className="text-xs font-bold text-blue-200">min</span>
+                <div className="h-32 w-32 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex flex-col items-center justify-center shadow-2xl shadow-blue-500/60 border-4 border-white/20 animate-pulse-ring">
+                  <span className="text-4xl font-black text-white leading-none">30</span>
+                  <span className="text-xs font-bold text-blue-100 uppercase tracking-wider mt-0.5">min arrival</span>
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </section>
