@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { Upload, X, FileText, Image as ImageIcon, Camera, Sparkles } from 'lucide-react';
+import { Upload, X, FileText, Image as ImageIcon, Camera, Sparkles, Loader2, AlertCircle } from 'lucide-react';
+import { uploadMediaToStorage } from '@/lib/storage';
 
 interface MediaPickerProps {
   value: string;
@@ -29,20 +30,28 @@ export default function MediaPicker({ value, onChange, type, label }: MediaPicke
   const [dragActive, setDragActive] = useState(false);
   const [showPresets, setShowPresets] = useState(false);
 
+  const [isUploading, setIsUploading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    readFile(file);
+    processFile(file);
   };
 
-  const readFile = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        onChange(event.target.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
+  const processFile = async (file: File) => {
+    setIsUploading(true);
+    setErrorMsg(null);
+    try {
+      const bucket = type === 'avatar' ? 'avatars' : 'documents';
+      const uploadedUrl = await uploadMediaToStorage(file, bucket, type);
+      onChange(uploadedUrl);
+    } catch (err: any) {
+      console.error('[MediaPicker] Upload error:', err);
+      setErrorMsg(err.message || 'Failed to upload image. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleDrag = (e: React.DragEvent) => {
@@ -62,12 +71,13 @@ export default function MediaPicker({ value, onChange, type, label }: MediaPicke
     
     const file = e.dataTransfer.files?.[0];
     if (file) {
-      readFile(file);
+      processFile(file);
     }
   };
 
   const clearSelection = () => {
     onChange('');
+    setErrorMsg(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -83,7 +93,19 @@ export default function MediaPicker({ value, onChange, type, label }: MediaPicke
         </span>
       )}
 
-      {value ? (
+      {errorMsg && (
+        <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+          <AlertCircle size={16} className="shrink-0 text-red-500" />
+          <span>{errorMsg}</span>
+        </div>
+      )}
+
+      {isUploading ? (
+        <div className="border-2 border-dashed border-blue-400 bg-blue-50/40 rounded-3xl p-8 text-center flex flex-col items-center justify-center gap-3">
+          <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+          <p className="text-xs font-bold text-blue-950">Compressing & Uploading to Storage...</p>
+        </div>
+      ) : value ? (
         /* Preview Screen */
         <div className="relative rounded-2xl border border-slate-200 bg-slate-50 p-4 flex items-center gap-4">
           {type === 'avatar' ? (

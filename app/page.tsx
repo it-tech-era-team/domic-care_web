@@ -258,11 +258,11 @@ export default function Home() {
     servicesList.length > 0
       ? servicesList
       : [
-          { id: 'd1', name: 'Elder Care', description: 'Comprehensive support for older adults facing physical or mental challenges.' },
-          { id: 'd2', name: 'Physiotherapy', description: 'Treatment through exercise, massage, and heat therapy for recovery.' },
-          { id: 'd3', name: 'Nursing & Medical Care', description: 'Registered nurses providing wound care, medication, and vitals monitoring.' },
-          { id: 'd4', name: 'Companionship & Social Support', description: 'Engaging conversations, meal prep, and emotional wellbeing support.' },
-        ];
+        { id: 'd1', name: 'Elder Care', description: 'Comprehensive support for older adults facing physical or mental challenges.' },
+        { id: 'd2', name: 'Physiotherapy', description: 'Treatment through exercise, massage, and heat therapy for recovery.' },
+        { id: 'd3', name: 'Nursing & Medical Care', description: 'Registered nurses providing wound care, medication, and vitals monitoring.' },
+        { id: 'd4', name: 'Companionship & Social Support', description: 'Engaging conversations, meal prep, and emotional wellbeing support.' },
+      ];
 
   const filteredServices =
     activeChip === 'All'
@@ -311,7 +311,7 @@ export default function Home() {
               {/* Trust badge */}
               <div className="inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 px-4 py-1.5 text-sm font-bold text-white shadow-sm">
                 <div className="flex -space-x-1.5">
-                  {['#3b82f6','#10b981','#f59e0b'].map((c, i) => (
+                  {['#3b82f6', '#10b981', '#f59e0b'].map((c, i) => (
                     <span key={i} className="h-5 w-5 rounded-full border-2 border-white/80" style={{ background: c }} />
                   ))}
                 </div>
@@ -321,7 +321,7 @@ export default function Home() {
               {/* Star rating */}
               <div className="flex items-center justify-center lg:justify-start gap-2">
                 <div className="flex items-center gap-0.5">
-                  {[1,2,3,4,5].map((i) => (
+                  {[1, 2, 3, 4, 5].map((i) => (
                     <Star key={i} className="h-5 w-5 fill-amber-400 text-amber-400 star-glow" />
                   ))}
                 </div>
@@ -422,7 +422,7 @@ export default function Home() {
                   </div>
                   <div className="flex items-center gap-1">
                     <div className="flex -space-x-1">
-                      {['#3b82f6','#10b981','#f59e0b','#ec4899'].map((c, i) => (
+                      {['#3b82f6', '#10b981', '#f59e0b', '#ec4899'].map((c, i) => (
                         <span key={i} className="h-5 w-5 rounded-full border-2 border-white" style={{ background: c }} />
                       ))}
                     </div>
@@ -481,7 +481,7 @@ export default function Home() {
 
               {/* Where? */}
               <div className="flex-1 min-w-0">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 px-1">📍 Where?</label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 px-1"> Where?</label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500" />
                   <input
@@ -498,7 +498,7 @@ export default function Home() {
 
               {/* Date */}
               <div className="flex-1 min-w-0">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 px-1">📅 Date</label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 px-1"> Date</label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500" />
                   <input
@@ -514,7 +514,7 @@ export default function Home() {
 
               {/* Care Type */}
               <div className="flex-1 min-w-0">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 px-1">🩺 Care Type</label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 px-1"> Care Type</label>
                 <div className="relative">
                   <Stethoscope className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500" />
                   <select
@@ -583,11 +583,10 @@ export default function Home() {
                 <button
                   key={chip}
                   onClick={() => setActiveChip(chip)}
-                  className={`flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-semibold whitespace-nowrap border transition-all duration-200 cursor-pointer ${
-                    activeChip === chip
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20 scale-[1.03]'
-                      : 'bg-white text-slate-600 border-slate-200 hover:border-blue-400 hover:text-blue-600 hover:shadow-md'
-                  }`}
+                  className={`flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-semibold whitespace-nowrap border transition-all duration-200 cursor-pointer ${activeChip === chip
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20 scale-[1.03]'
+                    : 'bg-white text-slate-600 border-slate-200 hover:border-blue-400 hover:text-blue-600 hover:shadow-md'
+                    }`}
                 >
                   {chip}
                 </button>
@@ -648,7 +647,7 @@ export default function Home() {
                       </p>
 
                       <ul className="space-y-1.5 mb-4">
-                        {bullets.slice(0,2).map((b, bi) => (
+                        {bullets.slice(0, 2).map((b, bi) => (
                           <li key={bi} className="flex items-center gap-2 text-xs text-slate-600 font-medium">
                             <CheckCircle2 className="h-3.5 w-3.5 text-blue-500 shrink-0" />
                             {b}

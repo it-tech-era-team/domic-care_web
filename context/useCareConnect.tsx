@@ -286,6 +286,7 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
             setCurrentUserState(null);
           }
         } else {
+          showToast('Error', 'Failed to fetch user data', 'error');
           setCurrentUserState(null);
         }
       } catch (err) {
@@ -355,7 +356,7 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
     };
 
-    const interval = setInterval(performSyncCheck, 18000);
+    const interval = setInterval(performSyncCheck, 30000);
 
     const handleVisibilityChange = () => {
       if (!document.hidden) {
@@ -569,7 +570,11 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
         const data = await res.json();
         // Optimistically add to message state for instant render
         setMessages(prev => [...prev, data.message]);
-        await refreshData();
+        // Update conversations list for sidebar preview without triggering full dataset refresh
+        fetch('/api/conversations')
+          .then(r => r.ok ? r.json() : null)
+          .then(cData => { if (cData?.conversations) setConversations(cData.conversations); })
+          .catch(() => {});
       }
     } catch (err) {
       console.error('Error sending message:', err);

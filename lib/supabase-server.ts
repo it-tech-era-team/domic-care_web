@@ -1,4 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
+import dns from "node:dns";
+
+// Force Node.js to prefer IPv4 over IPv6 to prevent UND_ERR_CONNECT_TIMEOUT when accessed over local network
+try {
+  dns.setDefaultResultOrder("ipv4first");
+} catch (e) {}
 
 /**
  * Server-only Supabase client.

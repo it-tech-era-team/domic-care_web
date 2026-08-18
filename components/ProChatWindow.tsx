@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useCareConnect, Message, Conversation } from '@/context/useCareConnect';
+import { supabase } from '@/lib/supabase';
 import {
   Send,
   Paperclip,
@@ -76,7 +77,10 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
 
   const isFetchingMsgsRef = useRef(false);
 
-  // Fetch messages whenever active conversation changes & poll every 3.5s with in-flight lock guard
+  const convUpdatedAt = activeConv?.updatedAt || '';
+  const convLastMsg = activeConv?.lastMessage || '';
+
+  // Fetch messages on active conversation change & subscribe to Supabase Realtime updates
   useEffect(() => {
     if (!activeConvId) return;
 
@@ -92,10 +96,37 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
 
     doFetch();
 
-    const interval = setInterval(doFetch, 3500);
+    // Subscribe to realtime push notifications for new messages in this conversation
+    const channel = supabase
+      .channel(`chat_${activeConvId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${activeConvId}`,
+        },
+        () => {
+          doFetch();
+        }
+      )
+      .subscribe();
 
-    return () => clearInterval(interval);
-  }, [activeConvId]);
+    // Catch-up fetch when tab becomes visible again
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        doFetch();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      supabase.removeChannel(channel);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [activeConvId, convUpdatedAt, convLastMsg]);
 
   // Smooth scroll to bottom on message updates
   useEffect(() => {
@@ -229,7 +260,10 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
               return (
                 <button
                   key={conv.id}
-                  onClick={() => setActiveConvId(conv.id)}
+                  onClick={() => {
+                    setActiveConvId(conv.id);
+                    fetchMessages(conv.id);
+                  }}
                   className={`
                     w-full p-4 text-left flex items-start gap-3.5 transition-all cursor-pointer relative
                     ${isActive

@@ -44,63 +44,106 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const conversations = [];
-    for (const conv of (conversationsData || [])) {
-      // Fetch latest message
-      const { data: msg } = await supabase
-        .from("messages")
-        .select("message, created_at, sender_id, read")
-        .eq("conversation_id", conv.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+    const convList = conversationsData || [];
+    const convIds = convList.map((c: any) => c.id);
 
-      // Fetch unread count for current user
-      const { count: unreadCount } = await supabase
+    // 1. Batch fetch latest messages across all user conversations
+    const latestMsgByConv = new Map<string, any>();
+    if (convIds.length > 0) {
+      const { data: rawMsgs } = await supabase
         .from("messages")
-        .select("id", { count: "exact", head: true })
-        .eq("conversation_id", conv.id)
+        .select("conversation_id, message, created_at, sender_id, read")
+        .in("conversation_id", convIds)
+        .order("created_at", { ascending: false })
+        .limit(convIds.length * 5);
+
+      (rawMsgs || []).forEach((m: any) => {
+        if (!latestMsgByConv.has(m.conversation_id)) {
+          latestMsgByConv.set(m.conversation_id, m);
+        }
+      });
+    }
+
+    // 2. Batch fetch unread counts per conversation
+    const unreadCountByConv = new Map<string, number>();
+    if (convIds.length > 0) {
+      const { data: unreadMsgs } = await supabase
+        .from("messages")
+        .select("conversation_id")
+        .in("conversation_id", convIds)
         .eq("read", false)
         .neq("sender_id", user.id);
 
-      // Fetch active booking context
-      const { data: activeBooking } = await supabase
+      (unreadMsgs || []).forEach((m: any) => {
+        const count = unreadCountByConv.get(m.conversation_id) || 0;
+        unreadCountByConv.set(m.conversation_id, count + 1);
+      });
+    }
+
+    // 3. Batch fetch active bookings per user/caregiver pair
+    const bookingByPair = new Map<string, any>();
+    const userIds = Array.from(new Set(convList.map((c: any) => c.user_id)));
+    const caregiverIds = Array.from(new Set(convList.map((c: any) => c.caregiver_id)));
+
+    if (userIds.length > 0 && caregiverIds.length > 0) {
+      const { data: activeBookings } = await supabase
         .from("bookings")
         .select(`
+          user_id,
+          caregiver_id,
           status,
           start_date,
+          created_at,
           services ( name )
         `)
-        .eq("user_id", conv.user_id)
-        .eq("caregiver_id", conv.caregiver_id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .in("user_id", userIds)
+        .in("caregiver_id", caregiverIds)
+        .order("created_at", { ascending: false });
 
-      const c = conv as any;
-      const clientProfileObj = Array.isArray(c.profiles) ? c.profiles[0] : c.profiles;
-      const caregiverProfileObj = Array.isArray(c.caregiver_profiles) ? c.caregiver_profiles[0] : c.caregiver_profiles;
+      (activeBookings || []).forEach((bk: any) => {
+        const pairKey = `${bk.user_id}_${bk.caregiver_id}`;
+        if (!bookingByPair.has(pairKey)) {
+          bookingByPair.set(pairKey, bk);
+        }
+      });
+    }
+
+    // 4. Assemble formatted conversations in memory (O(N))
+    const conversations = convList.map((conv: any) => {
+      const msg = latestMsgByConv.get(conv.id);
+      const unreadCount = unreadCountByConv.get(conv.id) || 0;
+      const pairKey = `${conv.user_id}_${conv.caregiver_id}`;
+      const activeBooking = bookingByPair.get(pairKey);
+
+      const clientProfileObj = Array.isArray(conv.profiles) ? conv.profiles[0] : conv.profiles;
+      const caregiverProfileObj = Array.isArray(conv.caregiver_profiles) ? conv.caregiver_profiles[0] : conv.caregiver_profiles;
       const caregiverSubProfileObj = caregiverProfileObj ? (Array.isArray(caregiverProfileObj.profiles) ? caregiverProfileObj.profiles[0] : caregiverProfileObj.profiles) : null;
 
       const bkServ = activeBooking as any;
       const serviceName = (Array.isArray(bkServ?.services) ? bkServ?.services[0]?.name : bkServ?.services?.name) || "Care Service";
 
-      conversations.push({
-        id: c.id,
-        userId: c.user_id,
+      // If message is a base64 string before backfill script runs, truncate it
+      let lastMsgText = msg?.message || "";
+      if (lastMsgText.startsWith("data:image")) {
+        lastMsgText = "📷 Photo attachment";
+      }
+
+      return {
+        id: conv.id,
+        userId: conv.user_id,
         userFullName: clientProfileObj?.full_name || "Client",
         userAvatar: clientProfileObj?.avatar_url || "",
-        caregiverId: c.caregiver_id,
+        caregiverId: conv.caregiver_id,
         caregiverFullName: caregiverSubProfileObj?.full_name || "Caregiver",
         caregiverAvatar: caregiverSubProfileObj?.avatar_url || "",
-        lastMessage: msg?.message || "",
-        unreadCount: unreadCount || 0,
+        lastMessage: lastMsgText,
+        unreadCount,
         bookingStatus: bkServ?.status || null,
         bookingService: serviceName,
         bookingStartDate: bkServ?.start_date || null,
-        updatedAt: msg?.created_at || c.created_at,
-      });
-    }
+        updatedAt: msg?.created_at || conv.created_at,
+      };
+    });
 
     // Sort by updatedAt descending
     conversations.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());

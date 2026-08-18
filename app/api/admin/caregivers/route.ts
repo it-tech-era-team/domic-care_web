@@ -97,14 +97,19 @@ export async function GET(req: NextRequest) {
         };
       });
 
-      const documents = (cg.caregiver_documents || []).map((doc: any) => ({
-        id: doc.id,
-        type: doc.document_type,
-        fileUrl: doc.file_url,
-        url: doc.file_url,
-        status: doc.status,
-        uploaded_at: doc.uploaded_at,
-      }));
+      const documents = (cg.caregiver_documents || []).map((doc: any) => {
+        const rawUrl = doc.file_url || "";
+        // If legacy base64 string exists before backfill migration runs, truncate it to prevent response explosion
+        const safeUrl = rawUrl.startsWith("data:") ? `${rawUrl.substring(0, 100)}...[Base64]` : rawUrl;
+        return {
+          id: doc.id,
+          type: doc.document_type,
+          fileUrl: safeUrl,
+          url: safeUrl,
+          status: doc.status,
+          uploaded_at: doc.uploaded_at,
+        };
+      });
 
       const reviews = (cg.reviews || []).map((r: any) => {
         const revProf = Array.isArray(r.profiles) ? r.profiles[0] : r.profiles;

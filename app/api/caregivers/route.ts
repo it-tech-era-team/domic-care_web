@@ -188,7 +188,9 @@ export async function GET(req: NextRequest) {
       filtered.sort((a, b) => a.distance - b.distance);
     }
 
-    return NextResponse.json({ caregivers: filtered });
+    const res = NextResponse.json({ caregivers: filtered });
+    res.headers.set("Cache-Control", "public, s-maxage=10, stale-while-revalidate=30");
+    return res;
   } catch (err) {
     console.error("[GET /api/caregivers]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
