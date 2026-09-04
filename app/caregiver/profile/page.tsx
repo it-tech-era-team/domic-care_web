@@ -191,20 +191,32 @@ export default function CaregiverProfileBuilder() {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8 max-w-2xl w-full mx-auto animate-fade-in">
+    <div className="space-y-6 sm:space-y-8 max-w-2xl w-full mx-auto animate-fade-in text-white">
       
       {/* Title */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
           Caregiver Profile Builder
         </h1>
-        <p className="text-xs sm:text-sm text-slate-500 mt-1">
+        <p className="text-xs sm:text-sm text-slate-300 font-medium mt-1">
           Complete these steps to register your caregiver application for verification.
         </p>
       </div>
 
+      {/* Top Banner Status */}
+      <div className="dark-panel bg-[#111433] rounded-2xl border border-white/12 p-4 shadow-xl flex justify-between items-center text-[10px] sm:text-xs font-bold text-slate-300">
+        <div className="flex items-center gap-2">
+          <span className={`h-2.5 w-2.5 rounded-full ${
+            existingProfile?.approvalStatus === 'approved' ? 'bg-emerald-400 animate-pulse' :
+            existingProfile?.approvalStatus === 'rejected' ? 'bg-rose-500' : 'bg-amber-400'
+          }`} />
+          <span className="capitalize text-white">Verification Status: {existingProfile?.approvalStatus || 'Pending'}</span>
+        </div>
+        <span className="text-purple-400 font-extrabold uppercase tracking-wider text-[11px]">CNIC Audit & Background Verified</span>
+      </div>
+
       {/* Stepper Progress bar */}
-      <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm flex justify-between items-center text-[10px] sm:text-xs font-bold text-slate-400">
+      <div className="dark-panel bg-[#111433] rounded-2xl border border-white/12 p-4 shadow-xl flex justify-between items-center text-[10px] sm:text-xs font-bold text-slate-300">
         {[
           { num: 1, name: 'Personal', icon: User },
           { num: 2, name: 'Experience', icon: Clipboard },
@@ -216,16 +228,16 @@ export default function CaregiverProfileBuilder() {
           const isActive = step === s.num;
           const isDone = step > s.num;
           return (
-            <div key={s.num} className="flex items-center gap-1 sm:gap-2">
+            <div key={s.num} className="flex items-center gap-1.5 sm:gap-2">
               <div className={`
-                h-7 w-7 rounded-full flex items-center justify-center font-bold text-xs
-                ${isActive && 'bg-blue-600 text-white shadow-md shadow-blue-500/20'}
-                ${isDone && 'bg-teal-500 text-white'}
-                ${!isActive && !isDone && 'bg-slate-100 text-slate-500'}
+                h-7 w-7 rounded-full flex items-center justify-center font-black text-xs transition-all
+                ${isActive && 'nav-pill-active text-white shadow-md shadow-purple-500/30 scale-105'}
+                ${isDone && 'bg-emerald-500 text-white shadow-sm'}
+                ${!isActive && !isDone && 'bg-[#171b42] text-slate-400 border border-white/10'}
               `}>
                 {isDone ? '✓' : s.num}
               </div>
-              <span className={`hidden sm:inline ${isActive ? 'text-slate-900' : isDone ? 'text-teal-600' : ''}`}>
+              <span className={`hidden sm:inline font-bold ${isActive ? 'text-white font-black' : isDone ? 'text-emerald-400' : 'text-slate-400'}`}>
                 {s.name}
               </span>
             </div>
@@ -235,24 +247,24 @@ export default function CaregiverProfileBuilder() {
 
       {/* Saving Alert */}
       {isSaved && (
-        <div className="flex items-center gap-2 rounded-xl bg-green-50 p-4 border border-green-200 text-xs font-semibold text-green-700">
-          <CheckCircle2 className="h-5 w-5 shrink-0" />
+        <div className="flex items-center gap-2 rounded-2xl bg-emerald-500/20 p-4 border border-emerald-400/30 text-xs font-bold text-emerald-300 animate-fade-in shadow-lg">
+          <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-400" />
           <span>Profile builder saved! forwarding application to administrator audits...</span>
         </div>
       )}
 
       {/* Form Content card */}
-      <div className="bg-white rounded-3xl border border-slate-100 p-6 sm:p-8 shadow-sm space-y-6 min-h-[350px]">
+      <div className="dark-panel bg-[#111433] rounded-3xl border border-white/12 p-6 sm:p-8 shadow-2xl space-y-6 min-h-[350px]">
         
         {/* Step 1: Personal Details */}
         {step === 1 && (
           <div className="space-y-4">
-            <h3 className="font-heading font-extrabold text-base text-slate-900 border-b border-slate-50 pb-2">
+            <h3 className="font-heading font-black text-base text-white border-b border-white/10 pb-2.5">
               Step 1: Personal Information
             </h3>
 
             <div className="space-y-1.5">
-              <label htmlFor="bio" className="block text-xs font-bold text-slate-700">Biography / Experience Intro</label>
+              <label htmlFor="bio" className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Biography / Experience Intro</label>
               <textarea
                 id="bio"
                 required
@@ -260,54 +272,54 @@ export default function CaregiverProfileBuilder() {
                 onChange={(e) => setBio(e.target.value)}
                 placeholder="Describe your caregiving background, qualifications, what languages you speak, and how you care for elderly seniors..."
                 rows={4}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-blue-600 focus:bg-white focus:outline-none"
+                className="w-full rounded-2xl border border-white/15 bg-[#171b42] px-3.5 py-3 text-xs sm:text-sm font-semibold text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none transition-all"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700">Gender</label>
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Gender</label>
                 <select
                   value={gender}
                   onChange={(e) => setGender(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-blue-600 focus:bg-white focus:outline-none"
+                  className="w-full rounded-2xl border border-white/15 bg-[#171b42] px-3.5 py-3 text-xs sm:text-sm font-semibold text-white focus:border-purple-500 focus:outline-none transition-all"
                 >
-                  <option value="Female">Female</option>
-                  <option value="Male">Male</option>
-                  <option value="Other">Other</option>
+                  <option value="Female" className="bg-[#111433] text-white">Female</option>
+                  <option value="Male" className="bg-[#111433] text-white">Male</option>
+                  <option value="Other" className="bg-[#111433] text-white">Other</option>
                 </select>
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700">Date of Birth</label>
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Date of Birth</label>
                 <input
                   type="date"
                   value={dob}
                   onChange={(e) => setDob(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-blue-600 focus:bg-white"
+                  className="w-full rounded-2xl border border-white/15 bg-[#171b42] px-3.5 py-3 text-xs sm:text-sm font-semibold text-white focus:border-purple-500 focus:outline-none transition-all"
                 />
               </div>
 
               <div className="space-y-1.5 sm:col-span-2">
-                <label className="block text-xs font-bold text-slate-700">Residential Street Address</label>
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Residential Street Address</label>
                 <input
                   type="text"
                   required
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="e.g. 123 Health Ave, Medical District"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-blue-600 focus:bg-white"
+                  className="w-full rounded-2xl border border-white/15 bg-[#171b42] px-3.5 py-3 text-xs sm:text-sm font-semibold text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none transition-all"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700">City</label>
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">City</label>
                 <input
                   type="text"
                   required
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-blue-600 focus:bg-white"
+                  className="w-full rounded-2xl border border-white/15 bg-[#171b42] px-3.5 py-3 text-xs sm:text-sm font-semibold text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none transition-all"
                 />
               </div>
             </div>
@@ -317,12 +329,12 @@ export default function CaregiverProfileBuilder() {
         {/* Step 2: Experience */}
         {step === 2 && (
           <div className="space-y-4">
-            <h3 className="font-heading font-extrabold text-base text-slate-900 border-b border-slate-50 pb-2">
+            <h3 className="font-heading font-black text-base text-white border-b border-white/10 pb-2.5">
               Step 2: Experience & Work Details
             </h3>
 
             <div className="space-y-1.5">
-              <label htmlFor="exp" className="block text-xs font-bold text-slate-700">Years of Experience</label>
+              <label htmlFor="exp" className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Years of Experience</label>
               <input
                 type="number"
                 id="exp"
@@ -331,16 +343,16 @@ export default function CaregiverProfileBuilder() {
                 max="40"
                 value={experienceYears}
                 onChange={(e) => setExperienceYears(Number(e.target.value))}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-blue-600 focus:bg-white"
+                className="w-full rounded-2xl border border-white/15 bg-[#171b42] px-3.5 py-3 text-xs sm:text-sm font-semibold text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none transition-all"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">Brief summary of certificates and qualifications</label>
+              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Brief summary of certificates and qualifications</label>
               <textarea
                 placeholder="e.g. CPR Certified, Licensed Practical Nurse (LPN), Alzheimer Association Training certified"
                 rows={3}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-blue-600 focus:bg-white"
+                className="w-full rounded-2xl border border-white/15 bg-[#171b42] px-3.5 py-3 text-xs sm:text-sm font-semibold text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none transition-all"
               />
             </div>
           </div>
@@ -349,12 +361,12 @@ export default function CaregiverProfileBuilder() {
         {/* Step 3: Services & Hourly Rate */}
         {step === 3 && (
           <div className="space-y-4">
-            <h3 className="font-heading font-extrabold text-base text-slate-900 border-b border-slate-50 pb-2">
+            <h3 className="font-heading font-black text-base text-white border-b border-white/10 pb-2.5">
               Step 3: Services & Pricing
             </h3>
 
             <div className="space-y-1.5">
-              <label htmlFor="rate" className="block text-xs font-bold text-slate-700">Standard Hourly Rate ($ USD)</label>
+              <label htmlFor="rate" className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Standard Hourly Rate ($ USD)</label>
               <input
                 type="number"
                 id="rate"
@@ -363,13 +375,13 @@ export default function CaregiverProfileBuilder() {
                 max="100"
                 value={hourlyRate}
                 onChange={(e) => setHourlyRate(Number(e.target.value))}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 focus:border-blue-600 focus:bg-white"
+                className="w-full rounded-2xl border border-white/15 bg-[#171b42] px-3.5 py-3 text-xs sm:text-sm font-semibold text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none transition-all"
               />
             </div>
 
             {/* Checklist of services */}
             <div className="space-y-2">
-              <label className="block text-xs font-bold text-slate-700">Select services you provide</label>
+              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Select services you provide</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 {servicesList.map((service) => {
                   const isChecked = selectedServices.includes(service);
@@ -379,16 +391,16 @@ export default function CaregiverProfileBuilder() {
                       type="button"
                       onClick={() => handleServiceToggle(service)}
                       className={`
-                        rounded-xl border p-4 text-left text-xs font-bold transition-all flex items-center justify-between cursor-pointer
+                        rounded-2xl border p-4 text-left text-xs font-bold transition-all flex items-center justify-between cursor-pointer shadow-md
                         ${isChecked
-                          ? 'border-blue-600 bg-blue-50/20 text-blue-700'
-                          : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'}
+                          ? 'border-purple-500 bg-purple-500/20 text-purple-300'
+                          : 'border-white/10 bg-[#171b42] text-slate-300 hover:bg-[#1e2352]'}
                       `}
                     >
                       <span>{service}</span>
                       <span className={`
-                        h-4 w-4 rounded-md border flex items-center justify-center text-[10px]
-                        ${isChecked ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300'}
+                        h-5 w-5 rounded-lg border flex items-center justify-center text-[10px] font-black
+                        ${isChecked ? 'bg-purple-500 border-purple-400 text-white' : 'border-white/20 bg-slate-800'}
                       `}>
                         {isChecked ? '✓' : ''}
                       </span>
@@ -403,25 +415,25 @@ export default function CaregiverProfileBuilder() {
         {/* Step 4: Availability Toggles */}
         {step === 4 && (
           <div className="space-y-4">
-            <h3 className="font-heading font-extrabold text-base text-slate-900 border-b border-slate-50 pb-2">
+            <h3 className="font-heading font-black text-base text-white border-b border-white/10 pb-2.5">
               Step 4: Availability Settings
             </h3>
 
             <div className="space-y-3">
               {Object.entries(availability).map(([day, slot]) => (
-                <div key={day} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl border border-slate-100 bg-slate-50/50">
+                <div key={day} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl border border-white/12 bg-[#171b42] shadow-md">
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
                       onClick={() => handleAvailabilityToggle(day)}
                       className={`
-                        rounded-lg px-2.5 py-1 text-2xs font-bold uppercase cursor-pointer transition-colors
-                        ${slot.isAvailable ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'}
+                        rounded-xl px-3 py-1 text-[10px] font-black uppercase cursor-pointer transition-all shadow-sm
+                        ${slot.isAvailable ? 'nav-pill-active text-white' : 'bg-white/10 text-slate-400 border border-white/10'}
                       `}
                     >
                       {slot.isAvailable ? 'Available' : 'Unavailable'}
                     </button>
-                    <span className="font-bold text-slate-800 text-xs">{day}</span>
+                    <span className="font-extrabold text-white text-xs">{day}</span>
                   </div>
 
                   {slot.isAvailable && (
@@ -430,14 +442,14 @@ export default function CaregiverProfileBuilder() {
                         type="time"
                         value={slot.start}
                         onChange={(e) => handleTimeChange(day, 'start', e.target.value)}
-                        className="rounded-lg border border-slate-200 bg-white p-1 text-slate-800 focus:outline-none"
+                        className="rounded-xl border border-white/15 bg-[#111433] px-2.5 py-1 text-white font-semibold focus:outline-none"
                       />
                       <span className="text-slate-400 font-bold">-</span>
                       <input
                         type="time"
                         value={slot.end}
                         onChange={(e) => handleTimeChange(day, 'end', e.target.value)}
-                        className="rounded-lg border border-slate-200 bg-white p-1 text-slate-800 focus:outline-none"
+                        className="rounded-xl border border-white/15 bg-[#111433] px-2.5 py-1 text-white font-semibold focus:outline-none"
                       />
                     </div>
                   )}
@@ -450,37 +462,37 @@ export default function CaregiverProfileBuilder() {
         {/* Step 5: Verification Documents */}
         {step === 5 && (
           <div className="space-y-5">
-            <h3 className="font-heading font-extrabold text-base text-slate-900 border-b border-slate-50 pb-2">
+            <h3 className="font-heading font-black text-base text-white border-b border-white/10 pb-2.5">
               Step 5: Verification Credentials
             </h3>
 
             {/* List of current uploaded documents */}
             <div className="space-y-2">
-              <span className="block text-xs font-bold text-slate-700">Uploaded Documents</span>
+              <span className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Uploaded Documents</span>
               {documents.length === 0 ? (
                 <p className="text-xs text-slate-400 italic">No verification files uploaded yet.</p>
               ) : (
                 <div className="space-y-2">
                   {documents.map((doc) => (
-                    <div key={doc.id} className="p-3 border border-slate-100 rounded-2xl bg-slate-50 flex items-center justify-between text-xs">
+                    <div key={doc.id} className="p-3.5 border border-white/12 rounded-2xl bg-[#171b42] flex items-center justify-between text-xs shadow-md">
                       <div>
-                        <span className="block font-bold text-slate-800">{doc.type}</span>
-                        <a href={doc.fileUrl} target="_blank" rel="noreferrer" className="text-[10px] text-blue-600 hover:underline">
+                        <span className="block font-black text-white">{doc.type}</span>
+                        <a href={doc.fileUrl} target="_blank" rel="noreferrer" className="text-[10px] text-cyan-400 hover:underline font-mono">
                           View Uploaded Document URL
                         </a>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className={`
-                          text-[9px] font-bold px-2 py-0.5 rounded-full border uppercase
-                          ${doc.status === 'pending' && 'bg-amber-50 text-amber-700 border-amber-100'}
-                          ${doc.status === 'approved' && 'bg-green-50 text-green-700 border-green-100'}
-                          ${doc.status === 'rejected' && 'bg-red-50 text-red-700 border-red-100'}
+                          text-[9px] font-extrabold px-2.5 py-0.5 rounded-full border uppercase tracking-wider
+                          ${doc.status === 'pending' && 'bg-amber-500/20 text-amber-300 border-amber-400/30'}
+                          ${doc.status === 'approved' && 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30'}
+                          ${doc.status === 'rejected' && 'bg-rose-500/20 text-rose-300 border-rose-400/30'}
                         `}>
                           {doc.status}
                         </span>
                         <button
                           onClick={() => handleRemoveDocument(doc.id)}
-                          className="text-red-500 hover:text-red-700 p-1 hover:bg-slate-100 rounded-lg cursor-pointer"
+                          className="text-rose-400 hover:text-rose-300 p-1.5 hover:bg-rose-500/20 rounded-xl cursor-pointer transition-colors"
                         >
                           <Trash className="h-4 w-4" />
                         </button>
@@ -492,21 +504,21 @@ export default function CaregiverProfileBuilder() {
             </div>
 
             {/* Add Document Mock Upload Form */}
-            <div className="p-4 border border-dashed border-slate-200 rounded-2xl bg-slate-50/20 space-y-4">
-              <span className="block text-xs font-bold text-slate-700">Add New Document</span>
+            <div className="p-5 border border-dashed border-white/15 rounded-3xl bg-[#171b42] space-y-4 shadow-xl">
+              <span className="block text-xs font-bold text-white uppercase tracking-wider">Add New Document</span>
               
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Document Type</label>
+                  <label className="block text-[10px] font-bold text-slate-300 uppercase tracking-wider">Document Type</label>
                   <select
                     value={newDocType}
                     onChange={(e) => setNewDocType(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white p-2.5 text-xs font-semibold"
+                    className="w-full rounded-2xl border border-white/15 bg-[#111433] p-3 text-xs font-semibold text-white focus:border-purple-500 focus:outline-none"
                   >
-                    <option value="CNIC / Identity Card">CNIC / Identity Card</option>
-                    <option value="Nursing License">Nursing License</option>
-                    <option value="Care Certificate">Care Certificate</option>
-                    <option value="Degree / Diploma">Degree / Diploma</option>
+                    <option value="CNIC / Identity Card" className="bg-[#111433] text-white">CNIC / Identity Card</option>
+                    <option value="Nursing License" className="bg-[#111433] text-white">Nursing License</option>
+                    <option value="Care Certificate" className="bg-[#111433] text-white">Care Certificate</option>
+                    <option value="Degree / Diploma" className="bg-[#111433] text-white">Degree / Diploma</option>
                   </select>
                 </div>
 
@@ -521,7 +533,7 @@ export default function CaregiverProfileBuilder() {
               <button
                 type="button"
                 onClick={handleAddDocument}
-                className="rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 px-3.5 py-2 text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
+                className="rounded-2xl border border-purple-400/30 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 px-4 py-2.5 text-xs font-black inline-flex items-center gap-1.5 cursor-pointer uppercase tracking-wider transition-all"
               >
                 <Plus className="h-4 w-4" />
                 <span>Add verification document</span>
@@ -531,13 +543,13 @@ export default function CaregiverProfileBuilder() {
         )}
 
         {/* Stepper Control Buttons */}
-        <div className="flex justify-between items-center border-t border-slate-100 pt-6">
+        <div className="flex justify-between items-center border-t border-white/10 pt-6">
           {step > 1 ? (
             <button
               onClick={() => setStep((s) => (s - 1) as any)}
-              className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm inline-flex items-center gap-1.5 cursor-pointer"
+              className="rounded-2xl border border-white/15 bg-white/10 hover:bg-white/20 px-5 py-3 text-xs font-bold text-slate-200 hover:text-white shadow-lg inline-flex items-center gap-1.5 cursor-pointer transition-all"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-4 w-4 text-purple-400" />
               <span>Back</span>
             </button>
           ) : (
@@ -547,7 +559,7 @@ export default function CaregiverProfileBuilder() {
           {step < 5 ? (
             <button
               onClick={() => setStep((s) => (s + 1) as any)}
-              className="rounded-xl bg-blue-600 hover:bg-blue-700 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-blue-500/10 inline-flex items-center gap-1.5 cursor-pointer ml-auto"
+              className="rounded-2xl nav-pill-active px-6 py-3 text-xs font-black text-white shadow-lg shadow-purple-500/25 inline-flex items-center gap-2 cursor-pointer ml-auto uppercase tracking-wider active:scale-95 transition-all"
             >
               <span>Continue</span>
               <ArrowRight className="h-4 w-4" />
@@ -557,7 +569,7 @@ export default function CaregiverProfileBuilder() {
               onClick={handleFormSubmit}
               disabled={isSubmitting}
               className={`
-                rounded-xl bg-teal-600 hover:bg-teal-700 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-500/10 inline-flex items-center gap-1.5 cursor-pointer ml-auto
+                rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 px-6 py-3 text-xs font-black text-white shadow-lg shadow-emerald-500/25 inline-flex items-center gap-2 cursor-pointer ml-auto uppercase tracking-wider active:scale-95 transition-all
                 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}
               `}
             >
@@ -576,3 +588,4 @@ export default function CaregiverProfileBuilder() {
     </div>
   );
 }
+

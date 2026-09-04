@@ -494,7 +494,7 @@ export default function AdminCaregiversPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#070814] text-white">
 
       {/* Remaining UI continues in Part 1B */}
 
@@ -502,137 +502,64 @@ export default function AdminCaregiversPage() {
       {/* PAGE HEADER */}
       {/* ========================================================= */}
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 space-y-8">
 
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-
           <div>
-
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
+            <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
               Caregiver Management
             </h1>
-
-            <p className="mt-2 text-slate-500">
-              Manage caregivers, monitor performance, bookings, reviews and
-              account activity.
+            <p className="mt-2 text-slate-400">
+              Manage caregivers, monitor performance, bookings, reviews and account activity.
             </p>
-
           </div>
 
           <button
             onClick={loadCaregivers}
-            className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-blue-700 hover:shadow-xl"
+            className="inline-flex items-center gap-2 rounded-2xl nav-pill-active px-5 py-3 text-sm font-bold text-white shadow-lg transition cursor-pointer"
           >
             <RefreshCw size={18} />
-
             Refresh
           </button>
-
         </div>
 
-        {/* ========================================================= */}
         {/* STATISTICS */}
-        {/* ========================================================= */}
-
-        <div className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-
-          <div className="rounded-3xl bg-gradient-to-br from-blue-600 to-blue-700 p-7 text-white shadow-xl">
-
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="stat-card-blue rounded-3xl p-7 text-white">
             <div className="flex items-center justify-between">
-
               <Users size={34} />
-
-              <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold">
-                Total
-              </span>
-
+              <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold">Total</span>
             </div>
-
-            <h2 className="mt-8 text-5xl font-black">
-              {stats.total}
-            </h2>
-
-            <p className="mt-2 text-blue-100">
-              Registered Caregivers
-            </p>
-
+            <h2 className="mt-8 text-5xl font-black">{stats.total}</h2>
+            <p className="mt-2 text-blue-100">Registered Caregivers</p>
           </div>
 
-          <div className="rounded-3xl border border-green-200 bg-white p-7 shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
-
+          <div className="stat-card-teal rounded-3xl p-7 text-white">
             <div className="flex items-center justify-between">
-
-              <CheckCircle
-                className="text-green-600"
-                size={34}
-              />
-
-              <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-700">
-                Approved
-              </span>
-
+              <CheckCircle size={34} />
+              <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold">Approved</span>
             </div>
-
-            <h2 className="mt-8 text-5xl font-black text-green-600">
-              {stats.approved}
-            </h2>
-
-            <p className="mt-2 text-slate-500">
-              Active Caregivers
-            </p>
-
+            <h2 className="mt-8 text-5xl font-black">{stats.approved}</h2>
+            <p className="mt-2 text-teal-100">Active Caregivers</p>
           </div>
 
-          <div className="rounded-3xl border border-yellow-200 bg-white p-7 shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
-
+          <div className="stat-card-purple rounded-3xl p-7 text-white">
             <div className="flex items-center justify-between">
-
-              <Clock3
-                className="text-yellow-600"
-                size={34}
-              />
-
-              <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-bold text-yellow-700">
-                Pending
-              </span>
-
+              <Clock3 size={34} />
+              <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold">Pending</span>
             </div>
-
-            <h2 className="mt-8 text-5xl font-black text-yellow-500">
-              {stats.pending}
-            </h2>
-
-            <p className="mt-2 text-slate-500">
-              Awaiting Approval
-            </p>
-
+            <h2 className="mt-8 text-5xl font-black">{stats.pending}</h2>
+            <p className="mt-2 text-pink-100">Awaiting Approval</p>
           </div>
 
-          <div className="rounded-3xl border border-red-200 bg-white p-7 shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
-
+          <div className="stat-card-orange rounded-3xl p-7 text-white">
             <div className="flex items-center justify-between">
-
-              <XCircle
-                className="text-red-600"
-                size={34}
-              />
-
-              <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-700">
-                Rejected
-              </span>
-
+              <XCircle size={34} />
+              <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold">Rejected</span>
             </div>
-
-            <h2 className="mt-8 text-5xl font-black text-red-600">
-              {stats.rejected}
-            </h2>
-
-            <p className="mt-2 text-slate-500">
-              Rejected Accounts
-            </p>
-
+            <h2 className="mt-8 text-5xl font-black">{stats.rejected}</h2>
+            <p className="mt-2 text-amber-100">Rejected Accounts</p>
           </div>
-
         </div>
 
         {/* ========================================================= */}

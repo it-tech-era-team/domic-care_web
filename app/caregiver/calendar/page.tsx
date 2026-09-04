@@ -61,34 +61,34 @@ export default function CaregiverCalendar() {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8 max-w-2xl w-full mx-auto animate-fade-in">
+    <div className="space-y-6 sm:space-y-8 max-w-2xl w-full mx-auto animate-fade-in text-white">
       
       {/* Title */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
           My Calendar Availability
         </h1>
-        <p className="text-xs sm:text-sm text-slate-500 mt-1">
+        <p className="text-xs sm:text-sm text-slate-300 font-medium mt-1">
           Adjust the days and times families can schedule slots for your services.
         </p>
       </div>
 
       {/* Form Card */}
-      <div className="bg-white rounded-3xl border border-slate-100 p-6 sm:p-8 shadow-sm space-y-6">
+      <div className="dark-panel bg-[#111433] rounded-3xl border border-white/12 p-6 sm:p-8 shadow-2xl space-y-6">
         
         {isSaved && (
-          <div className="flex items-center gap-2 rounded-xl bg-green-50 p-3 text-xs font-semibold text-green-600 border border-green-100">
-            <CheckCircle2 className="h-4.5 w-4.5 shrink-0" />
+          <div className="flex items-center gap-2 rounded-2xl bg-emerald-500/20 p-4 text-xs font-bold text-emerald-300 border border-emerald-400/30 animate-fade-in shadow-lg">
+            <CheckCircle2 className="h-4.5 w-4.5 shrink-0 text-emerald-400" />
             <span>Availability schedule updated successfully!</span>
           </div>
         )}
 
-        <form onSubmit={handleSave} className="space-y-4">
+        <form onSubmit={handleSave} className="space-y-5">
           <div className="space-y-3.5">
             {Object.entries(availability).map(([day, slot]) => (
               <div
                 key={day}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl border border-slate-100 bg-slate-50/50"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border border-white/12 bg-[#171b42] shadow-md transition-all hover:border-white/20"
               >
                 {/* Check status */}
                 <div className="flex items-center gap-3">
@@ -96,14 +96,14 @@ export default function CaregiverCalendar() {
                     type="button"
                     onClick={() => handleToggle(day)}
                     className={`
-                      rounded-lg px-2.5 py-1 text-2xs font-bold uppercase transition-colors cursor-pointer
-                      ${slot.isAvailable ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'}
+                      rounded-xl px-3 py-1 text-[10px] font-black uppercase transition-all cursor-pointer shadow-sm
+                      ${slot.isAvailable ? 'nav-pill-active text-white' : 'bg-white/10 text-slate-400 border border-white/10'}
                     `}
                   >
                     {slot.isAvailable ? 'Active' : 'Offline'}
                   </button>
-                  <span className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
-                    <CalendarDays className="h-4.5 w-4.5 text-slate-400" />
+                  <span className="font-black text-white text-sm flex items-center gap-2">
+                    <CalendarDays className="h-4.5 w-4.5 text-purple-400" />
                     <span>{day}</span>
                   </span>
                 </div>
@@ -116,16 +116,16 @@ export default function CaregiverCalendar() {
                         type="time"
                         value={slot.start}
                         onChange={(e) => handleTimeChange(day, 'start', e.target.value)}
-                        className="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-700 font-bold focus:outline-none"
+                        className="rounded-xl border border-white/15 bg-[#111433] px-3 py-1.5 text-white font-extrabold focus:border-purple-500 focus:outline-none transition-all"
                       />
                     </div>
-                    <span className="text-slate-400 font-bold">to</span>
+                    <span className="text-slate-400 font-bold uppercase text-[10px]">to</span>
                     <div className="relative">
                       <input
                         type="time"
                         value={slot.end}
                         onChange={(e) => handleTimeChange(day, 'end', e.target.value)}
-                        className="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-700 font-bold focus:outline-none"
+                        className="rounded-xl border border-white/15 bg-[#111433] px-3 py-1.5 text-white font-extrabold focus:border-purple-500 focus:outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -136,7 +136,7 @@ export default function CaregiverCalendar() {
 
           <button
             type="submit"
-            className="w-full sm:w-auto px-6 rounded-xl bg-blue-600 py-3 text-xs font-semibold text-white hover:bg-blue-700 shadow-md shadow-blue-500/10 transition-all cursor-pointer block"
+            className="w-full sm:w-auto px-8 rounded-2xl nav-pill-active py-3.5 text-xs font-black text-white uppercase tracking-wider shadow-lg shadow-purple-500/25 transition-all cursor-pointer block hover:scale-[1.02] active:scale-95"
           >
             Save Calendar Block settings
           </button>
@@ -147,3 +147,4 @@ export default function CaregiverCalendar() {
     </div>
   );
 }
+

@@ -18,10 +18,10 @@ export default function CaregiverLayout({ children }: { children: React.ReactNod
 
   if (authLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
+      <div className="flex h-screen items-center justify-center bg-[#070814]">
         <div className="text-center space-y-4">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-          <p className="text-sm font-semibold text-slate-500">Checking authorization...</p>
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" />
+          <p className="text-sm font-semibold text-slate-400">Checking authorization...</p>
         </div>
       </div>
     );
@@ -33,18 +33,18 @@ export default function CaregiverLayout({ children }: { children: React.ReactNod
 
   if (currentUser.role !== 'caregiver') {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-50 p-4">
-        <div className="max-w-md bg-white border border-red-100 rounded-3xl p-8 text-center space-y-4 shadow-xl">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-500">
+      <div className="flex h-screen items-center justify-center bg-[#070814] p-4">
+        <div className="max-w-md glass-panel border border-red-500/20 rounded-3xl p-8 text-center space-y-4 shadow-xl">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-500/10 text-red-400">
             <ShieldAlert className="h-8 w-8" />
           </div>
-          <h1 className="text-xl font-extrabold text-slate-900">Access Denied</h1>
-          <p className="text-xs text-slate-500 leading-relaxed">
-            This account is registered as a <span className="font-bold capitalize">{currentUser.role}</span>. You do not have permissions to access the Caregiver Portal.
+          <h1 className="text-xl font-extrabold text-white">Access Denied</h1>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            This account is registered as a <span className="font-bold capitalize text-white">{currentUser.role}</span>. You do not have permissions to access the Caregiver Portal.
           </p>
           <button
             onClick={() => router.push(currentUser.role === 'user' ? '/user/dashboard' : '/admin/dashboard')}
-            className="w-full rounded-xl bg-blue-600 py-2.5 text-xs font-bold text-white hover:bg-blue-700 cursor-pointer"
+            className="w-full rounded-xl nav-pill-active py-2.5 text-xs font-bold text-white cursor-pointer"
           >
             Go to My Portal
           </button>
@@ -54,7 +54,7 @@ export default function CaregiverLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-slate-50">
+    <div className="flex flex-col md:flex-row min-h-screen bg-[#08091a] text-white">
       {/* Sidebar Navigation */}
       <Sidebar role="caregiver" />
 

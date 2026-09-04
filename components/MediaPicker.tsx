@@ -86,45 +86,45 @@ export default function MediaPicker({ value, onChange, type, label }: MediaPicke
   const isBase64 = value.startsWith('data:');
 
   return (
-    <div className="space-y-3 w-full animate-fade-in">
+    <div className="space-y-3 w-full animate-fade-in text-white">
       {label && (
-        <span className="block text-xs font-bold text-slate-700">
+        <span className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
           {label}
         </span>
       )}
 
       {errorMsg && (
-        <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
-          <AlertCircle size={16} className="shrink-0 text-red-500" />
+        <div className="p-3.5 rounded-2xl bg-rose-500/20 border border-rose-400/30 text-rose-300 text-xs flex items-center gap-2 font-medium">
+          <AlertCircle size={16} className="shrink-0 text-rose-400" />
           <span>{errorMsg}</span>
         </div>
       )}
 
       {isUploading ? (
-        <div className="border-2 border-dashed border-blue-400 bg-blue-50/40 rounded-3xl p-8 text-center flex flex-col items-center justify-center gap-3">
-          <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
-          <p className="text-xs font-bold text-blue-950">Compressing & Uploading to Storage...</p>
+        <div className="border-2 border-dashed border-purple-400 bg-purple-500/10 rounded-3xl p-8 text-center flex flex-col items-center justify-center gap-3">
+          <Loader2 className="h-8 w-8 text-purple-400 animate-spin" />
+          <p className="text-xs font-bold text-purple-300">Compressing & Uploading to Storage...</p>
         </div>
       ) : value ? (
         /* Preview Screen */
-        <div className="relative rounded-2xl border border-slate-200 bg-slate-50 p-4 flex items-center gap-4">
+        <div className="relative rounded-2xl border border-white/15 bg-[#171b42] p-4 flex items-center gap-4 shadow-xl">
           {type === 'avatar' ? (
             <img
               src={value}
               alt="Avatar Preview"
-              className="h-16 w-16 rounded-2xl object-cover border border-slate-100 bg-slate-200 shadow-sm"
+              className="h-16 w-16 rounded-2xl object-cover border border-white/20 bg-slate-800 shadow-md"
             />
           ) : (
-            <div className="h-16 w-16 rounded-2xl bg-blue-100/50 text-blue-600 flex items-center justify-center border border-blue-100 shrink-0 shadow-sm">
+            <div className="h-16 w-16 rounded-2xl bg-purple-500/20 text-purple-300 flex items-center justify-center border border-purple-400/30 shrink-0 shadow-md">
               <FileText className="h-8 w-8" />
             </div>
           )}
 
           <div className="flex-1 min-w-0">
-            <span className="block text-xs font-bold text-slate-800 truncate">
+            <span className="block text-xs font-black text-white truncate">
               {type === 'avatar' ? 'Profile Avatar Selected' : 'Verification Document Loaded'}
             </span>
-            <span className="block text-[10px] text-slate-400 truncate mt-0.5">
+            <span className="block text-[10px] text-purple-300/80 font-mono truncate mt-0.5">
               {isBase64 ? 'Custom base64 file' : value}
             </span>
           </div>
@@ -132,7 +132,7 @@ export default function MediaPicker({ value, onChange, type, label }: MediaPicke
           <button
             type="button"
             onClick={clearSelection}
-            className="rounded-xl border border-slate-200 bg-white hover:bg-red-50 hover:text-red-600 p-2 text-slate-500 transition-colors shadow-sm cursor-pointer"
+            className="rounded-xl border border-white/15 bg-white/10 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-400/30 p-2.5 text-slate-300 transition-all shadow-sm cursor-pointer"
             title="Remove File"
           >
             <X className="h-4.5 w-4.5" />
@@ -147,20 +147,20 @@ export default function MediaPicker({ value, onChange, type, label }: MediaPicke
           onDrop={handleDrop}
           className={`
             border-2 border-dashed rounded-3xl p-6 text-center transition-all flex flex-col items-center justify-center gap-3 select-none
-            ${dragActive ? 'border-blue-500 bg-blue-50/20 scale-[1.01]' : 'border-slate-200 bg-slate-50/50 hover:border-blue-400 hover:bg-slate-50'}
+            ${dragActive ? 'border-purple-400 bg-purple-500/20 scale-[1.01]' : 'border-white/15 bg-[#171b42] hover:border-purple-500/50 hover:bg-[#1e2352]'}
           `}
         >
-          <div className="h-12 w-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-sm">
+          <div className="h-12 w-12 rounded-2xl bg-purple-500/20 text-purple-400 border border-purple-400/30 flex items-center justify-center shadow-inner">
             {type === 'avatar' ? <Camera className="h-6 w-6" /> : <Upload className="h-6 w-6" />}
           </div>
 
           <div className="space-y-1">
-            <p className="text-xs font-bold text-slate-800">
+            <p className="text-xs font-bold text-white">
               Drag & drop or{' '}
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="text-blue-600 hover:underline cursor-pointer"
+                className="text-purple-400 hover:text-purple-300 hover:underline cursor-pointer font-extrabold"
               >
                 browse local files
               </button>
@@ -171,13 +171,13 @@ export default function MediaPicker({ value, onChange, type, label }: MediaPicke
           </div>
 
           {/* Preset trigger */}
-          <div className="pt-2 border-t border-slate-100 w-full flex justify-center">
+          <div className="pt-2 border-t border-white/10 w-full flex justify-center">
             <button
               type="button"
               onClick={() => setShowPresets(!showPresets)}
-              className="inline-flex items-center gap-1.5 text-[10px] font-bold text-blue-600 hover:text-blue-800 cursor-pointer bg-blue-50 px-3 py-1 rounded-full border border-blue-100"
+              className="inline-flex items-center gap-1.5 text-[10px] font-bold text-purple-300 hover:text-white cursor-pointer bg-purple-500/20 px-3.5 py-1.5 rounded-full border border-purple-400/30 transition-all"
             >
-              <Sparkles className="h-3 w-3" />
+              <Sparkles className="h-3 w-3 text-amber-400" />
               <span>Or choose from sandbox presets</span>
             </button>
           </div>
@@ -195,8 +195,8 @@ export default function MediaPicker({ value, onChange, type, label }: MediaPicke
 
       {/* Presets Grid */}
       {showPresets && !value && (
-        <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-3.5 space-y-3.5 animate-fade-in">
-          <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+        <div className="rounded-2xl border border-white/15 bg-[#171b42] p-4 space-y-3.5 animate-fade-in shadow-xl">
+          <span className="block text-[10px] font-black text-purple-300 uppercase tracking-wider">
             Sandbox Templates Library
           </span>
           
@@ -210,7 +210,7 @@ export default function MediaPicker({ value, onChange, type, label }: MediaPicke
                     onChange(url);
                     setShowPresets(false);
                   }}
-                  className="rounded-xl overflow-hidden border border-slate-200 hover:border-blue-500 hover:scale-105 active:scale-95 transition-all shadow-sm cursor-pointer shrink-0"
+                  className="rounded-xl overflow-hidden border border-white/20 hover:border-purple-400 hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer shrink-0 bg-slate-900"
                 >
                   <img src={url} alt={`Preset ${i}`} className="h-10 w-10 object-cover" />
                 </button>
@@ -226,9 +226,9 @@ export default function MediaPicker({ value, onChange, type, label }: MediaPicke
                     onChange(doc.url);
                     setShowPresets(false);
                   }}
-                  className="rounded-xl border border-slate-200 bg-white p-2 text-left hover:border-blue-500 hover:shadow-sm active:scale-[0.99] transition-all cursor-pointer space-y-1"
+                  className="rounded-xl border border-white/10 bg-[#111433] p-2.5 text-left hover:border-purple-400 hover:shadow-lg active:scale-[0.99] transition-all cursor-pointer space-y-1"
                 >
-                  <span className="block font-bold text-[10px] text-slate-800 leading-none truncate">{doc.name}</span>
+                  <span className="block font-extrabold text-[10px] text-white leading-none truncate">{doc.name}</span>
                   <span className="block text-[8px] text-slate-400 truncate">Template link</span>
                 </button>
               ))}
@@ -239,3 +239,4 @@ export default function MediaPicker({ value, onChange, type, label }: MediaPicke
     </div>
   );
 }
+

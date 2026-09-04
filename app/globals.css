@@ -1,70 +1,28 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 :root {
   --font-sans: 'Inter', sans-serif;
   --font-outfit: 'Outfit', sans-serif;
 
-  /* HSL Palette */
-  --primary: 215 85% 45%;      /* Safe Medical Blue */
-  --primary-light: 215 100% 95%;
-  --secondary: 175 75% 35%;    /* Healing Teal */
-  --secondary-light: 175 80% 95%;
-  --accent: 38 92% 50%;        /* Warm Amber for Alerts/Pending */
-  --accent-light: 38 100% 96%;
-  --success: 142 70% 45%;      /* Success Green */
-  --danger: 0 84% 60%;         /* Error Red */
-  
-  /* Background / Foregrounds */
-  --background: 210 40% 98%;
-  --foreground: 222 47% 11%;
-  
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  
-  --border: 214 32% 91%;
-  --ring: 215 85% 45%;
-}
+  /* Solid Dark Cosmic Theme Colors */
+  --bg-canvas: #08091a;
+  --bg-sidebar: #0b0d21;
+  --bg-panel: #111433;
+  --bg-card: #171b42;
 
-.dark {
-  --primary: 215 90% 55%;
-  --primary-light: 215 40% 12%;
-  --secondary: 175 70% 45%;
-  --secondary-light: 175 40% 12%;
-  
-  --background: 222 47% 6%;
-  --foreground: 210 40% 98%;
-  
-  --card: 222 47% 9%;
-  --card-foreground: 210 40% 98%;
-  
-  --border: 217 33% 17%;
-  --ring: 215 90% 55%;
+  --primary-purple: #7c3aed;
+  --primary-indigo: #4f46e5;
 }
 
 @theme inline {
   --font-sans: var(--font-sans);
   --font-heading: var(--font-outfit);
-  
-  --color-primary: hsl(var(--primary));
-  --color-primary-light: hsl(var(--primary-light));
-  --color-secondary: hsl(var(--secondary));
-  --color-secondary-light: hsl(var(--secondary-light));
-  --color-accent: hsl(var(--accent));
-  --color-accent-light: hsl(var(--accent-light));
-  --color-success: hsl(var(--success));
-  --color-danger: hsl(var(--danger));
-  --color-bg-custom: hsl(var(--background));
-  --color-fg-custom: hsl(var(--foreground));
-  --color-card-custom: hsl(var(--card));
-  --color-card-fg-custom: hsl(var(--card-foreground));
-  --color-border-custom: hsl(var(--border));
-  --color-ring-custom: hsl(var(--ring));
 }
 
 body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background-color: #08091a;
+  color: #ffffff;
   font-family: var(--font-sans);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
@@ -78,160 +36,127 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #08091a;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgba(255, 255, 255, 0.35);
 }
 
-.dark ::-webkit-scrollbar-thumb {
-  background: #334155;
-}
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
-}
-
-/* Glassmorphism Classes */
-.glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+/* Solid High-Contrast Dark Panel & Card Utilities */
+.dark-panel {
+  background-color: #111433 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
 }
 
-.dark .glass {
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+.dark-card {
+  background-color: #171b42 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+.dark-card-hover {
+  transition: all 0.25s ease;
+}
+.dark-card-hover:hover {
+  background-color: #1e2352 !important;
+  border-color: rgba(124, 58, 237, 0.5) !important;
+}
+
+.glass-panel {
+  background-color: #111433 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+}
+
+.glass-card {
+  background-color: #171b42 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+/* Signature Metric Card Gradients */
+.stat-card-blue {
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #06b6d4 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 12px 28px -6px rgba(37, 99, 235, 0.45);
+}
+
+.stat-card-teal {
+  background: linear-gradient(135deg, #0d9488 0%, #06b6d4 50%, #10b981 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 12px 28px -6px rgba(13, 148, 136, 0.45);
+}
+
+.stat-card-purple {
+  background: linear-gradient(135deg, #c026d3 0%, #9333ea 50%, #ec4899 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 12px 28px -6px rgba(192, 38, 211, 0.45);
+}
+
+.stat-card-orange {
+  background: linear-gradient(135deg, #ea580c 0%, #f59e0b 55%, #eab308 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 12px 28px -6px rgba(234, 88, 12, 0.45);
+}
+
+/* Sidebar Active Button Pill Glow */
+.nav-pill-active {
+  background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.5);
 }
 
 /* Keyframes & Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes pulseSlow {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.02); }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-12px); }
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(28px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes pulseRing {
-  0%   { box-shadow: 0 0 0 0px rgba(59,130,246,0.5); }
-  70%  { box-shadow: 0 0 0 16px rgba(59,130,246,0); }
-  100% { box-shadow: 0 0 0 0px rgba(59,130,246,0); }
-}
-
-@keyframes shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position:  200% center; }
-}
-
 .animate-fade-in {
-  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.animate-pulse-slow {
-  animation: pulseSlow 4s ease-in-out infinite;
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.animate-slide-up {
-  animation: slideUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-pulse-ring {
-  animation: pulseRing 2s ease-out infinite;
-}
-
-/* Scrollbar hide — for chip rows & caregiver carousels */
+/* Scrollbar hide */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Chip row edge fade masks */
-.chip-row-mask {
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%);
-}
-
-/* Glass card utility */
-.glass-card {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-}
-
-/* Blue border glow on hover */
-.hover-glow:hover {
-  box-shadow: 0 0 0 2px #3b82f6, 0 20px 40px rgba(59,130,246,0.15);
-}
-
-/* Rating Stars Glow */
-.star-glow {
-  filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.5));
-}
-
-@keyframes slideInRight {
-  from { opacity: 0; transform: translateX(100px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-.animate-slide-in-right {
-  animation: slideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* Custom Leaflet Map styling */
+/* Leaflet Dark Map & Popup Styling Overrides */
 .leaflet-container {
-  font-family: var(--font-sans) !important;
-  width: 100%;
-  height: 100%;
-  border-radius: 24px;
+  background-color: #08091a !important;
 }
 
 .leaflet-popup-content-wrapper {
-  border-radius: 16px !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
-  border: 1px solid #f1f5f9 !important;
-  padding: 8px !important;
+  background-color: #111433 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.8) !important;
+  padding: 2px !important;
 }
 
-.leaflet-popup-content {
-  margin: 0 !important;
+.leaflet-popup-tip {
+  background-color: #111433 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
 }
 
-.leaflet-popup-tip-container {
-  display: none !important;
+.leaflet-control-zoom a {
+  background-color: #111433 !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+.leaflet-control-zoom a:hover {
+  background-color: #171b42 !important;
+  color: #a855f7 !important;
 }
 
-.custom-pulse-icon {
-  background: transparent;
-  border: none;
-}
-
-.custom-caregiver-marker {
-  background: transparent;
-  border: none;
-}

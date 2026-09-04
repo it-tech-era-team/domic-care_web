@@ -1,288 +1,156 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCareConnect, Booking } from '@/context/useCareConnect';
 import {
-  Calendar, Clock, Star, MessageSquare, AlertTriangle,
-  CheckCircle2, XCircle, ChevronRight, X, Heart, ShieldCheck
+  Calendar, Clock, Star, AlertTriangle, CheckCircle2,
+  XCircle, ChevronRight, MessageSquare, CalendarDays, X, Check
 } from 'lucide-react';
-
-/* ------------------------------------------------------------------ */
-/*  Looping bloom / wilt flower illustration                          */
-/* ------------------------------------------------------------------ */
-function BloomingFlower() {
-  return (
-    <div className="relative h-32 w-32 sm:h-40 sm:w-40 shrink-0">
-      <style>{`
-        @keyframes bloomWilt {
-          0%   { transform: scale(0.15); opacity: 0; }
-          10%  { opacity: 1; }
-          35%  { transform: scale(1);    opacity: 1; }
-          55%  { transform: scale(1);    opacity: 1; }
-          80%  { transform: scale(0.15); opacity: 0.3; }
-          100% { transform: scale(0.15); opacity: 0; }
-        }
-        @keyframes swayStem {
-          0%, 100% { transform: rotate(-2deg); }
-          50%      { transform: rotate(2deg); }
-        }
-        @keyframes petalGlow {
-          0%, 100% { opacity: 0.55; }
-          50%      { opacity: 1; }
-        }
-        .flower-stem {
-          transform-origin: 100px 190px;
-          animation: swayStem 3.2s ease-in-out infinite;
-        }
-        .flower-bloom {
-          transform-origin: 100px 95px;
-          animation: bloomWilt 4.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
-        }
-        .flower-petal {
-          animation: petalGlow 4.5s ease-in-out infinite;
-        }
-      `}</style>
-      <svg viewBox="0 0 200 220" className="h-full w-full">
-        <path d="M70 190 L130 190 L122 215 L78 215 Z" fill="#BFDBFE" />
-        <rect x="66" y="182" width="68" height="12" rx="4" fill="#93C5FD" />
-
-        <g className="flower-stem">
-          <path d="M100 190 C100 150 100 130 100 100" stroke="#4ADE80" strokeWidth="4" fill="none" strokeLinecap="round" />
-          <path d="M100 160 C80 155 70 140 72 128 C90 132 100 145 100 160 Z" fill="#86EFAC" />
-          <path d="M100 145 C120 140 130 125 128 113 C110 117 100 130 100 145 Z" fill="#4ADE80" />
-        </g>
-
-        <g className="flower-bloom">
-          <g className="flower-petal">
-            <ellipse cx="100" cy="70" rx="16" ry="26" fill="#93C5FD" />
-            <ellipse cx="100" cy="120" rx="16" ry="26" fill="#93C5FD" />
-            <ellipse cx="72" cy="95" rx="26" ry="16" fill="#BFDBFE" />
-            <ellipse cx="128" cy="95" rx="26" ry="16" fill="#BFDBFE" />
-            <ellipse cx="80" cy="78" rx="18" ry="14" fill="#DBEAFE" transform="rotate(-40 80 78)" />
-            <ellipse cx="120" cy="78" rx="18" ry="14" fill="#DBEAFE" transform="rotate(40 120 78)" />
-            <ellipse cx="80" cy="112" rx="18" ry="14" fill="#DBEAFE" transform="rotate(40 80 112)" />
-            <ellipse cx="120" cy="112" rx="18" ry="14" fill="#DBEAFE" transform="rotate(-40 120 112)" />
-          </g>
-          <circle cx="100" cy="95" r="14" fill="#2563EB" />
-          <circle cx="100" cy="95" r="14" fill="#3B82F6" opacity="0.6" />
-        </g>
-      </svg>
-    </div>
-  );
-}
 
 export default function UserBookings() {
   const router = useRouter();
-  const { currentUser, bookings, updateBookingStatus, submitReview, createConversation } = useCareConnect();
+  const { currentUser, bookings, updateBookingStatus, createConversation, submitReview } = useCareConnect();
 
-  // Filter tab state
+  // Tab State
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'accepted' | 'completed' | 'cancelled'>('all');
-
-  // Review Dialog State
-  const [selectedBookingForReview, setSelectedBookingForReview] = useState<Booking | null>(null);
-  const [ratingVal, setRatingVal] = useState(5);
-  const [reviewComment, setReviewComment] = useState('');
+  
+  // Rating modal state
+  const [reviewBooking, setReviewBooking] = useState<Booking | null>(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
 
   if (!currentUser) {
     return (
-      <div className="flex flex-col h-[60vh] items-center justify-center space-y-4 bg-slate-50">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-        <p className="text-sm font-bold text-slate-500">Loading your bookings...</p>
+      <div className="flex flex-col h-[60vh] items-center justify-center space-y-4 bg-[#070814]">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" />
+        <p className="text-sm font-bold text-slate-400">Loading your bookings...</p>
       </div>
     );
   }
 
-  const userBookings = bookings.filter((b) => b.userId === currentUser.id);
+  const userBookings = bookings.filter(b => b.userId === currentUser.id);
 
-  const filteredBookings = userBookings.filter((b) => {
-    if (activeTab === 'all') return true;
-    return b.status === activeTab;
-  });
-
-  const formatTime = (isoString: string) => {
-    if (!isoString) return '';
-    try {
-      const d = new Date(isoString);
-      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } catch {
-      return '';
-    }
-  };
+  const filteredBookings = useMemo(() => {
+    return userBookings.filter(b => {
+      if (activeTab === 'all') return true;
+      if (activeTab === 'cancelled') return b.status === 'cancelled' || b.status === 'rejected';
+      return b.status === activeTab;
+    });
+  }, [userBookings, activeTab]);
 
   const formatDate = (isoString: string) => {
-    if (!isoString) return '—';
-    try {
-      const d = new Date(isoString);
-      return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    } catch {
-      return isoString;
-    }
+    const d = new Date(isoString);
+    return d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
   };
 
-  const handleCancelBooking = (bookingId: string) => {
-    if (confirm('Are you sure you want to cancel this caregiver request?')) {
-      updateBookingStatus(bookingId, 'cancelled');
-    }
-  };
-
-  const openReviewModal = (booking: Booking) => {
-    setSelectedBookingForReview(booking);
-    setRatingVal(5);
-    setReviewComment('');
-  };
-
-  const closeReviewModal = () => {
-    setSelectedBookingForReview(null);
+  const formatTime = (isoString: string) => {
+    const d = new Date(isoString);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   const handleReviewSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedBookingForReview) return;
-
-    submitReview(selectedBookingForReview.id, ratingVal, reviewComment);
-    closeReviewModal();
-  };
-
-  const tabCounts = {
-    all: userBookings.length,
-    pending: userBookings.filter((b) => b.status === 'pending').length,
-    accepted: userBookings.filter((b) => b.status === 'accepted').length,
-    completed: userBookings.filter((b) => b.status === 'completed').length,
-    cancelled: userBookings.filter((b) => b.status === 'cancelled' || b.status === 'rejected').length,
-  };
-
-  const cardBorderColor = (status: Booking['status']) => {
-    switch (status) {
-      case 'accepted':
-        return 'border-l-emerald-500';
-      case 'completed':
-        return 'border-l-blue-600';
-      case 'pending':
-        return 'border-l-amber-400';
-      default:
-        return 'border-l-red-400';
-    }
+    if (!reviewBooking) return;
+    submitReview(reviewBooking.id, rating, comment);
+    setReviewBooking(null);
+    setComment('');
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-12">
+    <div className="min-h-screen bg-[#070814] text-white pb-12 animate-fade-in">
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 space-y-8">
         
-        {/* Title + illustration */}
-        <div className="rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 p-7 sm:p-8 text-white shadow-xl flex items-center justify-between gap-6 overflow-hidden">
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
-              My Care Bookings
-            </h1>
-            <p className="text-xs sm:text-sm text-blue-100 mt-2 max-w-md font-medium">
-              Review, schedule, manage direct chats, and evaluate caregiver sessions for your family.
-            </p>
-          </div>
-          <BloomingFlower />
+        {/* Title */}
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            My Care Appointments & Bookings
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            Track status, chat with assigned caregivers, and leave feedback reviews.
+          </p>
         </div>
 
         {/* Tabs Menu */}
-        <div className="flex flex-wrap border-b border-slate-200 gap-2">
+        <div className="flex flex-wrap border-b border-white/10 gap-1 sm:gap-2">
           {(['all', 'pending', 'accepted', 'completed', 'cancelled'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`
-                flex items-center gap-2 pb-3 px-4 text-xs font-bold capitalize transition-all border-b-2 -mb-[2px] cursor-pointer
+                pb-3 px-3 sm:px-4 text-xs font-bold capitalize transition-all border-b-2 -mb-[2px] cursor-pointer
                 ${activeTab === tab
-                  ? 'border-blue-600 text-blue-700'
-                  : 'border-transparent text-slate-400 hover:text-slate-600'}
+                  ? 'border-purple-500 text-white font-extrabold'
+                  : 'border-transparent text-slate-400 hover:text-slate-200'}
               `}
             >
-              {tab}
-              <span
-                className={`h-5 min-w-5 px-1.5 rounded-full text-[10px] flex items-center justify-center font-bold ${
-                  activeTab === tab ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'
-                }`}
-              >
-                {tabCounts[tab]}
-              </span>
+              {tab === 'accepted' ? 'Active / Scheduled' : tab}
             </button>
           ))}
         </div>
 
         {/* Bookings List */}
-        <div className="space-y-5">
+        <div className="space-y-4">
           {filteredBookings.length === 0 ? (
-            <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center space-y-3 shadow-lg">
-              <div className="mx-auto h-14 w-14 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">
-                <Calendar className="h-7 w-7 text-slate-300" />
+            <div className="glass-panel rounded-3xl border border-white/10 p-12 text-center space-y-4 shadow-sm">
+              <div className="mx-auto h-14 w-14 rounded-full bg-white/5 flex items-center justify-center text-slate-400">
+                <CalendarDays className="h-7 w-7 text-purple-400" />
               </div>
-              <h3 className="font-extrabold text-slate-800 text-base">No Bookings Found</h3>
-              <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
-                No caregiver appointments match your filter selection. Try creating a new care request.
+              <h3 className="font-heading font-extrabold text-base text-white">No Care Sessions Found</h3>
+              <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                There are no care booking records matching your selected tab.
               </p>
             </div>
           ) : (
             filteredBookings.map((b) => (
               <div
                 key={b.id}
-                className={`bg-white rounded-3xl border border-slate-200 border-l-4 ${cardBorderColor(
-                  b.status
-                )} p-6 shadow-lg hover:shadow-xl transition-all flex flex-col md:flex-row md:items-start justify-between gap-6`}
+                className="glass-panel rounded-3xl border border-white/10 p-6 shadow-sm hover:border-purple-500/30 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6"
               >
-                {/* Left caregiver details */}
+                {/* Left Caregiver Details */}
                 <div className="flex items-start gap-4">
                   <img
-                    src={b.caregiverAvatar || 'https://api.dicebear.com/7.x/adventurer/svg?seed=CG'}
+                    src={b.caregiverAvatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'}
                     alt={b.caregiverFullName}
-                    className="h-14 w-14 rounded-2xl object-cover shrink-0 bg-slate-50 border border-slate-200 shadow-sm"
+                    className="h-14 w-14 rounded-2xl object-cover border border-white/20 shadow-sm bg-slate-800 shrink-0"
                   />
-                  <div className="space-y-2">
-                    <div>
-                      <span className="block font-extrabold text-slate-900 text-base">{b.caregiverFullName}</span>
-                      <span className="inline-flex rounded-full bg-blue-100 px-3 py-0.5 text-xs font-bold text-blue-700 mt-1">
-                        {b.serviceName} Care
-                      </span>
-                    </div>
-
+                  <div className="space-y-1">
+                    <span className="block font-bold text-white text-base">{b.caregiverFullName}</span>
+                    <span className="inline-flex rounded-lg bg-purple-500/20 text-purple-300 border border-purple-400/20 px-2.5 py-0.5 text-[10px] font-bold">
+                      {b.serviceName} Care Category
+                    </span>
                     {b.notes && (
-                      <p className="text-xs text-slate-600 leading-relaxed font-normal bg-slate-50 border border-slate-200/60 rounded-xl p-3 max-w-lg">
-                        <strong>Client notes:</strong> &ldquo;{b.notes}&rdquo;
+                      <p className="text-xs text-slate-300 italic mt-1 font-normal bg-white/5 p-2.5 rounded-xl border border-white/5 max-w-lg">
+                        &ldquo;{b.notes}&rdquo;
                       </p>
                     )}
                   </div>
                 </div>
 
-                {/* Center schedule/status details */}
-                <div className="flex flex-col sm:flex-row md:flex-col items-start sm:items-center md:items-end justify-between sm:justify-start gap-4 shrink-0">
-                  <div className="space-y-1 text-left md:text-right bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                    <div className="flex items-center gap-1.5 text-xs text-slate-800 font-bold">
-                      <Calendar className="h-4 w-4 text-blue-600" />
+                {/* Right Actions & Status */}
+                <div className="flex flex-col sm:flex-row md:flex-col items-start sm:items-center md:items-end justify-between gap-4 shrink-0">
+                  <div className="space-y-1 text-left md:text-right">
+                    <div className="flex items-center gap-1.5 text-xs text-white font-bold">
+                      <Calendar className="h-4 w-4 text-cyan-400" />
                       <span>{formatDate(b.startDate)}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold">
+                    <div className="flex items-center gap-1.5 text-xs text-slate-400">
                       <Clock className="h-4 w-4 text-slate-400" />
                       <span>{formatTime(b.startDate)} - {formatTime(b.endDate)}</span>
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-3">
-                    {/* Status Badge */}
-                    <span
-                      className={`
-                      inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold border capitalize
-                      ${b.status === 'pending' && 'bg-amber-100 text-amber-700 border-amber-200'}
-                      ${b.status === 'accepted' && 'bg-green-100 text-green-700 border-green-200'}
-                      ${b.status === 'completed' && 'bg-slate-100 text-slate-600 border-slate-200'}
-                      ${b.status === 'cancelled' && 'bg-red-100 text-red-700 border-red-200'}
-                      ${b.status === 'rejected' && 'bg-red-100 text-red-700 border-red-200'}
-                    `}
-                    >
-                      {b.status === 'pending' && 'Awaiting Confirmation'}
-                      {b.status === 'accepted' && 'Care Confirmed'}
-                      {b.status === 'completed' && 'Care Completed'}
-                      {b.status === 'cancelled' && 'Cancelled'}
-                      {b.status === 'rejected' && 'Rejected'}
+                  <div className="flex items-center gap-3">
+                    <span className={`
+                      inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-bold border capitalize
+                      ${b.status === 'pending' && 'bg-amber-500/20 text-amber-300 border-amber-400/30'}
+                      ${b.status === 'accepted' && 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30'}
+                      ${b.status === 'completed' && 'bg-white/10 text-slate-300 border-white/10'}
+                      ${b.status === 'cancelled' && 'bg-red-500/20 text-red-300 border-red-400/30'}
+                    `}>
+                      {b.status}
                     </span>
 
-                    {/* Actions */}
                     {b.status === 'accepted' && (
                       <button
                         onClick={async () => {
@@ -293,118 +161,102 @@ export default function UserBookings() {
                             router.push('/user/messages');
                           }
                         }}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-xs font-bold shadow-md shadow-blue-500/15 transition cursor-pointer"
+                        className="inline-flex items-center gap-1.5 rounded-xl nav-pill-active px-3 py-1.5 text-xs font-bold text-white shadow-sm cursor-pointer"
                       >
-                        <MessageSquare className="h-4 w-4" />
-                        <span>Chat with Caregiver</span>
-                      </button>
-                    )}
-
-                    {b.status === 'pending' && (
-                      <button
-                        onClick={() => handleCancelBooking(b.id)}
-                        className="text-xs font-bold text-red-500 hover:text-red-700 hover:underline cursor-pointer"
-                      >
-                        Cancel Request
+                        <MessageSquare className="h-3.5 w-3.5" />
+                        <span>Chat</span>
                       </button>
                     )}
 
                     {b.status === 'completed' && b.rating === undefined && (
                       <button
-                        onClick={() => openReviewModal(b)}
-                        className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-xs font-bold shadow-md transition cursor-pointer"
+                        onClick={() => setReviewBooking(b)}
+                        className="inline-flex items-center gap-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-400/30 hover:bg-amber-500/30 px-3 py-1.5 text-xs font-bold transition-all cursor-pointer"
                       >
-                        Rate Caregiver
+                        <Star className="h-3.5 w-3.5 fill-amber-400" />
+                        <span>Leave Review</span>
                       </button>
-                    )}
-
-                    {b.status === 'completed' && b.rating !== undefined && (
-                      <div className="flex items-center gap-1 bg-amber-100 px-3 py-1 rounded-full text-xs font-bold text-amber-700">
-                        <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-                        <span>{b.rating}.0 Reviewed</span>
-                      </div>
                     )}
                   </div>
                 </div>
+
               </div>
             ))
           )}
         </div>
 
-        {/* Review Dialog Modal Overlay */}
-        {selectedBookingForReview && (
-          <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
-            <div className="bg-white rounded-3xl border border-slate-100 max-w-md w-full p-6 space-y-6 shadow-2xl relative">
-              <button
-                onClick={closeReviewModal}
-                className="absolute right-4 top-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
+      </div>
 
-              <div className="space-y-2 text-center">
-                <div className="mx-auto h-12 w-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-                  <Heart className="h-6 w-6 fill-blue-600" />
+      {/* Leave Review Modal */}
+      {reviewBooking && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+          <div className="glass-panel rounded-3xl border border-white/10 max-w-md w-full p-6 space-y-6 shadow-2xl relative">
+            <button
+              onClick={() => setReviewBooking(null)}
+              className="absolute right-4 top-4 p-1.5 text-slate-400 hover:text-white rounded-lg cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="space-y-1">
+              <h2 className="font-heading font-extrabold text-lg text-white">Rate & Review Caregiver</h2>
+              <p className="text-xs text-slate-400">
+                Share your feedback for {reviewBooking.caregiverFullName} regarding your completed care session.
+              </p>
+            </div>
+
+            <form onSubmit={handleReviewSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-slate-300">Rating Stars</label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setRating(star)}
+                      className="p-1 cursor-pointer transition-transform hover:scale-110"
+                    >
+                      <Star
+                        className={`h-7 w-7 ${
+                          star <= rating ? 'fill-amber-400 text-amber-400' : 'text-slate-600'
+                        }`}
+                      />
+                    </button>
+                  ))}
                 </div>
-                <h3 className="font-heading font-extrabold text-lg text-slate-900">
-                  Rate Caregiver Service
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Tell us about the care provided by {selectedBookingForReview.caregiverFullName}.
-                </p>
               </div>
 
-              <form onSubmit={handleReviewSubmit} className="space-y-4">
-                {/* Star selector */}
-                <div className="space-y-1.5 text-center">
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Service Rating</label>
-                  <div className="flex justify-center gap-2 py-2">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        type="button"
-                        onClick={() => setRatingVal(star)}
-                        className="p-1 cursor-pointer hover:scale-110 transition-transform"
-                      >
-                        <Star
-                          className={`
-                          h-8 w-8
-                          ${star <= ratingVal ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}
-                        `}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-300">Review Comments</label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder="Share details about punctuality, care quality, and experience..."
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 p-3.5 text-xs text-white placeholder-slate-500 focus:border-purple-500 focus:outline-none"
+                />
+              </div>
 
-                {/* Comment text */}
-                <div className="space-y-1.5">
-                  <label htmlFor="comment" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Feedback Details
-                  </label>
-                  <textarea
-                    id="comment"
-                    required
-                    rows={4}
-                    value={reviewComment}
-                    onChange={(e) => setReviewComment(e.target.value)}
-                    placeholder="Share details about punctuality, patience, medicine scheduling support, or friendliness..."
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-3.5 text-xs text-slate-900 focus:border-blue-600 focus:bg-white focus:outline-none"
-                  />
-                </div>
-
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setReviewBooking(null)}
+                  className="rounded-xl border border-white/10 px-4 py-2.5 text-xs font-bold text-slate-300 hover:bg-white/5 cursor-pointer"
+                >
+                  Cancel
+                </button>
                 <button
                   type="submit"
-                  className="w-full flex items-center justify-center gap-2 rounded-2xl bg-blue-600 py-3.5 text-sm font-bold text-white hover:bg-blue-700 shadow-lg shadow-blue-500/15 transition cursor-pointer"
+                  className="rounded-xl nav-pill-active px-5 py-2.5 text-xs font-bold text-white shadow-md cursor-pointer"
                 >
-                  <span>Submit Care Evaluation</span>
+                  Submit Review
                 </button>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
-        )}
-
-      </div>
+        </div>
+      )}
     </div>
   );
 }
