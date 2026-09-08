@@ -139,53 +139,53 @@ export default function CaregiverClient({ id }: ClientProps) {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl w-full mx-auto animate-fade-in text-white">
+    <div className="space-y-6 max-w-5xl w-full mx-auto animate-fade-in text-slate-900">
       
       {/* Back Button */}
       <Link
         href="/user/search-caregivers"
-        className="inline-flex items-center gap-2 text-xs font-bold text-slate-300 hover:text-white border border-white/15 bg-[#111433] rounded-2xl px-4 py-2.5 shadow-lg transition-all"
+        className="inline-flex items-center gap-2 text-xs font-bold text-slate-700 hover:text-blue-600 border border-slate-200 bg-white rounded-2xl px-4 py-2.5 shadow-xs transition-all"
       >
-        <ArrowLeft className="h-4 w-4 text-purple-400" />
+        <ArrowLeft className="h-4 w-4 text-blue-600" />
         <span>Back to caregiver search</span>
       </Link>
 
       {/* Header Profile Summary */}
-      <div className="dark-panel bg-[#111433] rounded-3xl border border-white/12 p-6 sm:p-8 shadow-2xl flex flex-col md:flex-row md:items-start justify-between gap-6">
+      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs flex flex-col md:flex-row md:items-start justify-between gap-6">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
           <img
             src={caregiver.avatarUrl}
             alt={caregiver.fullName}
-            className="h-24 w-24 rounded-2xl object-cover border-2 border-white/20 shadow-xl bg-slate-800"
+            className="h-24 w-24 rounded-2xl object-cover border-2 border-slate-200 shadow-md bg-slate-100"
           />
           <div className="text-center sm:text-left space-y-2">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-              <h1 className="font-heading font-black text-xl sm:text-2xl text-white leading-tight">
+              <h1 className="font-heading font-black text-xl sm:text-2xl text-slate-900 leading-tight">
                 {caregiver.fullName}
               </h1>
               {caregiver.approvalStatus === 'approved' && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 px-3 py-0.5 text-[10px] font-extrabold text-emerald-300 mx-auto sm:mx-0 uppercase tracking-wider">
-                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-0.5 text-[10px] font-extrabold text-emerald-700 mx-auto sm:mx-0 uppercase tracking-wider">
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
                   <span>Verified Caregiver</span>
                 </span>
               )}
             </div>
 
-            <p className="text-xs text-slate-300 font-medium">{caregiver.address}, {caregiver.city}</p>
+            <p className="text-xs text-slate-600 font-medium">{caregiver.address}, {caregiver.city}</p>
 
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs font-medium text-slate-300">
-              <div className="flex items-center gap-1 bg-amber-500/20 px-2.5 py-0.5 rounded-full border border-amber-400/30">
-                <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                <span className="font-bold text-amber-300">{caregiver.rating}</span>
-                <span className="text-slate-400">({caregiver.reviewsCount} reviews)</span>
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs font-medium text-slate-600">
+              <div className="flex items-center gap-1 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 text-amber-800">
+                <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
+                <span className="font-bold text-amber-900">{caregiver.rating}</span>
+                <span className="text-slate-500">({caregiver.reviewsCount} reviews)</span>
               </div>
-              <div className="text-slate-500">•</div>
+              <div className="text-slate-300">•</div>
               <div>
-                Hourly rate: <strong className="text-cyan-400 font-extrabold">${caregiver.hourlyRate}/hr</strong>
+                Hourly rate: <strong className="text-blue-600 font-extrabold">${caregiver.hourlyRate}/hr</strong>
               </div>
-              <div className="text-slate-500">•</div>
+              <div className="text-slate-300">•</div>
               <div>
-                Exp: <strong className="text-white font-bold">{caregiver.experienceYears} Years</strong>
+                Exp: <strong className="text-slate-900 font-bold">{caregiver.experienceYears} Years</strong>
               </div>
             </div>
           </div>
@@ -193,7 +193,7 @@ export default function CaregiverClient({ id }: ClientProps) {
 
         <button
           onClick={handleMessageCaregiver}
-          className="rounded-2xl nav-pill-active px-5 py-3 text-xs font-black text-white shadow-lg shadow-purple-500/25 flex items-center justify-center gap-2 self-center md:self-start w-full sm:w-auto cursor-pointer uppercase tracking-wider hover:scale-[1.02] active:scale-95"
+          className="rounded-2xl nav-pill-active px-5 py-3 text-xs font-black text-white shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 self-center md:self-start w-full sm:w-auto cursor-pointer uppercase tracking-wider hover:scale-[1.02] active:scale-95"
         >
           <Mail className="h-4 w-4" />
           <span>Message {caregiver.fullName.split(' ')[0]}</span>
@@ -204,9 +204,9 @@ export default function CaregiverClient({ id }: ClientProps) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-start">
         
         {/* Left Side: Detail Tabs */}
-        <div className="lg:col-span-2 dark-panel bg-[#111433] rounded-3xl border border-white/12 p-6 shadow-2xl space-y-6 min-h-[400px]">
+        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-6 min-h-[400px]">
           {/* Tabs header */}
-          <div className="flex border-b border-white/10">
+          <div className="flex border-b border-slate-200">
             {(['about', 'availability', 'reviews'] as const).map((tab) => (
               <button
                 key={tab}
@@ -214,8 +214,8 @@ export default function CaregiverClient({ id }: ClientProps) {
                 className={`
                   pb-3 px-4 text-xs font-bold capitalize transition-all border-b-2 -mb-[2px] cursor-pointer
                   ${activeTab === tab
-                    ? 'border-purple-500 text-purple-300 font-extrabold'
-                    : 'border-transparent text-slate-400 hover:text-white'}
+                    ? 'border-blue-600 text-blue-600 font-extrabold'
+                    : 'border-transparent text-slate-500 hover:text-slate-900'}
                 `}
               >
                 {tab === 'about' ? 'Bio & Services' : tab}
@@ -227,20 +227,20 @@ export default function CaregiverClient({ id }: ClientProps) {
           {activeTab === 'about' && (
             <div className="space-y-6">
               <div className="space-y-2">
-                <h3 className="font-heading font-black text-sm text-white">Professional Bio</h3>
-                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                <h3 className="font-heading font-black text-sm text-slate-900">Professional Bio</h3>
+                <p className="text-xs text-slate-600 leading-relaxed font-medium">
                   {caregiver.bio || 'No bio details provided.'}
                 </p>
               </div>
 
               <div className="space-y-3">
-                <h3 className="font-heading font-black text-sm text-white">Provided Services</h3>
+                <h3 className="font-heading font-black text-sm text-slate-900">Provided Services</h3>
                 <div className="flex flex-wrap gap-2">
                   {caregiver.services.length === 0 ? (
                     <span className="text-xs text-slate-400">No services specified yet.</span>
                   ) : (
                     caregiver.services.map((s: string) => (
-                      <span key={s} className="rounded-xl bg-purple-500/20 border border-purple-400/30 px-3.5 py-1.5 text-xs font-bold text-purple-300">
+                      <span key={s} className="rounded-xl bg-blue-50 border border-blue-200 px-3.5 py-1.5 text-xs font-bold text-blue-700">
                         {s}
                       </span>
                     ))
@@ -248,14 +248,14 @@ export default function CaregiverClient({ id }: ClientProps) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 border-t border-white/10 pt-4 text-xs">
+              <div className="grid grid-cols-2 gap-4 border-t border-slate-200 pt-4 text-xs">
                 <div>
-                  <span className="block text-slate-400 font-bold uppercase tracking-wider text-[10px]">Gender</span>
-                  <span className="block font-semibold text-white mt-0.5">{caregiver.gender}</span>
+                  <span className="block text-slate-500 font-bold uppercase tracking-wider text-[10px]">Gender</span>
+                  <span className="block font-semibold text-slate-900 mt-0.5">{caregiver.gender}</span>
                 </div>
                 <div>
-                  <span className="block text-slate-400 font-bold uppercase tracking-wider text-[10px]">Date of Birth</span>
-                  <span className="block font-semibold text-white mt-0.5">{caregiver.dob}</span>
+                  <span className="block text-slate-500 font-bold uppercase tracking-wider text-[10px]">Date of Birth</span>
+                  <span className="block font-semibold text-slate-900 mt-0.5">{caregiver.dob}</span>
                 </div>
               </div>
             </div>
@@ -264,20 +264,20 @@ export default function CaregiverClient({ id }: ClientProps) {
           {/* Availability Schedule */}
           {activeTab === 'availability' && (
             <div className="space-y-4">
-              <h3 className="font-heading font-black text-sm text-white">Standard Weekly Schedule</h3>
-              <p className="text-xs text-slate-300 leading-relaxed">
+              <h3 className="font-heading font-black text-sm text-slate-900">Standard Weekly Schedule</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
                 Standard days and hours when caregiver is available for scheduling bookings.
               </p>
-              <div className="divide-y divide-white/5">
+              <div className="divide-y divide-slate-100">
                 {Object.entries(caregiver.availability).map(([day, slotAny]) => {
                   const slot = slotAny as { start: string; end: string; isAvailable: boolean };
                   return (
                     <div key={day} className="py-2.5 flex justify-between items-center text-xs">
-                      <span className="font-bold text-white">{day}</span>
+                      <span className="font-bold text-slate-900">{day}</span>
                       {slot.isAvailable ? (
-                        <span className="font-bold text-cyan-400">{slot.start} - {slot.end}</span>
+                        <span className="font-bold text-blue-600">{slot.start} - {slot.end}</span>
                       ) : (
-                        <span className="text-slate-500 italic">Not Available</span>
+                        <span className="text-slate-400 italic">Not Available</span>
                       )}
                     </div>
                   );
@@ -289,23 +289,23 @@ export default function CaregiverClient({ id }: ClientProps) {
           {/* Reviews Tab */}
           {activeTab === 'reviews' && (
             <div className="space-y-4">
-              <h3 className="font-heading font-black text-sm text-white">Client Feedback ({caregiverReviews.length})</h3>
+              <h3 className="font-heading font-black text-sm text-slate-900">Client Feedback ({caregiverReviews.length})</h3>
 
               {caregiverReviews.length === 0 ? (
-                <p className="text-xs text-slate-400 italic py-4">No reviews recorded yet for this caregiver.</p>
+                <p className="text-xs text-slate-500 italic py-4">No reviews recorded yet for this caregiver.</p>
               ) : (
-                <div className="space-y-4 divide-y divide-white/10">
+                <div className="space-y-4 divide-y divide-slate-200">
                   {caregiverReviews.map((rev) => (
                     <div key={rev.id} className="pt-4 first:pt-0 space-y-2">
                       <div className="flex justify-between items-center text-xs">
-                        <span className="font-bold text-white">{rev.userFullName}</span>
-                        <span className="text-slate-400">{rev.date}</span>
+                        <span className="font-bold text-slate-900">{rev.userFullName}</span>
+                        <span className="text-slate-500">{rev.date}</span>
                       </div>
-                      <div className="flex items-center gap-1 bg-amber-500/20 px-2 py-0.5 rounded-md border border-amber-400/30 w-fit">
-                        <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                        <span className="text-[10px] font-bold text-amber-300">{rev.rating} / 5</span>
+                      <div className="flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 w-fit">
+                        <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
+                        <span className="text-[10px] font-bold text-amber-800">{rev.rating} / 5</span>
                       </div>
-                      <p className="text-xs text-slate-300 leading-relaxed italic font-medium">
+                      <p className="text-xs text-slate-600 leading-relaxed italic font-medium">
                         &ldquo;{rev.comment}&rdquo;
                       </p>
                     </div>
@@ -318,18 +318,18 @@ export default function CaregiverClient({ id }: ClientProps) {
         </div>
 
         {/* Right Side: Booking request card */}
-        <div className="dark-panel bg-[#111433] rounded-3xl border border-white/12 p-6 shadow-2xl space-y-4">
-          <h3 className="font-heading font-black text-lg text-white border-b border-white/10 pb-3">
+        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+          <h3 className="font-heading font-black text-lg text-slate-900 border-b border-slate-200 pb-3">
             Schedule Care Request
           </h3>
 
           {isSuccess ? (
             <div className="py-8 text-center space-y-3 animate-fade-in">
-              <div className="mx-auto h-14 w-14 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-400/30 shadow-lg">
+              <div className="mx-auto h-14 w-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200 shadow-xs">
                 <CheckCircle2 className="h-7 w-7" />
               </div>
-              <h4 className="font-black text-white text-base">Request Submitted!</h4>
-              <p className="text-xs text-slate-300 font-medium leading-relaxed">
+              <h4 className="font-black text-slate-900 text-base">Request Submitted!</h4>
+              <p className="text-xs text-slate-600 font-medium leading-relaxed">
                 Your scheduling request has been forwarded to {caregiver.fullName.split(' ')[0]}. Redirecting...
               </p>
             </div>
@@ -338,21 +338,21 @@ export default function CaregiverClient({ id }: ClientProps) {
               
               {/* Select Service */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Select Service</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Select Service</label>
                 <select
                   required
                   value={selectedService}
                   onChange={(e) => setSelectedService(e.target.value)}
-                  className="w-full rounded-2xl border border-white/15 bg-[#171b42] px-3.5 py-2.5 text-xs font-semibold text-white focus:border-purple-500 focus:outline-none"
+                  className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none"
                 >
-                  <option value="" className="bg-[#111433] text-white">-- Choose Care Service --</option>
-                  {caregiver.services.map((s: string) => <option key={s} value={s} className="bg-[#111433] text-white">{s}</option>)}
+                  <option value="" className="bg-white text-slate-900">-- Choose Care Service --</option>
+                  {caregiver.services.map((s: string) => <option key={s} value={s} className="bg-white text-slate-900">{s}</option>)}
                 </select>
               </div>
 
               {/* Select Date */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Select Date</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Select Date</label>
                 <div className="relative">
                   <input
                     type="date"
@@ -360,14 +360,14 @@ export default function CaregiverClient({ id }: ClientProps) {
                     min={new Date().toISOString().split('T')[0]}
                     value={bookingDate}
                     onChange={(e) => setBookingDate(e.target.value)}
-                    className="w-full rounded-2xl border border-white/15 bg-[#171b42] px-3.5 py-2.5 text-xs font-semibold text-white focus:border-purple-500 focus:outline-none"
+                    className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none"
                   />
                 </div>
               </div>
 
               {/* Time Slots */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                   Time Interval
                 </label>
 
@@ -380,7 +380,7 @@ export default function CaregiverClient({ id }: ClientProps) {
                       setFromTime(e.target.value);
                       setTimeError("");
                     }}
-                    className="w-full rounded-2xl border border-white/15 bg-[#171b42] px-3 py-2.5 text-xs font-semibold text-white focus:border-purple-500 focus:outline-none"
+                    className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-xs font-semibold text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none"
                   />
 
                   <input
@@ -389,12 +389,12 @@ export default function CaregiverClient({ id }: ClientProps) {
                     value={toTime}
                     min={fromTime}
                     onChange={(e) => setToTime(e.target.value)}
-                    className="w-full rounded-2xl border border-white/15 bg-[#171b42] px-3 py-2.5 text-xs font-semibold text-white focus:border-purple-500 focus:outline-none"
+                    className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-xs font-semibold text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none"
                   />
                 </div>
 
                 {timeError && (
-                  <p className="text-xs text-rose-400 font-bold mt-1">
+                  <p className="text-xs text-rose-600 font-bold mt-1">
                     {timeError}
                   </p>
                 )}
@@ -402,32 +402,32 @@ export default function CaregiverClient({ id }: ClientProps) {
 
               {/* Notes */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Client Health Notes (Optional)</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Client Health Notes (Optional)</label>
                 <textarea
                   value={bookingNotes}
                   onChange={(e) => setBookingNotes(e.target.value)}
                   placeholder="e.g. Needs post-stroke physical exercises support and reminders for medication schedule."
                   rows={3}
-                  className="w-full rounded-2xl border border-white/15 bg-[#171b42] px-3.5 py-2.5 text-xs text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none"
+                  className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
                 />
               </div>
 
               {/* Cost Summary Banner */}
-              <div className="rounded-2xl bg-purple-500/20 border border-purple-400/30 p-3.5 flex justify-between items-center text-xs">
+              <div className="rounded-2xl bg-blue-50 border border-blue-200 p-3.5 flex justify-between items-center text-xs">
                 <div>
-                  <span className="block text-purple-300 font-extrabold uppercase text-[9px]">Rate estimate</span>
-                  <span className="text-white font-black">${caregiver.hourlyRate}/hr</span>
+                  <span className="block text-blue-700 font-extrabold uppercase text-[9px]">Rate estimate</span>
+                  <span className="text-slate-900 font-black">${caregiver.hourlyRate}/hr</span>
                 </div>
                 <div className="text-right">
-                  <span className="block text-purple-300 font-extrabold uppercase text-[9px]">Platform fee</span>
-                  <span className="text-emerald-400 font-bold">Included</span>
+                  <span className="block text-blue-700 font-extrabold uppercase text-[9px]">Platform fee</span>
+                  <span className="text-emerald-600 font-bold">Included</span>
                 </div>
               </div>
 
               <button
                 type="submit"
                 disabled={isBookingSubmitting}
-                className="w-full flex items-center justify-center gap-2 rounded-2xl nav-pill-active py-3.5 text-xs font-black text-white uppercase tracking-wider shadow-lg shadow-purple-500/30 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                className="w-full flex items-center justify-center gap-2 rounded-2xl nav-pill-active py-3.5 text-xs font-black text-white uppercase tracking-wider shadow-md shadow-blue-500/20 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
               >
                 <span>{isBookingSubmitting ? "Submitting Care Request..." : "Submit Care Request"}</span>
               </button>

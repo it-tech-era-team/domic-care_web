@@ -5,14 +5,14 @@
   --font-sans: 'Inter', sans-serif;
   --font-outfit: 'Outfit', sans-serif;
 
-  /* Solid Dark Cosmic Theme Colors */
-  --bg-canvas: #08091a;
-  --bg-sidebar: #0b0d21;
-  --bg-panel: #111433;
-  --bg-card: #171b42;
+  /* Modern White & Blue Portal Theme Colors */
+  --bg-canvas: #f8fafc;
+  --bg-sidebar: #ffffff;
+  --bg-panel: #ffffff;
+  --bg-card: #f8fafc;
 
-  --primary-purple: #7c3aed;
-  --primary-indigo: #4f46e5;
+  --primary-blue: #2563eb;
+  --primary-indigo: #1d4ed8;
 }
 
 @theme inline {
@@ -21,8 +21,8 @@
 }
 
 body {
-  background-color: #08091a;
-  color: #ffffff;
+  background-color: #f8fafc;
+  color: #0f172a;
   font-family: var(--font-sans);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
@@ -40,81 +40,54 @@ h1, h2, h3, h4, h5, h6 {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #08091a;
+  background: #f1f5f9;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(37, 99, 235, 0.25);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(37, 99, 235, 0.45);
 }
 
-/* Solid High-Contrast Dark Panel & Card Utilities */
-.dark-panel {
-  background-color: #111433 !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  color: #ffffff !important;
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+/* Clean White & Blue Panel & Card Utilities */
+.dark-panel, .glass-panel {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
+  box-shadow: 0 10px 30px -10px rgba(37, 99, 235, 0.08);
 }
 
-.dark-card {
-  background-color: #171b42 !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #ffffff !important;
+.dark-card, .glass-card {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
 }
 
 .dark-card-hover {
   transition: all 0.25s ease;
 }
 .dark-card-hover:hover {
-  background-color: #1e2352 !important;
-  border-color: rgba(124, 58, 237, 0.5) !important;
+  background-color: #eff6ff !important;
+  border-color: #3b82f6 !important;
 }
 
-.glass-panel {
-  background-color: #111433 !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  color: #ffffff !important;
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
-}
-
-.glass-card {
-  background-color: #171b42 !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #ffffff !important;
-}
-
-/* Signature Metric Card Gradients */
-.stat-card-blue {
-  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #06b6d4 100%) !important;
-  color: #ffffff !important;
-  box-shadow: 0 12px 28px -6px rgba(37, 99, 235, 0.45);
-}
-
-.stat-card-teal {
-  background: linear-gradient(135deg, #0d9488 0%, #06b6d4 50%, #10b981 100%) !important;
-  color: #ffffff !important;
-  box-shadow: 0 12px 28px -6px rgba(13, 148, 136, 0.45);
-}
-
-.stat-card-purple {
-  background: linear-gradient(135deg, #c026d3 0%, #9333ea 50%, #ec4899 100%) !important;
-  color: #ffffff !important;
-  box-shadow: 0 12px 28px -6px rgba(192, 38, 211, 0.45);
-}
-
+/* Clean Executive White & Blue Metric Cards */
+.stat-card-blue,
+.stat-card-teal,
+.stat-card-purple,
 .stat-card-orange {
-  background: linear-gradient(135deg, #ea580c 0%, #f59e0b 55%, #eab308 100%) !important;
-  color: #ffffff !important;
-  box-shadow: 0 12px 28px -6px rgba(234, 88, 12, 0.45);
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03) !important;
 }
 
 /* Sidebar Active Button Pill Glow */
 .nav-pill-active {
-  background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%) !important;
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%) !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.5);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
 }
 
 /* Keyframes & Animations */
@@ -131,32 +104,33 @@ h1, h2, h3, h4, h5, h6 {
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Leaflet Dark Map & Popup Styling Overrides */
+/* Leaflet Light Map & Popup Styling Overrides */
 .leaflet-container {
-  background-color: #08091a !important;
+  background-color: #f8fafc !important;
 }
 
 .leaflet-popup-content-wrapper {
-  background-color: #111433 !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
   border-radius: 20px !important;
-  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.8) !important;
+  box-shadow: 0 15px 30px -10px rgba(37, 99, 235, 0.15) !important;
   padding: 2px !important;
 }
 
 .leaflet-popup-tip {
-  background-color: #111433 !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 .leaflet-control-zoom a {
-  background-color: #111433 !important;
-  color: #ffffff !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
 }
 .leaflet-control-zoom a:hover {
-  background-color: #171b42 !important;
-  color: #a855f7 !important;
+  background-color: #eff6ff !important;
+  color: #2563eb !important;
 }
+
 

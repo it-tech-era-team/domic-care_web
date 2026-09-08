@@ -201,47 +201,47 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
   const peerRole = role === 'user' ? 'Caregiver Professional' : 'Family Client';
 
   return (
-    <div className="flex dark-panel bg-[#111433] border border-white/15 rounded-3xl shadow-2xl overflow-hidden min-h-[calc(100vh-120px)] max-h-[85vh] animate-fade-in text-white">
+    <div className="flex bg-white border border-slate-200 rounded-3xl shadow-xs overflow-hidden min-h-[calc(100vh-120px)] max-h-[85vh] animate-fade-in text-slate-900">
       
       {/* ================= LEFT SIDEBAR: CONVERSATIONS ================= */}
-      <div className="w-full md:w-80 lg:w-96 border-r border-white/10 flex flex-col bg-[#0b0d21] text-white shrink-0">
+      <div className="w-full md:w-80 lg:w-96 border-r border-slate-200 flex flex-col bg-slate-50 text-slate-900 shrink-0">
         
         {/* Sidebar Header Banner */}
-        <div className="p-5 bg-gradient-to-r from-purple-900 via-indigo-950 to-purple-950 text-white shadow-md space-y-4 border-b border-white/10">
+        <div className="p-5 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white shadow-xs space-y-4 border-b border-blue-900/20">
           <div className="flex items-center justify-between">
             <h1 className="font-heading font-black text-lg flex items-center gap-2.5 tracking-tight">
               <div className="h-9 w-9 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center font-black shadow-inner border border-white/20">
-                <MessageSquare size={18} className="text-cyan-400" />
+                <MessageSquare size={18} className="text-blue-100" />
               </div>
               <span>Care Messages</span>
             </h1>
-            <span className="rounded-full bg-purple-500/30 border border-purple-400/30 px-3 py-1 text-xs font-black shadow-sm">
+            <span className="rounded-full bg-white/20 border border-white/30 px-3 py-1 text-xs font-black shadow-xs">
               {userConvs.length} Active
             </span>
           </div>
 
           {/* Search Box */}
           <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-purple-300" size={15} />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-100" size={15} />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search contacts..."
-              className="w-full rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md pl-9 pr-3 py-2.5 text-xs text-white placeholder-slate-400 outline-none transition focus:bg-white/20 focus:border-purple-500"
+              className="w-full rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md pl-9 pr-3 py-2.5 text-xs text-white placeholder-blue-100 outline-none transition focus:bg-white/20 focus:border-white"
             />
           </div>
         </div>
 
         {/* Conversations Feed */}
-        <div className="flex-1 overflow-y-auto divide-y divide-white/5">
+        <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
           {filteredConvs.length === 0 ? (
-            <div className="p-8 text-center text-slate-400 space-y-3">
-              <div className="h-12 w-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto text-slate-400">
+            <div className="p-8 text-center text-slate-500 space-y-3">
+              <div className="h-12 w-12 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center mx-auto text-slate-400">
                 <MessageSquare size={24} />
               </div>
-              <p className="text-xs font-bold text-slate-300">No active conversations</p>
-              <p className="text-[10px] text-slate-400 max-w-[200px] mx-auto">
+              <p className="text-xs font-bold text-slate-700">No active conversations</p>
+              <p className="text-[10px] text-slate-500 max-w-[200px] mx-auto">
                 Once a care booking is accepted, direct chat will automatically open here.
               </p>
             </div>
@@ -262,35 +262,35 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
                   className={`
                     w-full p-4 text-left flex items-start gap-3.5 transition-all cursor-pointer relative
                     ${isActive
-                      ? 'bg-gradient-to-r from-purple-600/30 via-indigo-600/30 to-purple-600/20 border-l-4 border-purple-500 shadow-sm'
-                      : 'hover:bg-white/5'}
+                      ? 'bg-blue-50/90 border-l-4 border-blue-600 shadow-2xs'
+                      : 'hover:bg-slate-100/70'}
                   `}
                 >
                   <div className="relative shrink-0">
                     <img
                       src={avatar || 'https://api.dicebear.com/7.x/adventurer/svg?seed=User'}
                       alt={name}
-                      className="h-12 w-12 rounded-2xl object-cover border-2 border-white/20 bg-slate-800 shadow-md"
+                      className="h-12 w-12 rounded-2xl object-cover border-2 border-slate-200 bg-slate-100 shadow-xs"
                     />
-                    <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-emerald-400 border-2 border-[#0b0d21] shadow-sm animate-pulse" />
+                    <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-white shadow-xs animate-pulse" />
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-baseline mb-1">
-                      <span className={`block font-extrabold text-xs truncate ${isActive ? 'text-white' : 'text-slate-200'}`}>
+                      <span className={`block font-extrabold text-xs truncate ${isActive ? 'text-blue-950 font-black' : 'text-slate-800'}`}>
                         {name}
                       </span>
-                      <span className="text-[9px] font-bold text-slate-400 shrink-0 ml-1">
+                      <span className="text-[9px] font-bold text-slate-500 shrink-0 ml-1">
                         {formatMsgTime(conv.updatedAt)}
                       </span>
                     </div>
 
-                    <p className="text-[11px] text-slate-300 truncate leading-tight font-medium">
+                    <p className="text-[11px] text-slate-600 truncate leading-tight font-medium">
                       {conv.lastMessage || 'No messages yet.'}
                     </p>
 
                     {conv.bookingService && (
-                      <span className="inline-flex items-center gap-1 mt-2 text-[9px] font-black text-purple-300 bg-purple-500/20 px-2.5 py-0.5 rounded-full border border-purple-400/30 uppercase tracking-wider">
+                      <span className="inline-flex items-center gap-1 mt-2 text-[9px] font-black text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full border border-blue-200 uppercase tracking-wider">
                         <ShieldCheck size={11} />
                         {conv.bookingService}
                       </span>
@@ -298,7 +298,7 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
                   </div>
 
                   {hasUnread && (
-                    <span className="shrink-0 h-5 min-w-[22px] px-1.5 rounded-full nav-pill-active text-white text-[10px] font-black flex items-center justify-center shadow-md animate-pulse">
+                    <span className="shrink-0 h-5 min-w-[22px] px-1.5 rounded-full nav-pill-active text-white text-[10px] font-black flex items-center justify-center shadow-xs animate-pulse">
                       {conv.unreadCount}
                     </span>
                   )}
@@ -310,38 +310,38 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
       </div>
 
       {/* ================= RIGHT WORKSPACE: CHAT FEED ================= */}
-      <div className="flex-1 flex flex-col bg-[#08091a] text-white overflow-hidden relative">
+      <div className="flex-1 flex flex-col bg-slate-50 text-slate-900 overflow-hidden relative">
         {activeConv ? (
           <>
             {/* Active Chat Header */}
-            <div className="bg-[#111433] px-6 py-4.5 border-b border-white/10 flex items-center justify-between shadow-md z-10 text-white">
+            <div className="bg-white px-6 py-4.5 border-b border-slate-200 flex items-center justify-between shadow-xs z-10 text-slate-900">
               <div className="flex items-center gap-4">
                 <div className="relative">
                   <img
                     src={peerAvatar || 'https://api.dicebear.com/7.x/adventurer/svg?seed=User'}
                     alt={peerName}
-                    className="h-12 w-12 rounded-2xl object-cover border-2 border-white/20 bg-slate-800 shadow-md ring-2 ring-emerald-500/30"
+                    className="h-12 w-12 rounded-2xl object-cover border-2 border-slate-200 bg-slate-100 shadow-xs ring-2 ring-emerald-500/30"
                   />
-                  <span className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-emerald-400 border-2 border-[#111433] shadow-sm animate-pulse" />
+                  <span className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-emerald-500 border-2 border-white shadow-xs animate-pulse" />
                 </div>
 
                 <div>
                   <div className="flex items-center gap-2.5">
-                    <h2 className="font-heading font-black text-lg text-white leading-tight">
+                    <h2 className="font-heading font-black text-lg text-slate-900 leading-tight">
                       {peerName}
                     </h2>
-                    <span className="rounded-full bg-white/10 border border-white/15 px-3 py-0.5 text-[10px] font-extrabold text-purple-300 uppercase tracking-wider">
+                    <span className="rounded-full bg-blue-50 border border-blue-200 px-3 py-0.5 text-[10px] font-extrabold text-blue-700 uppercase tracking-wider">
                       {peerRole}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-3 text-xs text-slate-300 mt-1 font-semibold">
-                    <span className="flex items-center gap-1.5 text-emerald-400 font-bold">
-                      <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <div className="flex items-center gap-3 text-xs text-slate-600 mt-1 font-semibold">
+                    <span className="flex items-center gap-1.5 text-emerald-600 font-bold">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                       Active Care Channel
                     </span>
                     {activeConv.bookingService && (
-                      <span className="hidden sm:inline-flex items-center gap-1 text-white nav-pill-active px-3 py-0.5 rounded-full font-bold text-[10px] shadow-sm">
+                      <span className="hidden sm:inline-flex items-center gap-1 text-white nav-pill-active px-3 py-0.5 rounded-full font-bold text-[10px] shadow-xs">
                         <Calendar size={11} />
                         {activeConv.bookingService} • Confirmed
                       </span>
@@ -353,23 +353,23 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleManualSync}
-                  className="p-2.5 rounded-2xl border border-white/15 bg-[#171b42] text-slate-200 hover:text-white transition cursor-pointer shadow-sm"
+                  className="p-2.5 rounded-2xl border border-slate-200 bg-slate-100 text-slate-700 hover:text-slate-900 hover:bg-slate-200 transition cursor-pointer shadow-xs"
                   title="Sync Messages"
                 >
-                  <RefreshCw size={16} className={isRefreshing ? 'animate-spin text-cyan-400' : ''} />
+                  <RefreshCw size={16} className={isRefreshing ? 'animate-spin text-blue-600' : ''} />
                 </button>
               </div>
             </div>
 
             {/* Messages Feed Area */}
-            <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-[#08091a] text-white relative">
+            <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-slate-50 text-slate-900 relative">
               {groupedMessages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-3">
-                  <div className="h-16 w-16 rounded-3xl bg-purple-500/20 border border-purple-400/30 text-purple-300 flex items-center justify-center shadow-inner">
+                <div className="flex flex-col items-center justify-center h-full text-slate-500 space-y-3">
+                  <div className="h-16 w-16 rounded-3xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shadow-xs">
                     <Sparkles size={30} />
                   </div>
-                  <p className="text-sm font-black text-white">Direct Care Messaging Channel</p>
-                  <p className="text-xs text-slate-300 text-center max-w-md leading-relaxed">
+                  <p className="text-sm font-black text-slate-900">Direct Care Messaging Channel</p>
+                  <p className="text-xs text-slate-600 text-center max-w-md leading-relaxed">
                     Send instructions, confirm arrival times, or discuss medicine scheduling directly with {peerName}.
                   </p>
                 </div>
@@ -378,7 +378,7 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
                   <div key={dateHeader} className="space-y-5">
                     {/* Date Separator Badge */}
                     <div className="flex items-center justify-center my-3">
-                      <span className="bg-[#171b42] border border-white/15 text-slate-300 text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                      <span className="bg-slate-200 border border-slate-300 text-slate-700 text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-wider shadow-xs">
                         {dateHeader}
                       </span>
                     </div>
@@ -390,11 +390,11 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
                       if (isSystemGreeting) {
                         return (
                           <div key={m.id} className="flex justify-center my-4">
-                            <div className="bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 text-xs p-5 rounded-3xl max-w-xl shadow-md flex items-start gap-3.5">
-                              <ShieldCheck className="h-6 w-6 text-emerald-400 shrink-0 mt-0.5" />
+                            <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs p-5 rounded-3xl max-w-xl shadow-xs flex items-start gap-3.5">
+                              <ShieldCheck className="h-6 w-6 text-emerald-600 shrink-0 mt-0.5" />
                               <div>
-                                <p className="font-extrabold text-emerald-200 leading-relaxed text-sm">{m.message}</p>
-                                <span className="text-[10px] text-emerald-400 font-bold block mt-2">
+                                <p className="font-extrabold text-emerald-900 leading-relaxed text-sm">{m.message}</p>
+                                <span className="text-[10px] text-emerald-700 font-bold block mt-2">
                                   {formatMsgTime(m.createdAt)}
                                 </span>
                               </div>
@@ -412,7 +412,7 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
                             <img
                               src={peerAvatar || 'https://api.dicebear.com/7.x/adventurer/svg?seed=User'}
                               alt="Peer"
-                              className="h-8 w-8 rounded-2xl object-cover border border-white/20 bg-slate-800 shrink-0 shadow-sm mb-1"
+                              className="h-8 w-8 rounded-2xl object-cover border border-slate-200 bg-slate-100 shrink-0 shadow-xs mb-1"
                             />
                           )}
 
@@ -420,7 +420,7 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
                             
                             {/* Image Attachment render */}
                             {m.message.startsWith('data:image') || m.message.match(/\.(jpeg|jpg|png|webp|gif)/i) ? (
-                              <div className="p-1.5 rounded-3xl bg-[#171b42] border border-white/15 shadow-xl">
+                              <div className="p-1.5 rounded-3xl bg-white border border-slate-200 shadow-xs">
                                 <img
                                   src={m.message}
                                   alt="Attachment"
@@ -430,10 +430,10 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
                             ) : (
                               <div
                                 className={`
-                                  p-4 rounded-3xl text-xs sm:text-sm font-semibold leading-relaxed shadow-md
+                                  p-4 rounded-3xl text-xs sm:text-sm font-semibold leading-relaxed shadow-xs
                                   ${isMe
-                                    ? 'bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 text-white rounded-br-xs'
-                                    : 'bg-[#171b42] text-white border border-white/15 rounded-bl-xs'}
+                                    ? 'bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white rounded-br-xs'
+                                    : 'bg-white text-slate-900 border border-slate-200 rounded-bl-xs'}
                                 `}
                               >
                                 {m.message}
@@ -441,11 +441,11 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
                             )}
 
                             {/* Message Meta Info */}
-                            <div className={`flex items-center gap-1.5 text-[10px] font-bold text-slate-400 px-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                            <div className={`flex items-center gap-1.5 text-[10px] font-bold text-slate-500 px-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
                               <span>{formatMsgTime(m.createdAt)}</span>
                               {isMe && (
                                 m.read ? (
-                                  <span title="Read"><CheckCheck size={14} className="text-cyan-400" /></span>
+                                  <span title="Read"><CheckCheck size={14} className="text-blue-600" /></span>
                                 ) : (
                                   <span title="Sent"><Check size={14} className="text-slate-400" /></span>
                                 )
@@ -464,16 +464,16 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
             </div>
 
             {/* Quick Action Chips Bar */}
-            <div className="px-5 py-3 bg-[#111433] backdrop-blur-md border-t border-b border-white/10 flex items-center gap-2.5 overflow-x-auto no-scrollbar text-white">
-              <span className="text-[10px] font-black text-purple-300 uppercase tracking-wider shrink-0 flex items-center gap-1">
-                <Sparkles size={12} className="text-amber-400" />
+            <div className="px-5 py-3 bg-white border-t border-b border-slate-200 flex items-center gap-2.5 overflow-x-auto no-scrollbar text-slate-900">
+              <span className="text-[10px] font-black text-blue-700 uppercase tracking-wider shrink-0 flex items-center gap-1">
+                <Sparkles size={12} className="text-amber-500" />
                 Quick Reply:
               </span>
               {quickChips.map((chip, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleChipClick(chip)}
-                  className="shrink-0 rounded-full border border-white/15 bg-[#171b42] hover:bg-purple-600 hover:border-purple-600 px-4 py-1.5 text-xs font-bold text-slate-200 hover:text-white transition shadow-sm cursor-pointer active:scale-95"
+                  className="shrink-0 rounded-full border border-slate-200 bg-slate-100 hover:bg-blue-600 hover:border-blue-600 px-4 py-1.5 text-xs font-bold text-slate-700 hover:text-white transition shadow-xs cursor-pointer active:scale-95"
                 >
                   {chip}
                 </button>
@@ -482,10 +482,10 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
 
             {/* Media Picker Modal Overlay */}
             {showMediaPicker && (
-              <div className="p-4 bg-[#111433] border-t border-white/10 animate-slide-in-up text-white">
+              <div className="p-4 bg-white border-t border-slate-200 animate-slide-in-up text-slate-900">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-white">Attach Image File</span>
-                  <button onClick={() => setShowMediaPicker(false)} className="text-slate-400 hover:text-white">
+                  <span className="text-xs font-bold text-slate-900">Attach Image File</span>
+                  <button onClick={() => setShowMediaPicker(false)} className="text-slate-400 hover:text-slate-700">
                     <X size={16} />
                   </button>
                 </div>
@@ -503,23 +503,23 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
 
             {/* Image Preview Banner */}
             {selectedImage && (
-              <div className="px-5 py-3 bg-purple-500/20 border-t border-purple-400/30 flex items-center justify-between text-white">
-                <div className="flex items-center gap-2 text-xs font-bold text-purple-300">
+              <div className="px-5 py-3 bg-blue-50 border-t border-blue-200 flex items-center justify-between text-blue-900">
+                <div className="flex items-center gap-2 text-xs font-bold text-blue-700">
                   <ImageIcon size={16} />
                   <span>Image ready to send</span>
                 </div>
-                <button onClick={() => setSelectedImage(null)} className="text-purple-300 hover:text-white">
+                <button onClick={() => setSelectedImage(null)} className="text-blue-700 hover:text-blue-900">
                   <X size={16} />
                 </button>
               </div>
             )}
 
             {/* Message Input Bar */}
-            <form onSubmit={handleSend} className="bg-[#111433] p-4 border-t border-white/10 flex items-center gap-3 shadow-xl text-white">
+            <form onSubmit={handleSend} className="bg-white p-4 border-t border-slate-200 flex items-center gap-3 shadow-xs text-slate-900">
               <button
                 type="button"
                 onClick={() => setShowMediaPicker(!showMediaPicker)}
-                className="p-3 text-slate-400 hover:text-purple-400 hover:bg-white/10 rounded-2xl transition cursor-pointer"
+                className="p-3 text-slate-500 hover:text-blue-600 hover:bg-slate-100 rounded-2xl transition cursor-pointer"
                 title="Attach image file"
               >
                 <Paperclip size={20} />
@@ -530,13 +530,13 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder={`Type a message to ${peerName}...`}
-                className="flex-1 rounded-2xl border border-white/15 bg-[#171b42] px-4 py-3.5 text-xs sm:text-sm font-semibold text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none transition"
+                className="flex-1 rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3.5 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none transition"
               />
 
               <button
                 type="submit"
                 disabled={!inputText.trim() && !selectedImage}
-                className="rounded-2xl nav-pill-active text-white px-6 py-3.5 shadow-lg shadow-purple-600/30 disabled:opacity-40 transition-all flex items-center gap-2 cursor-pointer font-black text-xs uppercase tracking-wider active:scale-95"
+                className="rounded-2xl nav-pill-active text-white px-6 py-3.5 shadow-md shadow-blue-500/20 disabled:opacity-40 transition-all flex items-center gap-2 cursor-pointer font-black text-xs uppercase tracking-wider active:scale-95"
               >
                 <span>Send</span>
                 <Send size={15} />
@@ -545,11 +545,11 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-slate-400 p-8 space-y-4">
-            <div className="h-20 w-20 rounded-3xl bg-purple-500/20 border border-purple-400/30 text-purple-300 flex items-center justify-center shadow-inner">
+            <div className="h-20 w-20 rounded-3xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shadow-xs">
               <MessageSquare size={38} />
             </div>
-            <h3 className="font-heading font-black text-lg text-white">Select a Conversation</h3>
-            <p className="text-xs text-slate-300 text-center max-w-sm leading-relaxed">
+            <h3 className="font-heading font-black text-lg text-slate-900">Select a Conversation</h3>
+            <p className="text-xs text-slate-600 text-center max-w-sm leading-relaxed">
               Choose a contact from the left list to view messages and direct care updates.
             </p>
           </div>

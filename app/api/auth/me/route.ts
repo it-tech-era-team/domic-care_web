@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyRequestSessionDetails, verifyRequestSession, setAuthCookies } from "@/lib/supabase-auth";
+import { verifyRequestSessionDetails, verifyRequestSession, setAuthCookies, clearAuthCookies } from "@/lib/supabase-auth";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import bcrypt from "bcryptjs";
 
 export async function GET(req: NextRequest) {
   const result = await verifyRequestSessionDetails(req);
   if (!result.user) {
-    return NextResponse.json({ user: null }, { status: 200 });
+    const response = NextResponse.json({ user: null }, { status: 200 });
+    clearAuthCookies(response);
+    return response;
   }
 
   const response = NextResponse.json({ user: result.user }, { status: 200 });
@@ -29,7 +32,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { fullName, email, phone, avatarUrl } = body;
+    const { fullName, email, phone, avatarUrl, password } = body;
 
     const supabase = createServerSupabaseClient();
 
@@ -42,6 +45,18 @@ export async function PATCH(req: NextRequest) {
     if (email !== undefined) updates.email = email;
     if (phone !== undefined) updates.phone = phone;
     if (avatarUrl !== undefined) updates.avatar_url = avatarUrl;
+
+    // Update password in Auth and password_hash in profiles if provided
+    if (password && password.trim().length > 0) {
+      const { error: passError } = await supabase.auth.admin.updateUserById(user.id, {
+        password: password,
+      });
+      if (passError) {
+        console.error("[PATCH /api/auth/me] Supabase Auth password update error:", passError);
+        return NextResponse.json({ error: passError.message }, { status: 400 });
+      }
+      updates.password_hash = await bcrypt.hash(password, 10);
+    }
 
     // Update email in Auth if it has changed
     if (email && email !== user.email) {

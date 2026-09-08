@@ -494,7 +494,7 @@ export default function AdminCaregiversPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#070814] text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
 
       {/* Remaining UI continues in Part 1B */}
 
@@ -506,10 +506,10 @@ export default function AdminCaregiversPage() {
 
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
+            <h1 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
               Caregiver Management
             </h1>
-            <p className="mt-2 text-slate-400">
+            <p className="mt-2 text-slate-600 font-medium">
               Manage caregivers, monitor performance, bookings, reviews and account activity.
             </p>
           </div>
@@ -525,40 +525,48 @@ export default function AdminCaregiversPage() {
 
         {/* STATISTICS */}
         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="stat-card-blue rounded-3xl p-7 text-white">
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 text-slate-900 shadow-xs hover:border-blue-300 transition-all">
             <div className="flex items-center justify-between">
-              <Users size={34} />
-              <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold">Total</span>
+              <div className="h-12 w-12 rounded-2xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center font-bold">
+                <Users size={24} />
+              </div>
+              <span className="rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 text-[10px] font-extrabold uppercase">Total</span>
             </div>
-            <h2 className="mt-8 text-5xl font-black">{stats.total}</h2>
-            <p className="mt-2 text-blue-100">Registered Caregivers</p>
+            <h2 className="mt-6 text-4xl font-black text-slate-900">{stats.total}</h2>
+            <p className="mt-1 text-xs text-slate-500 font-semibold">Registered Caregivers</p>
           </div>
 
-          <div className="stat-card-teal rounded-3xl p-7 text-white">
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 text-slate-900 shadow-xs hover:border-emerald-300 transition-all">
             <div className="flex items-center justify-between">
-              <CheckCircle size={34} />
-              <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold">Approved</span>
+              <div className="h-12 w-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center font-bold">
+                <CheckCircle size={24} />
+              </div>
+              <span className="rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 text-[10px] font-extrabold uppercase">Approved</span>
             </div>
-            <h2 className="mt-8 text-5xl font-black">{stats.approved}</h2>
-            <p className="mt-2 text-teal-100">Active Caregivers</p>
+            <h2 className="mt-6 text-4xl font-black text-slate-900">{stats.approved}</h2>
+            <p className="mt-1 text-xs text-slate-500 font-semibold">Active Caregivers</p>
           </div>
 
-          <div className="stat-card-purple rounded-3xl p-7 text-white">
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 text-slate-900 shadow-xs hover:border-amber-300 transition-all">
             <div className="flex items-center justify-between">
-              <Clock3 size={34} />
-              <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold">Pending</span>
+              <div className="h-12 w-12 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center font-bold">
+                <Clock3 size={24} />
+              </div>
+              <span className="rounded-full bg-amber-50 text-amber-800 border border-amber-200 px-3 py-1 text-[10px] font-extrabold uppercase">Pending</span>
             </div>
-            <h2 className="mt-8 text-5xl font-black">{stats.pending}</h2>
-            <p className="mt-2 text-pink-100">Awaiting Approval</p>
+            <h2 className="mt-6 text-4xl font-black text-slate-900">{stats.pending}</h2>
+            <p className="mt-1 text-xs text-slate-500 font-semibold">Awaiting Approval</p>
           </div>
 
-          <div className="stat-card-orange rounded-3xl p-7 text-white">
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 text-slate-900 shadow-xs hover:border-rose-300 transition-all">
             <div className="flex items-center justify-between">
-              <XCircle size={34} />
-              <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold">Rejected</span>
+              <div className="h-12 w-12 rounded-2xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center font-bold">
+                <XCircle size={24} />
+              </div>
+              <span className="rounded-full bg-rose-50 text-rose-800 border border-rose-200 px-3 py-1 text-[10px] font-extrabold uppercase">Rejected</span>
             </div>
-            <h2 className="mt-8 text-5xl font-black">{stats.rejected}</h2>
-            <p className="mt-2 text-amber-100">Rejected Accounts</p>
+            <h2 className="mt-6 text-4xl font-black text-slate-900">{stats.rejected}</h2>
+            <p className="mt-1 text-xs text-slate-500 font-semibold">Rejected Accounts</p>
           </div>
         </div>
 

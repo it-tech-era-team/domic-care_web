@@ -47,6 +47,7 @@ export interface Booking {
   id: string;
   userId: string;
   userFullName: string;
+  userAvatar?: string;
   caregiverId: string;
   caregiverFullName: string;
   caregiverAvatar: string;
@@ -149,7 +150,7 @@ interface CareConnectContextType {
   rejectCaregiver: (caregiverId: string) => Promise<void>;
   updateCaregiverProfile: (profile: Partial<CaregiverProfile>) => Promise<void>;
   submitCaregiverApplication: (data: Omit<CaregiverProfile, 'id' | 'approvalStatus' | 'rating' | 'reviewsCount'>) => Promise<boolean>;
-  updateUserProfile: (profileData: { fullName?: string; email?: string; phone?: string; avatarUrl?: string }) => Promise<boolean>;
+  updateUserProfile: (profileData: { fullName?: string; email?: string; phone?: string; avatarUrl?: string; password?: string }) => Promise<boolean>;
   caregiverFilters: any;
   updateCaregiverFilters: (filters: any) => Promise<void>;
 }
@@ -694,7 +695,7 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
-  const updateUserProfile = async (profileData: { fullName?: string; email?: string; phone?: string; avatarUrl?: string }): Promise<boolean> => {
+  const updateUserProfile = async (profileData: { fullName?: string; email?: string; phone?: string; avatarUrl?: string; password?: string }): Promise<boolean> => {
     try {
       const res = await fetch('/api/auth/me', {
         method: 'PATCH',

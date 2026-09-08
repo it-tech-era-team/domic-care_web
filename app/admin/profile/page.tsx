@@ -3,9 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useCareConnect } from '@/context/useCareConnect';
 import MediaPicker from '@/components/MediaPicker';
-import { User, Mail, Phone, MapPin, CheckCircle2, Lock, Eye, EyeOff, ShieldCheck, AlertCircle } from 'lucide-react';
+import {
+  User, Mail, Phone, Lock, Eye, EyeOff, ShieldCheck,
+  AlertCircle, CheckCircle2, Shield
+} from 'lucide-react';
 
-export default function UserProfileEdit() {
+export default function AdminProfilePage() {
   const { currentUser, updateUserProfile } = useCareConnect();
 
   // Form State
@@ -13,7 +16,6 @@ export default function UserProfileEdit() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
-  const [address, setAddress] = useState('Manhattan, New York');
 
   // Password State
   const [newPassword, setNewPassword] = useState('');
@@ -40,7 +42,6 @@ export default function UserProfileEdit() {
 
     setPasswordError('');
 
-    // If user filled password, validate match and length
     if (newPassword || confirmPassword) {
       if (newPassword !== confirmPassword) {
         setPasswordError('New password and confirm password do not match.');
@@ -55,9 +56,9 @@ export default function UserProfileEdit() {
     setIsSubmitting(true);
 
     const payload: any = {
-      fullName,
-      email,
-      phone,
+      fullName: fullName.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
       avatarUrl,
     };
 
@@ -83,11 +84,27 @@ export default function UserProfileEdit() {
       {/* Title */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-          My Account Settings
+          Admin Profile & Security
         </h1>
         <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1">
-          Manage your personal details, avatar picture, and account login password.
+          Manage your administrator profile details, avatar picture, and master access password.
         </p>
+      </div>
+
+      {/* Role Badge */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex justify-between items-center text-xs font-bold text-slate-600">
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center font-bold">
+            <Shield className="h-4.5 w-4.5" />
+          </div>
+          <div>
+            <span className="block text-slate-900 font-black">System Administrator</span>
+            <span className="text-[10px] text-slate-500 font-semibold">Full System Privileges & Controls</span>
+          </div>
+        </div>
+        <span className="rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 text-[10px] font-black uppercase tracking-wider">
+          Super Admin
+        </span>
       </div>
 
       {/* Profile Form Card */}
@@ -96,7 +113,7 @@ export default function UserProfileEdit() {
         {isSaved && (
           <div className="flex items-center gap-2 rounded-2xl bg-emerald-50 p-4 text-xs font-bold text-emerald-700 border border-emerald-200 animate-fade-in">
             <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
-            <span>Profile details and account security settings saved successfully!</span>
+            <span>Administrator profile and security password saved successfully!</span>
           </div>
         )}
 
@@ -115,15 +132,15 @@ export default function UserProfileEdit() {
               value={avatarUrl}
               onChange={setAvatarUrl}
               type="avatar"
-              label="Profile Avatar Photo"
+              label="Admin Avatar Photo"
             />
           </div>
 
-          {/* Section 1: Personal Details */}
+          {/* Section 1: Administrator Details */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
               <User className="h-4 w-4 text-blue-600" />
-              <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">Personal Contact Information</h2>
+              <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">Administrator Contact Details</h2>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -161,7 +178,7 @@ export default function UserProfileEdit() {
               </div>
 
               {/* Phone */}
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 sm:col-span-2">
                 <label htmlFor="phone" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Phone Number</label>
                 <div className="relative">
                   <Phone className="absolute top-3.5 left-3.5 h-4.5 w-4.5 text-blue-600" />
@@ -176,20 +193,6 @@ export default function UserProfileEdit() {
                 </div>
               </div>
 
-              {/* Primary Address */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Primary Care Area</label>
-                <div className="relative">
-                  <MapPin className="absolute top-3.5 left-3.5 h-4.5 w-4.5 text-blue-600" />
-                  <input
-                    type="text"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-3.5 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:outline-none transition-all"
-                  />
-                </div>
-              </div>
-
             </div>
           </div>
 
@@ -198,7 +201,7 @@ export default function UserProfileEdit() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-blue-600" />
-                <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">Account Security & Password Update</h2>
+                <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">Admin Account Password Update</h2>
               </div>
               <span className="text-[10px] text-slate-400 font-semibold">Optional</span>
             </div>
@@ -259,7 +262,7 @@ export default function UserProfileEdit() {
             disabled={isSubmitting}
             className="w-full sm:w-auto px-8 rounded-2xl nav-pill-active py-3.5 text-xs font-black text-white uppercase tracking-wider shadow-md shadow-blue-500/20 transition-all cursor-pointer block hover:scale-[1.02] active:scale-95 disabled:opacity-60"
           >
-            {isSubmitting ? 'Saving Updates...' : 'Save Profile & Security Settings'}
+            {isSubmitting ? 'Saving Updates...' : 'Save Admin Profile Settings'}
           </button>
         </form>
 

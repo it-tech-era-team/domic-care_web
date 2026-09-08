@@ -17,9 +17,9 @@ export default function CaregiverBookings() {
 
   if (!currentUser) {
     return (
-      <div className="flex flex-col h-[60vh] items-center justify-center space-y-4 bg-[#070814]">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" />
-        <p className="text-sm font-semibold text-slate-400">Loading your jobs history...</p>
+      <div className="flex flex-col h-[60vh] items-center justify-center space-y-4 bg-slate-50">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+        <p className="text-sm font-semibold text-slate-500">Loading your jobs history...</p>
       </div>
     );
   }
@@ -45,20 +45,20 @@ export default function CaregiverBookings() {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8 max-w-4xl w-full mx-auto animate-fade-in text-white">
+    <div className="space-y-6 sm:space-y-8 max-w-4xl w-full mx-auto animate-fade-in text-slate-900">
       
       {/* Title */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
           Assigned Jobs History
         </h1>
-        <p className="text-xs sm:text-sm text-slate-400 mt-1">
+        <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1">
           Review, complete, and track all your scheduled caregiver appointments.
         </p>
       </div>
 
       {/* Tabs Menu */}
-      <div className="flex flex-wrap border-b border-white/10 gap-1 sm:gap-2">
+      <div className="flex flex-wrap border-b border-slate-200 gap-1 sm:gap-2">
         {(['all', 'accepted', 'completed', 'cancelled'] as const).map((tab) => (
           <button
             key={tab}
@@ -66,8 +66,8 @@ export default function CaregiverBookings() {
             className={`
               pb-3 px-3 sm:px-4 text-xs font-bold capitalize transition-all border-b-2 -mb-[2px] cursor-pointer
               ${activeTab === tab
-                ? 'border-purple-500 text-white font-extrabold'
-                : 'border-transparent text-slate-400 hover:text-slate-200'}
+                ? 'border-blue-600 text-blue-600 font-extrabold'
+                : 'border-transparent text-slate-500 hover:text-slate-900'}
             `}
           >
             {tab === 'accepted' ? 'Active / Scheduled' : tab}
@@ -78,12 +78,12 @@ export default function CaregiverBookings() {
       {/* Bookings List */}
       <div className="space-y-4">
         {filteredBookings.length === 0 ? (
-          <div className="glass-panel rounded-3xl border border-white/10 p-12 text-center space-y-3 shadow-sm">
-            <div className="mx-auto h-12 w-12 rounded-full bg-white/5 flex items-center justify-center text-slate-400">
-              <ClipboardList className="h-6 w-6 text-purple-400" />
+          <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center space-y-3 shadow-xs">
+            <div className="mx-auto h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+              <ClipboardList className="h-6 w-6 text-blue-600" />
             </div>
-            <h2 className="font-heading font-extrabold text-base text-white">No Care Bookings Found</h2>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto">
+            <h2 className="font-heading font-extrabold text-base text-slate-900">No Care Bookings Found</h2>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
               You currently have no bookings matching the selected status filter.
             </p>
           </div>
@@ -91,34 +91,36 @@ export default function CaregiverBookings() {
           filteredBookings.map((b) => (
             <div
               key={b.id}
-              className="glass-panel rounded-3xl border border-white/10 p-5 sm:p-6 shadow-sm hover:border-purple-500/30 transition-all flex flex-col md:flex-row md:items-start justify-between gap-6"
+              className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-xs hover:border-blue-300 hover:shadow-md transition-all flex flex-col md:flex-row md:items-start justify-between gap-6 text-slate-900"
             >
               {/* Left family details */}
               <div className="flex items-start gap-4">
-                <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-md">
-                  {b.userFullName.split(' ').map(n => n[0]).join('')}
-                </div>
+                <img
+                  src={b.userAvatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(b.userFullName || 'Client')}`}
+                  alt={b.userFullName}
+                  className="h-12 w-12 rounded-2xl object-cover border-2 border-slate-200 shadow-xs bg-slate-100 shrink-0"
+                />
                 <div className="space-y-1.5">
-                  <span className="block font-bold text-white text-sm">Client: {b.userFullName}</span>
-                  <span className="inline-flex rounded-lg bg-purple-500/20 text-purple-300 border border-purple-400/20 px-2 py-0.5 text-[10px] font-bold">
+                  <span className="block font-black text-slate-900 text-base">Client: {b.userFullName}</span>
+                  <span className="inline-flex rounded-lg bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 text-[10px] font-bold">
                     {b.serviceName} Care
                   </span>
                   
                   {b.notes && (
-                    <p className="text-xs text-slate-300 leading-relaxed font-normal bg-white/5 border border-white/5 rounded-xl p-2.5 max-w-lg">
-                      <strong>Client notes:</strong> &ldquo;{b.notes}&rdquo;
+                    <p className="text-xs text-slate-700 leading-relaxed font-medium bg-slate-50 border border-slate-200 rounded-xl p-3 max-w-lg">
+                      <strong className="text-slate-900 font-bold">Client notes:</strong> &ldquo;{b.notes}&rdquo;
                     </p>
                   )}
 
                   {/* Rating left by family */}
                   {b.rating !== undefined && (
-                    <div className="bg-amber-500/10 border border-amber-400/20 p-2.5 rounded-xl space-y-1 w-full max-w-md">
-                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-300">
-                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                    <div className="bg-amber-50 border border-amber-200 p-2.5 rounded-xl space-y-1 w-full max-w-md">
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-900">
+                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-500" />
                         <span>Rating: {b.rating} / 5</span>
                       </div>
                       {b.comment && (
-                        <p className="text-2xs text-slate-300 italic font-medium">
+                        <p className="text-2xs text-slate-600 italic font-medium">
                           &ldquo;{b.comment}&rdquo;
                         </p>
                       )}
@@ -130,11 +132,11 @@ export default function CaregiverBookings() {
               {/* Center schedule/status details */}
               <div className="flex flex-col sm:flex-row md:flex-col items-start sm:items-center md:items-end justify-between sm:justify-start gap-4 shrink-0">
                 <div className="space-y-1 text-left md:text-right">
-                  <div className="flex items-center gap-1.5 text-xs text-slate-200 font-semibold">
-                    <Calendar className="h-4 w-4 text-cyan-400" />
+                  <div className="flex items-center gap-1.5 text-xs text-slate-900 font-black">
+                    <Calendar className="h-4 w-4 text-blue-600" />
                     <span>{formatDate(b.startDate)}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold">
                     <Clock className="h-4 w-4 text-slate-400" />
                     <span>{formatTime(b.startDate)} - {formatTime(b.endDate)}</span>
                   </div>
@@ -143,12 +145,12 @@ export default function CaregiverBookings() {
                 <div className="flex items-center gap-3">
                   {/* Status Badge */}
                   <span className={`
-                    inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold border capitalize
-                    ${b.status === 'pending' && 'bg-amber-500/20 text-amber-300 border-amber-400/30'}
-                    ${b.status === 'accepted' && 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30'}
-                    ${b.status === 'completed' && 'bg-white/10 text-slate-300 border-white/10'}
-                    ${b.status === 'cancelled' && 'bg-red-500/20 text-red-300 border-red-400/30'}
-                    ${b.status === 'rejected' && 'bg-red-500/20 text-red-300 border-red-400/30'}
+                    inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-bold border capitalize
+                    ${b.status === 'pending' && 'bg-amber-50 text-amber-800 border-amber-200'}
+                    ${b.status === 'accepted' && 'bg-emerald-50 text-emerald-800 border-emerald-200'}
+                    ${b.status === 'completed' && 'bg-blue-50 text-blue-700 border-blue-200'}
+                    ${b.status === 'cancelled' && 'bg-rose-50 text-rose-800 border-rose-200'}
+                    ${b.status === 'rejected' && 'bg-rose-50 text-rose-800 border-rose-200'}
                   `}>
                     {b.status === 'pending' && 'Awaiting Your Approval'}
                     {b.status === 'accepted' && 'Scheduled'}
@@ -169,7 +171,7 @@ export default function CaregiverBookings() {
                             router.push('/caregiver/messages');
                           }
                         }}
-                        className="inline-flex items-center gap-1.5 rounded-xl nav-pill-active px-3 py-1 text-[11px] font-bold transition-all cursor-pointer"
+                        className="inline-flex items-center gap-1.5 rounded-xl nav-pill-active px-3.5 py-1.5 text-[11px] font-black text-white transition-all cursor-pointer shadow-xs active:scale-95"
                       >
                         <MessageSquare className="h-3.5 w-3.5" />
                         <span>Chat with Client</span>
@@ -177,7 +179,7 @@ export default function CaregiverBookings() {
 
                       <button
                         onClick={() => updateBookingStatus(b.id, 'completed')}
-                        className="rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 text-[11px] font-bold shadow-sm transition-all cursor-pointer"
+                        className="rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 text-[11px] font-black shadow-xs transition-all cursor-pointer active:scale-95"
                       >
                         Mark Completed
                       </button>

@@ -12,35 +12,42 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     if (!authLoading && currentUser === null) {
-      router.push('/login');
+      window.location.href = '/login';
     }
-  }, [authLoading, currentUser, router]);
+  }, [authLoading, currentUser]);
 
   if (authLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#070814]">
+      <div className="flex h-screen items-center justify-center bg-slate-50">
         <div className="text-center space-y-4">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" />
-          <p className="text-sm font-semibold text-slate-400">Checking authorization...</p>
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+          <p className="text-sm font-semibold text-slate-500">Checking authorization...</p>
         </div>
       </div>
     );
   }
 
   if (!currentUser) {
-    return null;
+    return (
+      <div className="flex h-screen items-center justify-center bg-slate-50">
+        <div className="text-center space-y-4">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+          <p className="text-sm font-semibold text-slate-500">Redirecting to login portal...</p>
+        </div>
+      </div>
+    );
   }
 
   if (currentUser.role !== 'user') {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#070814] p-4">
-        <div className="max-w-md glass-panel border border-red-500/20 rounded-3xl p-8 text-center space-y-4 shadow-xl">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-500/10 text-red-400">
+      <div className="flex h-screen items-center justify-center bg-slate-50 p-4">
+        <div className="max-w-md bg-white border border-red-100 rounded-3xl p-8 text-center space-y-4 shadow-xl">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-500">
             <ShieldAlert className="h-8 w-8" />
           </div>
-          <h1 className="text-xl font-extrabold text-white">Access Denied</h1>
-          <p className="text-xs text-slate-400 leading-relaxed">
-            This account is registered as a <span className="font-bold capitalize text-white">{currentUser.role}</span>. You do not have permissions to access the Family Portal.
+          <h1 className="text-xl font-extrabold text-slate-900">Access Denied</h1>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            This account is registered as a <span className="font-bold capitalize text-slate-800">{currentUser.role}</span>. You do not have permissions to access the Family Portal.
           </p>
           <button
             onClick={() => router.push(currentUser.role === 'caregiver' ? '/caregiver/dashboard' : '/admin/dashboard')}
@@ -54,7 +61,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-[#08091a] text-white">
+    <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 text-slate-900">
       {/* Sidebar Navigation */}
       <Sidebar role="user" />
 
