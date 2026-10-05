@@ -55,8 +55,13 @@ export interface Booking {
   serviceName: string;
   startDate: string;
   endDate: string;
-  status: 'pending' | 'accepted' | 'rejected' | 'completed' | 'cancelled';
+  status: 'pending' | 'awaiting_payment' | 'accepted' | 'rejected' | 'completed' | 'cancelled';
   notes: string;
+  totalAmount?: number;
+  platformFee?: number;
+  caregiverPayout?: number;
+  paymentStatus?: string;
+  paymentIntentId?: string;
   createdAt: string;
   rating?: number;
   comment?: string;
@@ -153,6 +158,7 @@ interface CareConnectContextType {
   updateUserProfile: (profileData: { fullName?: string; email?: string; phone?: string; avatarUrl?: string; password?: string }) => Promise<boolean>;
   caregiverFilters: any;
   updateCaregiverFilters: (filters: any) => Promise<void>;
+  refreshData: () => Promise<void>;
 }
 
 const CareConnectContext = createContext<CareConnectContextType | undefined>(undefined);
@@ -787,6 +793,7 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
         services,
         toasts,
         showToast,
+        refreshData,
         addService,
         deleteService,
         login,

@@ -3,18 +3,22 @@
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCareConnect, Booking } from '@/context/useCareConnect';
+import StripePaymentModal from '@/components/StripePaymentModal';
 import {
   Calendar, Clock, Star, AlertTriangle, CheckCircle2,
-  XCircle, ChevronRight, MessageSquare, CalendarDays, X, Check
+  XCircle, ChevronRight, MessageSquare, CalendarDays, X, Check, CreditCard, ShieldCheck
 } from 'lucide-react';
 
 export default function UserBookings() {
   const router = useRouter();
-  const { currentUser, bookings, updateBookingStatus, createConversation, submitReview } = useCareConnect();
+  const { currentUser, bookings, refreshData, updateBookingStatus, createConversation, submitReview } = useCareConnect();
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'accepted' | 'completed' | 'cancelled'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'awaiting_payment' | 'accepted' | 'completed' | 'cancelled'>('all');
   
+  // Payment modal state
+  const [payBooking, setPayBooking] = useState<Booking | null>(null);
+
   // Rating modal state
   const [reviewBooking, setReviewBooking] = useState<Booking | null>(null);
   const [rating, setRating] = useState(5);
@@ -57,6 +61,13 @@ export default function UserBookings() {
     setComment('');
   };
 
+  const handlePaymentSuccess = async () => {
+    setPayBooking(null);
+    if (refreshData) {
+      await refreshData();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-12 animate-fade-in">
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 space-y-8">
@@ -67,13 +78,13 @@ export default function UserBookings() {
             My Care Appointments & Bookings
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 mt-1">
-            Track status, chat with assigned caregivers, and leave feedback reviews.
+            Track status, make secure card payments, chat with caregivers, and leave feedback reviews.
           </p>
         </div>
 
         {/* Tabs Menu */}
         <div className="flex flex-wrap border-b border-slate-200 gap-1 sm:gap-2">
-          {(['all', 'pending', 'accepted', 'completed', 'cancelled'] as const).map((tab) => (
+          {(['all', 'pending', 'awaiting_payment', 'accepted', 'completed', 'cancelled'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -84,7 +95,7 @@ export default function UserBookings() {
                   : 'border-transparent text-slate-500 hover:text-slate-700'}
               `}
             >
-              {tab === 'accepted' ? 'Active / Scheduled' : tab}
+              {tab === 'awaiting_payment' ? 'Awaiting Payment' : tab === 'accepted' ? 'Active / Scheduled' : tab}
             </button>
           ))}
         </div>
@@ -116,9 +127,16 @@ export default function UserBookings() {
                   />
                   <div className="space-y-1">
                     <span className="block font-bold text-slate-900 text-base">{b.caregiverFullName}</span>
-                    <span className="inline-flex rounded-lg bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 text-[10px] font-bold">
-                      {b.serviceName} Care Category
-                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex rounded-lg bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 text-[10px] font-bold">
+                        {b.serviceName} Care Category
+                      </span>
+                      {b.totalAmount ? (
+                        <span className="inline-flex rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-extrabold">
+                          ${b.totalAmount.toFixed(2)} USD
+                        </span>
+                      ) : null}
+                    </div>
                     {b.notes && (
                       <p className="text-xs text-slate-600 italic mt-1 font-normal bg-slate-50 p-2.5 rounded-xl border border-slate-200 max-w-lg">
                         &ldquo;{b.notes}&rdquo;
@@ -140,16 +158,28 @@ export default function UserBookings() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-2.5">
                     <span className={`
                       inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-bold border capitalize
                       ${b.status === 'pending' && 'bg-amber-50 text-amber-700 border-amber-200'}
+                      ${b.status === 'awaiting_payment' && 'bg-purple-50 text-purple-700 border-purple-200 font-extrabold animate-pulse'}
                       ${b.status === 'accepted' && 'bg-emerald-50 text-emerald-700 border-emerald-200'}
                       ${b.status === 'completed' && 'bg-slate-100 text-slate-700 border-slate-200'}
                       ${b.status === 'cancelled' && 'bg-rose-50 text-rose-700 border-rose-200'}
                     `}>
-                      {b.status}
+                      {b.status === 'awaiting_payment' ? 'Awaiting Payment' : b.status}
                     </span>
+
+                    {/* Pay Now Button when caregiver has accepted */}
+                    {(b.status === 'awaiting_payment' || (b.status === 'pending' && (b.totalAmount || 0) > 0)) && (
+                      <button
+                        onClick={() => setPayBooking(b)}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 px-3.5 py-1.5 text-xs font-black text-white shadow-md shadow-blue-500/20 cursor-pointer active:scale-95 transition-all"
+                      >
+                        <CreditCard className="h-3.5 w-3.5 text-white" />
+                        <span>Pay ${b.totalAmount ? b.totalAmount.toFixed(2) : ''} Now</span>
+                      </button>
+                    )}
 
                     {b.status === 'accepted' && (
                       <button
@@ -186,6 +216,18 @@ export default function UserBookings() {
         </div>
 
       </div>
+
+      {/* Stripe Payment Modal */}
+      {payBooking && (
+        <StripePaymentModal
+          bookingId={payBooking.id}
+          serviceName={payBooking.serviceName}
+          caregiverName={payBooking.caregiverFullName}
+          startDate={payBooking.startDate}
+          onSuccess={handlePaymentSuccess}
+          onClose={() => setPayBooking(null)}
+        />
+      )}
 
       {/* Leave Review Modal */}
       {reviewBooking && (

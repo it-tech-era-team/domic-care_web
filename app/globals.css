@@ -133,4 +133,17 @@ h1, h2, h3, h4, h5, h6 {
   color: #2563eb !important;
 }
 
-
+/* Hide floating Stripe Link badge / bottom-right button */
+body > div[style*="fixed"][style*="bottom"],
+body > div[style*="position: fixed"][style*="bottom"],
+body > div[style*="position:fixed"][style*="bottom"],
+body > iframe[style*="fixed"][style*="bottom"],
+body > iframe[style*="position: fixed"][style*="bottom"],
+body > iframe[style*="position:fixed"][style*="bottom"],
+.stripe-link-badge,
+[data-stripe-badge] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}

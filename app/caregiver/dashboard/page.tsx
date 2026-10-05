@@ -43,7 +43,7 @@ export default function CaregiverDashboard() {
   const profile = caregivers.find((cg) => cg.id === currentUser.id);
   const caregiverBookings = bookings.filter((b) => b.caregiverId === currentUser.id);
 
-  const pendingRequests = caregiverBookings.filter((b) => b.status === 'pending');
+  const pendingRequests = caregiverBookings.filter((b) => b.status === 'pending' || b.status === 'awaiting_payment');
   const activeJobs = caregiverBookings.filter((b) => b.status === 'accepted');
   const completedJobs = caregiverBookings.filter((b) => b.status === 'completed');
 
@@ -288,9 +288,18 @@ export default function CaregiverDashboard() {
                             <span className="font-extrabold text-slate-900 text-sm block">
                               Request from {req.userFullName}
                             </span>
-                            <span className="inline-flex rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 text-[10px] font-bold mt-1">
-                              {req.serviceName} Care
-                            </span>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="inline-flex rounded-lg bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 text-[10px] font-bold">
+                                {req.serviceName} Care
+                              </span>
+                              <span className={`inline-flex rounded-lg px-2.5 py-0.5 text-[10px] font-extrabold border ${
+                                req.status === 'awaiting_payment'
+                                  ? 'bg-purple-50 text-purple-800 border-purple-200'
+                                  : 'bg-amber-50 text-amber-800 border-amber-200'
+                              }`}>
+                                {req.status === 'awaiting_payment' ? 'Awaiting Client Payment' : 'Awaiting Your Approval'}
+                              </span>
+                            </div>
                           </div>
                         </div>
 
@@ -313,19 +322,38 @@ export default function CaregiverDashboard() {
                       )}
 
                       <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-200">
-                        <button
-                          onClick={() => updateBookingStatus(req.id, 'rejected')}
-                          className="rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-600 px-4 py-2.5 text-xs font-bold text-rose-700 hover:text-white transition cursor-pointer"
-                        >
-                          Decline Request
-                        </button>
-                        <button
-                          onClick={() => updateBookingStatus(req.id, 'accepted')}
-                          className="rounded-xl nav-pill-active text-white px-5 py-2.5 text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5"
-                        >
-                          <Check size={15} />
-                          <span>Accept Request</span>
-                        </button>
+                        {req.status === 'awaiting_payment' ? (
+                          <button
+                            onClick={async () => {
+                              const convId = await createConversation(req.userId);
+                              if (convId) {
+                                router.push(`/caregiver/messages?conv=${convId}`);
+                              } else {
+                                router.push('/caregiver/messages');
+                              }
+                            }}
+                            className="rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-800 px-4 py-2 text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
+                          >
+                            <MessageSquare size={14} />
+                            <span>Chat with Client</span>
+                          </button>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => updateBookingStatus(req.id, 'rejected')}
+                              className="rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-600 px-4 py-2.5 text-xs font-bold text-rose-700 hover:text-white transition cursor-pointer"
+                            >
+                              Decline Request
+                            </button>
+                            <button
+                              onClick={() => updateBookingStatus(req.id, 'accepted')}
+                              className="rounded-xl nav-pill-active text-white px-5 py-2.5 text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5"
+                            >
+                              <Check size={15} />
+                              <span>Accept Request</span>
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
                   ))}

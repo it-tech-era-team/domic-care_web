@@ -4,10 +4,11 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCareConnect } from '@/context/useCareConnect';
 import MediaPicker from '@/components/MediaPicker';
+import CaregiverBankDetailsForm from '@/components/CaregiverBankDetailsForm';
 import {
   User, Mail, Phone, MapPin, Lock, Eye, EyeOff, ShieldCheck, AlertCircle,
   CheckCircle2, Clipboard, Stethoscope, Clock,
-  ArrowRight, ArrowLeft, Plus, Trash
+  ArrowRight, ArrowLeft, Plus, Trash, Building2
 } from 'lucide-react';
 
 export default function CaregiverProfilePage() {
@@ -19,8 +20,8 @@ export default function CaregiverProfilePage() {
     return caregivers.find(cg => cg.id === currentUser?.id);
   }, [caregivers, currentUser]);
 
-  // Main View Tab: 'account' vs 'professional'
-  const [activeMainTab, setActiveMainTab] = useState<'account' | 'professional'>('account');
+  // Main View Tab: 'account' vs 'professional' vs 'payouts'
+  const [activeMainTab, setActiveMainTab] = useState<'account' | 'professional' | 'payouts'>('account');
 
   // --- Account & Security Settings State ---
   const [accountFullName, setAccountFullName] = useState('');
@@ -302,7 +303,22 @@ export default function CaregiverProfilePage() {
           <ShieldCheck className="h-4 w-4 text-blue-600" />
           <span>Caregiver Bio & Verification</span>
         </button>
+        <button
+          type="button"
+          onClick={() => setActiveMainTab('payouts')}
+          className={`flex-1 py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            activeMainTab === 'payouts'
+              ? 'bg-white text-blue-700 font-extrabold shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Building2 className="h-4 w-4 text-blue-600" />
+          <span>Payout & Bank Details</span>
+        </button>
       </div>
+
+      {/* TAB 3: Payout & Bank Details */}
+      {activeMainTab === 'payouts' && <CaregiverBankDetailsForm />}
 
       {/* TAB 1: Account & Security Settings */}
       {activeMainTab === 'account' && (

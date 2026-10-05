@@ -13,7 +13,7 @@ export default function CaregiverBookings() {
   const { currentUser, bookings, updateBookingStatus, createConversation } = useCareConnect();
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<'all' | 'accepted' | 'completed' | 'cancelled'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'awaiting_payment' | 'accepted' | 'completed' | 'cancelled'>('all');
 
   if (!currentUser) {
     return (
@@ -59,7 +59,7 @@ export default function CaregiverBookings() {
 
       {/* Tabs Menu */}
       <div className="flex flex-wrap border-b border-slate-200 gap-1 sm:gap-2">
-        {(['all', 'accepted', 'completed', 'cancelled'] as const).map((tab) => (
+        {(['all', 'pending', 'awaiting_payment', 'accepted', 'completed', 'cancelled'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -70,7 +70,7 @@ export default function CaregiverBookings() {
                 : 'border-transparent text-slate-500 hover:text-slate-900'}
             `}
           >
-            {tab === 'accepted' ? 'Active / Scheduled' : tab}
+            {tab === 'pending' ? 'Pending Approval' : tab === 'awaiting_payment' ? 'Awaiting Payment' : tab === 'accepted' ? 'Active / Scheduled' : tab}
           </button>
         ))}
       </div>
@@ -142,29 +142,69 @@ export default function CaregiverBookings() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row md:flex-col items-start sm:items-center md:items-end gap-3">
                   {/* Status Badge */}
                   <span className={`
-                    inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-bold border capitalize
+                    inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-extrabold border capitalize
                     ${b.status === 'pending' && 'bg-amber-50 text-amber-800 border-amber-200'}
+                    ${b.status === 'awaiting_payment' && 'bg-purple-50 text-purple-800 border-purple-200'}
                     ${b.status === 'accepted' && 'bg-emerald-50 text-emerald-800 border-emerald-200'}
                     ${b.status === 'completed' && 'bg-blue-50 text-blue-700 border-blue-200'}
                     ${b.status === 'cancelled' && 'bg-rose-50 text-rose-800 border-rose-200'}
                     ${b.status === 'rejected' && 'bg-rose-50 text-rose-800 border-rose-200'}
                   `}>
                     {b.status === 'pending' && 'Awaiting Your Approval'}
-                    {b.status === 'accepted' && 'Scheduled'}
+                    {b.status === 'awaiting_payment' && 'Awaiting Client Payment'}
+                    {b.status === 'accepted' && 'Scheduled & Confirmed'}
                     {b.status === 'completed' && 'Completed'}
                     {b.status === 'cancelled' && 'Cancelled by family'}
                     {b.status === 'rejected' && 'Declined by you'}
                   </span>
 
-                  {/* Actions */}
+                  {/* Pending Approval Actions */}
+                  {b.status === 'pending' && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => updateBookingStatus(b.id, 'rejected')}
+                        className="rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-600 px-3.5 py-1.5 text-[11px] font-extrabold text-rose-700 hover:text-white transition cursor-pointer active:scale-95"
+                      >
+                        Decline Request
+                      </button>
+                      <button
+                        onClick={() => updateBookingStatus(b.id, 'accepted')}
+                        className="rounded-xl nav-pill-active px-4 py-1.5 text-[11px] font-black text-white shadow-xs transition-all cursor-pointer active:scale-95"
+                      >
+                        Accept Request
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Awaiting Payment Actions */}
+                  {b.status === 'awaiting_payment' && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={async () => {
+                          const convId = await createConversation(b.userId);
+                          if (convId) {
+                            router.push(`/caregiver/messages?conv=${convId}`);
+                          } else {
+                            router.push('/caregiver/messages');
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-800 px-3.5 py-1.5 text-[11px] font-extrabold transition-all cursor-pointer shadow-xs active:scale-95"
+                      >
+                        <MessageSquare className="h-3.5 w-3.5" />
+                        <span>Chat with Client</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Scheduled & Confirmed Actions */}
                   {b.status === 'accepted' && (
                     <div className="flex items-center gap-2">
                       <button
                         onClick={async () => {
-                          const convId = await createConversation(currentUser.id);
+                          const convId = await createConversation(b.userId);
                           if (convId) {
                             router.push(`/caregiver/messages?conv=${convId}`);
                           } else {
@@ -187,6 +227,7 @@ export default function CaregiverBookings() {
                   )}
                 </div>
               </div>
+
 
             </div>
           ))

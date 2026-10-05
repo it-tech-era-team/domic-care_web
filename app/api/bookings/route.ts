@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { verifyRequestSession } from "@/lib/supabase-auth";
+import { calculateBookingSplit } from "@/lib/stripe";
 
 export async function GET(req: NextRequest) {
   try {
@@ -21,12 +22,19 @@ export async function GET(req: NextRequest) {
         end_date,
         status,
         notes,
+        total_amount,
+        platform_fee,
+        caregiver_payout,
+        payment_status,
+        payment_intent_id,
+        transfer_id,
         created_at,
         profiles (
           full_name,
           avatar_url
         ),
         caregiver_profiles (
+          hourly_rate,
           profiles (
             full_name,
             avatar_url
@@ -56,8 +64,8 @@ export async function GET(req: NextRequest) {
     }
 
     const formattedBookings = (bookingsData || []).map((b: any) => {
-      // Reviews might return as an array or object
       const reviewObj = Array.isArray(b.reviews) ? b.reviews[0] : b.reviews;
+      const cgProf = Array.isArray(b.caregiver_profiles) ? b.caregiver_profiles[0] : b.caregiver_profiles;
 
       return {
         id: b.id,
@@ -65,14 +73,20 @@ export async function GET(req: NextRequest) {
         userFullName: b.profiles?.full_name || "",
         userAvatar: b.profiles?.avatar_url || "",
         caregiverId: b.caregiver_id,
-        caregiverFullName: b.caregiver_profiles?.profiles?.full_name || "",
-        caregiverAvatar: b.caregiver_profiles?.profiles?.avatar_url || "",
+        caregiverFullName: cgProf?.profiles?.full_name || "",
+        caregiverAvatar: cgProf?.profiles?.avatar_url || "",
         serviceId: b.service_id,
         serviceName: b.services?.name || "",
         startDate: b.start_date,
         endDate: b.end_date,
         status: b.status,
         notes: b.notes || "",
+        totalAmount: b.total_amount ? Number(b.total_amount) : 0,
+        platformFee: b.platform_fee ? Number(b.platform_fee) : 0,
+        caregiverPayout: b.caregiver_payout ? Number(b.caregiver_payout) : 0,
+        paymentStatus: b.payment_status || "unpaid",
+        paymentIntentId: b.payment_intent_id || null,
+        transferId: b.transfer_id || null,
         createdAt: b.created_at,
         rating: reviewObj?.rating,
         comment: reviewObj?.comment,
@@ -114,7 +128,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Service type not found" }, { status: 400 });
     }
 
-    // 2. Insert booking
+    // 2. Lookup caregiver rate to calculate initial estimated total
+    const { data: cgProfile } = await supabase
+      .from("caregiver_profiles")
+      .select("hourly_rate")
+      .eq("id", caregiverId)
+      .maybeSingle();
+
+    const hourlyRate = Number(cgProfile?.hourly_rate || 25);
+    const startMs = new Date(startDate).getTime();
+    const endMs = new Date(endDate).getTime();
+    const hours = Math.max(1, Math.ceil((endMs - startMs) / (1000 * 60 * 60)));
+    const totalUSD = hours * hourlyRate;
+
+    const split = calculateBookingSplit(totalUSD);
+
+    // 3. Insert booking
     const { data: booking, error: insertError } = await supabase
       .from("bookings")
       .insert({
@@ -124,6 +153,10 @@ export async function POST(req: NextRequest) {
         start_date: startDate,
         end_date: endDate,
         status: "pending",
+        total_amount: split.totalAmountUSD,
+        platform_fee: split.platformFeeUSD,
+        caregiver_payout: split.caregiverPayoutUSD,
+        payment_status: "unpaid",
         notes,
       })
       .select()
@@ -134,12 +167,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: insertError.message }, { status: 400 });
     }
 
-    // 3. Create Notification for the caregiver
+    // 4. Create Notification for the caregiver
     const dateOnly = startDate.split("T")[0];
     await supabase.from("notifications").insert({
       user_id: caregiverId,
       title: "New Booking Request",
-      message: `You received a new request for ${serviceName} from ${user.fullName} on ${dateOnly}.`,
+      message: `You received a new request for ${serviceName} ($${split.totalAmountUSD.toFixed(2)}) from ${user.fullName} on ${dateOnly}.`,
       type: "booking_request",
       is_read: false,
     });
