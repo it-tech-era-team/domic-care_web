@@ -1,6 +1,23 @@
 import Stripe from 'stripe';
+import fs from 'fs';
 
-const secretKey = 'sk_test_51Tw5XBLzyP8rgUyOZl8UjhW4SzTs1x1bjIEvuqWUNqbqkx0j9lBlabOJKZsroCajPPJBNfw1mMtnZcAjhQmlrH8B007wO2zhDF';
+// Dynamically read Stripe secret key from environment or .env.local
+let secretKey = process.env.STRIPE_SECRET_KEY;
+if (!secretKey && fs.existsSync('.env.local')) {
+  const envFile = fs.readFileSync('.env.local', 'utf8');
+  envFile.split('\n').forEach((line) => {
+    const parts = line.split('=');
+    if (parts.length >= 2 && parts[0].trim() === 'STRIPE_SECRET_KEY') {
+      secretKey = parts.slice(1).join('=').trim();
+    }
+  });
+}
+
+if (!secretKey) {
+  console.error('Error: STRIPE_SECRET_KEY not found in .env.local or environment');
+  process.exit(1);
+}
+
 const stripe = new Stripe(secretKey);
 
 async function testEurTransfer() {
