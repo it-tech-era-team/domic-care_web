@@ -171,13 +171,27 @@ export default function UserBookings() {
                     </span>
 
                     {/* Pay Now Button when caregiver has accepted */}
-                    {(b.status === 'awaiting_payment' || (b.status === 'pending' && (b.totalAmount || 0) > 0)) && (
+                    {(b.status === 'awaiting_payment' || (b.status === 'accepted' && (b.totalAmount || 0) > 0)) && (
                       <button
                         onClick={() => setPayBooking(b)}
                         className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 px-3.5 py-1.5 text-xs font-black text-white shadow-md shadow-blue-500/20 cursor-pointer active:scale-95 transition-all"
                       >
                         <CreditCard className="h-3.5 w-3.5 text-white" />
                         <span>Pay ${b.totalAmount ? b.totalAmount.toFixed(2) : ''} Now</span>
+                      </button>
+                    )}
+
+                    {b.status === 'pending' && (
+                      <button
+                        onClick={async () => {
+                          if (confirm("Are you sure you want to cancel this request?")) {
+                            updateBookingStatus(b.id, 'cancelled');
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 text-xs font-bold transition-all cursor-pointer"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                        <span>Cancel Request</span>
                       </button>
                     )}
 

@@ -57,6 +57,7 @@ export interface Booking {
   endDate: string;
   status: 'pending' | 'awaiting_payment' | 'accepted' | 'rejected' | 'completed' | 'cancelled';
   notes: string;
+  location?: string;
   totalAmount?: number;
   platformFee?: number;
   caregiverPayout?: number;
@@ -143,7 +144,7 @@ interface CareConnectContextType {
   login: (email: string, password: string) => Promise<UserProfile | null>;
   logout: () => Promise<void>;
   signupUser: (fullName: string, email: string, phone: string, password: string, role: Role) => Promise<boolean>;
-  requestBooking: (caregiverId: string, serviceName: string, date: string, timeSlot: string, notes: string) => Promise<void>;
+  requestBooking: (caregiverId: string, serviceName: string, date: string, timeSlot: string, location: string, notes: string) => Promise<void>;
   updateBookingStatus: (bookingId: string, status: Booking['status']) => Promise<void>;
   submitReview: (bookingId: string, rating: number, comment: string) => Promise<void>;
   sendMessage: (conversationId: string, senderId: string, text: string) => Promise<void>;
@@ -457,7 +458,7 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   // Booking Operations
-  const requestBooking = async (caregiverId: string, serviceName: string, date: string, timeSlot: string, notes: string) => {
+  const requestBooking = async (caregiverId: string, serviceName: string, date: string, timeSlot: string, location: string, notes: string) => {
     try {
       const times = timeSlot.split('-');
       const startTimeStr = times[0]?.trim() || '09:00';
@@ -469,8 +470,9 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
         body: JSON.stringify({
           caregiverId,
           serviceName,
-          startDate: `${date}T${startTimeStr}:00.000Z`,
-          endDate: `${date}T${endTimeStr}:00.000Z`,
+          startDate: new Date(`${date}T${startTimeStr}:00`).toISOString(),
+          endDate: new Date(`${date}T${endTimeStr}:00`).toISOString(),
+          location,
           notes,
         }),
       });

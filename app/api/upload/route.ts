@@ -24,6 +24,10 @@ export async function POST(req: NextRequest) {
           public: true,
           fileSizeLimit: 10485760, // 10MB limit
         });
+      } else {
+        await supabase.storage.updateBucket(bucket, {
+          public: true,
+        });
       }
     } catch (e) {
       // Ignore bucket list/create error if already exists

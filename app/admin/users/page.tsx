@@ -128,6 +128,8 @@ export default function AdminUsersPage() {
   }, [selectedUser]);
 
   const filteredUsers = useMemo(() => {
+    const statusOrder: Record<string, number> = { active: 1, suspended: 2, deleted: 3 };
+
     return users.filter((u) => {
       const matchesSearch =
         u.fullName.toLowerCase().includes(search.toLowerCase()) ||
@@ -140,6 +142,10 @@ export default function AdminUsersPage() {
           : u.accountStatus === statusFilter;
 
       return matchesSearch && matchesStatus;
+    }).sort((a, b) => {
+      const aStatus = a.isDeleted ? 'deleted' : (a.accountStatus || 'active');
+      const bStatus = b.isDeleted ? 'deleted' : (b.accountStatus || 'active');
+      return (statusOrder[aStatus] || 4) - (statusOrder[bStatus] || 4);
     });
   }, [users, search, statusFilter]);
 
@@ -432,16 +438,14 @@ export default function AdminUsersPage() {
 
           <div className="overflow-x-auto">
 
-            <table className="w-full min-w-[1100px] text-left text-sm">
+            <table className="w-full text-left text-sm">
 
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/80 text-xs font-bold uppercase tracking-wide text-slate-500">
                   <th className="px-5 py-4">User</th>
                   <th className="px-5 py-4">Email</th>
-                  <th className="px-5 py-4">Phone</th>
-                  <th className="px-5 py-4">Bookings</th>
                   <th className="px-5 py-4">Account</th>
-                  <th className="px-5 py-4 text-right">Actions</th>
+                  <th className="px-5 py-4 text-left">Actions</th>
                 </tr>
               </thead>
 
@@ -463,20 +467,10 @@ export default function AdminUsersPage() {
 
                     <td className="px-5 py-4 text-slate-600">{u.email || "—"}</td>
 
-                    <td className="px-5 py-4 text-slate-600">{u.phone || "—"}</td>
-
-                    <td className="px-5 py-4">
-                      <div className="flex flex-col gap-0.5 text-xs">
-                        <span className="font-bold text-slate-800">{u.totalBookings} Total</span>
-                        <span className="text-green-600">{u.completedBookings} Completed</span>
-                        <span className="text-red-500">{u.cancelledBookings} Cancelled</span>
-                      </div>
-                    </td>
-
                     <td className="px-5 py-4">{accountBadge(u.accountStatus)}</td>
 
                     <td className="px-5 py-4">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-start gap-2">
                         <button
                           onClick={() => viewUser(u)}
                           title="View"

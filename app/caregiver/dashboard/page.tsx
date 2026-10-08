@@ -19,7 +19,8 @@ import {
   MessageSquare,
   User,
   CalendarDays,
-  TrendingUp
+  TrendingUp,
+  MapPin
 } from 'lucide-react';
 
 export default function CaregiverDashboard() {
@@ -43,7 +44,7 @@ export default function CaregiverDashboard() {
   const profile = caregivers.find((cg) => cg.id === currentUser.id);
   const caregiverBookings = bookings.filter((b) => b.caregiverId === currentUser.id);
 
-  const pendingRequests = caregiverBookings.filter((b) => b.status === 'pending' || b.status === 'awaiting_payment');
+  const pendingRequests = caregiverBookings.filter((b) => b.status === 'pending');
   const activeJobs = caregiverBookings.filter((b) => b.status === 'accepted');
   const completedJobs = caregiverBookings.filter((b) => b.status === 'completed');
 
@@ -190,7 +191,7 @@ export default function CaregiverDashboard() {
 
         {/* 4 Decent Executive Metric Cards */}
         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-          
+
           {/* Estimated Earnings */}
           <div className="bg-white rounded-3xl border border-slate-200 p-6 text-slate-900 shadow-xs hover:border-emerald-300 hover:shadow-md transition-all flex flex-col justify-between min-h-[140px]">
             <div className="flex items-center justify-between">
@@ -251,7 +252,7 @@ export default function CaregiverDashboard() {
 
         {/* Main Section: Pending Requests & Active Care Schedule */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
+
           {/* Left Column: Pending Job Requests */}
           <div className="lg:col-span-7 space-y-6">
             <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-5 shadow-xs">
@@ -288,18 +289,9 @@ export default function CaregiverDashboard() {
                             <span className="font-extrabold text-slate-900 text-sm block">
                               Request from {req.userFullName}
                             </span>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="inline-flex rounded-lg bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 text-[10px] font-bold">
-                                {req.serviceName} Care
-                              </span>
-                              <span className={`inline-flex rounded-lg px-2.5 py-0.5 text-[10px] font-extrabold border ${
-                                req.status === 'awaiting_payment'
-                                  ? 'bg-purple-50 text-purple-800 border-purple-200'
-                                  : 'bg-amber-50 text-amber-800 border-amber-200'
-                              }`}>
-                                {req.status === 'awaiting_payment' ? 'Awaiting Client Payment' : 'Awaiting Your Approval'}
-                              </span>
-                            </div>
+                            <span className="inline-flex rounded-full bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 text-[10px] font-bold mt-1">
+                              {req.serviceName} Care
+                            </span>
                           </div>
                         </div>
 
@@ -321,39 +313,27 @@ export default function CaregiverDashboard() {
                         </p>
                       )}
 
+                      {req.location && (
+                        <div className="flex items-center gap-1.5 text-xs text-slate-700 font-medium bg-white p-3 rounded-xl border border-slate-200">
+                          <MapPin size={13} className="text-blue-500" />
+                          <span><strong className="text-slate-900 font-bold">Location:</strong> {req.location}</span>
+                        </div>
+                      )}
+
                       <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-200">
-                        {req.status === 'awaiting_payment' ? (
-                          <button
-                            onClick={async () => {
-                              const convId = await createConversation(req.userId);
-                              if (convId) {
-                                router.push(`/caregiver/messages?conv=${convId}`);
-                              } else {
-                                router.push('/caregiver/messages');
-                              }
-                            }}
-                            className="rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-800 px-4 py-2 text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
-                          >
-                            <MessageSquare size={14} />
-                            <span>Chat with Client</span>
-                          </button>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => updateBookingStatus(req.id, 'rejected')}
-                              className="rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-600 px-4 py-2.5 text-xs font-bold text-rose-700 hover:text-white transition cursor-pointer"
-                            >
-                              Decline Request
-                            </button>
-                            <button
-                              onClick={() => updateBookingStatus(req.id, 'accepted')}
-                              className="rounded-xl nav-pill-active text-white px-5 py-2.5 text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5"
-                            >
-                              <Check size={15} />
-                              <span>Accept Request</span>
-                            </button>
-                          </>
-                        )}
+                        <button
+                          onClick={() => updateBookingStatus(req.id, 'rejected')}
+                          className="rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-600 px-4 py-2.5 text-xs font-bold text-rose-700 hover:text-white transition cursor-pointer"
+                        >
+                          Decline Request
+                        </button>
+                        <button
+                          onClick={() => updateBookingStatus(req.id, 'awaiting_payment')}
+                          className="rounded-xl nav-pill-active text-white px-5 py-2.5 text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5"
+                        >
+                          <Check size={15} />
+                          <span>Accept Request</span>
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -410,6 +390,12 @@ export default function CaregiverDashboard() {
                           <Clock size={13} className="text-slate-400" />
                           <span>{formatTime(job.startDate)} - {formatTime(job.endDate)}</span>
                         </div>
+                        {job.location && (
+                          <div className="flex items-center gap-1.5 pt-1 text-slate-600">
+                            <MapPin size={13} className="text-blue-500" />
+                            <span>{job.location}</span>
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex items-center gap-2 pt-1">
@@ -432,10 +418,9 @@ export default function CaregiverDashboard() {
                           onClick={() => updateBookingStatus(job.id, "completed")}
                           disabled={!canCompleteBooking(job.endDate)}
                           className={`rounded-xl px-4 py-2.5 text-xs font-bold shadow-xs transition
-                            ${
-                              canCompleteBooking(job.endDate)
-                                ? "bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer"
-                                : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-200"
+                            ${canCompleteBooking(job.endDate)
+                              ? "bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer"
+                              : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-200"
                             }`}
                         >
                           Complete

@@ -41,7 +41,7 @@ export default function GoogleMap({
       const link = document.createElement('link');
       link.id = 'leaflet-css';
       link.rel = 'stylesheet';
-      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      link.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css';
       document.head.appendChild(link);
     }
 
@@ -59,7 +59,7 @@ export default function GoogleMap({
 
     const script = document.createElement('script');
     script.id = 'leaflet-script';
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';
     script.async = true;
     script.onload = () => setMapLoaded(true);
     script.onerror = () => setApiError(true);
@@ -75,7 +75,7 @@ export default function GoogleMap({
     if (!mapLoaded || !mapRef.current || !window.L) return;
 
     try {
-      const L = window.L;
+    const L = window.L;
 
       // Initialize map instance once
       if (!mapInstanceRef.current) {
@@ -86,11 +86,11 @@ export default function GoogleMap({
 
         mapInstanceRef.current = map;
 
-        // Use CartoDB Voyager light tile layer for clean White & Blue theme
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        // Use OpenStreetMap standard tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19,
           subdomains: 'abcd',
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         }).addTo(map);
 
         // Put Zoom Control on bottom-right instead of top-left
@@ -99,6 +99,18 @@ export default function GoogleMap({
         }).addTo(map);
 
         layersGroupRef.current = L.layerGroup().addTo(map);
+
+        // Observe resize events to fix grey boxes
+        const resizeObserver = new ResizeObserver(() => {
+          map.invalidateSize();
+        });
+        resizeObserver.observe(mapRef.current);
+        (map as any)._resizeObserver = resizeObserver;
+
+        // Force invalidate size after delays to ensure Leaflet CSS is fully applied.
+        // This solves the common grey boxes issue when CSS loads asynchronously.
+        setTimeout(() => map.invalidateSize(), 150);
+        setTimeout(() => map.invalidateSize(), 600);
       }
 
       const map = mapInstanceRef.current;
@@ -135,6 +147,10 @@ export default function GoogleMap({
 
       // 2c. Add Caregivers Markers
       caregivers.forEach((cg) => {
+        if (cg.latitude === undefined || cg.longitude === undefined || cg.latitude === null || cg.longitude === null) {
+          return; // Skip if no valid coordinates
+        }
+        
         const isSelected = selectedCaregiverId === cg.id;
 
         const caregiverIcon = L.divIcon({
@@ -207,7 +223,7 @@ export default function GoogleMap({
       });
     } catch (err) {
       console.error('Error rendering Leaflet Map layers:', err);
-      setApiError(true);
+      // setApiError(true); // Disable global error state to prevent UI crash if one marker fails
     }
   }, [mapLoaded, caregivers, selectedCaregiverId, searchDistance, onSelectCaregiver]);
 
@@ -215,6 +231,9 @@ export default function GoogleMap({
   useEffect(() => {
     return () => {
       if (mapInstanceRef.current) {
+        if (mapInstanceRef.current._resizeObserver) {
+          mapInstanceRef.current._resizeObserver.disconnect();
+        }
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }

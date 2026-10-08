@@ -61,8 +61,14 @@ export async function GET(_req: NextRequest) {
       };
     });
 
-    // Sort by rating descending, take top 6
-    const top = formatted.sort((a, b) => b.rating - a.rating).slice(0, 6);
+    // Sort by rating descending, filter out 'fahad' and 'boyan', take top 6
+    const top = formatted
+      .filter((cg) => {
+        const name = cg.fullName.toLowerCase();
+        return name !== "fahad" && name !== "boyan";
+      })
+      .sort((a, b) => b.rating - a.rating)
+      .slice(0, 6);
 
     const res = NextResponse.json({ caregivers: top });
     res.headers.set("Cache-Control", "public, s-maxage=300, stale-while-revalidate=600");

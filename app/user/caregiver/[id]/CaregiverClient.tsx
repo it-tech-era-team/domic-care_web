@@ -34,6 +34,7 @@ export default function CaregiverClient({ id }: ClientProps) {
   const [fromTime, setFromTime] = useState("");
   const [toTime, setToTime] = useState("");
   const [timeError, setTimeError] = useState("");
+  const [location, setLocation] = useState("");
   const [bookingNotes, setBookingNotes] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [isBookingSubmitting, setIsBookingSubmitting] = useState(false);
@@ -107,6 +108,7 @@ export default function CaregiverClient({ id }: ClientProps) {
       selectedService,
       bookingDate,
       `${fromTime} - ${toTime}`,
+      location,
       bookingNotes
     );
 
@@ -191,17 +193,10 @@ export default function CaregiverClient({ id }: ClientProps) {
           </div>
         </div>
 
-        <button
-          onClick={handleMessageCaregiver}
-          className="rounded-2xl nav-pill-active px-5 py-3 text-xs font-black text-white shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 self-center md:self-start w-full sm:w-auto cursor-pointer uppercase tracking-wider hover:scale-[1.02] active:scale-95"
-        >
-          <Mail className="h-4 w-4" />
-          <span>Message {caregiver.fullName.split(' ')[0]}</span>
-        </button>
       </div>
 
       {/* Main Details and Booking Booking */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">
         
         {/* Left Side: Detail Tabs */}
         <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-6 min-h-[400px]">
@@ -398,6 +393,19 @@ export default function CaregiverClient({ id }: ClientProps) {
                     {timeError}
                   </p>
                 )}
+              </div>
+
+              {/* Location */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Service Location</label>
+                <input
+                  type="text"
+                  required
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="e.g. 123 Main St, Apt 4B or General Hospital"
+                  className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                />
               </div>
 
               {/* Notes */}

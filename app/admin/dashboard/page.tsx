@@ -19,6 +19,9 @@ export default function AdminDashboard() {
   // Selected Caregiver for Document Review Modal
   const [selectedCG, setSelectedCG] = useState<CaregiverProfile | null>(null);
 
+  // Audit Logs Modal state
+  const [showAuditLogsModal, setShowAuditLogsModal] = useState(false);
+
   // Tab Switcher and Form states
   const [activeTab, setActiveTab] = useState<'approvals' | 'services'>('approvals');
   const [newServiceName, setNewServiceName] = useState('');
@@ -516,7 +519,7 @@ export default function AdminDashboard() {
                   <Activity className="h-5 w-5 text-blue-600" />
                   <span>Admin Audits Log</span>
                 </h2>
-                <span className="text-[10px] font-extrabold text-blue-600 hover:underline cursor-pointer">View All ↗</span>
+                <button onClick={() => setShowAuditLogsModal(true)} className="text-[10px] font-extrabold text-blue-600 hover:underline cursor-pointer">View All ↗</button>
               </div>
 
               {/* Audit Log entries */}
@@ -594,7 +597,10 @@ export default function AdminDashboard() {
             </div>
 
             {/* Bottom Button */}
-            <button className="w-full mt-4 py-3 rounded-2xl nav-pill-active text-xs font-black text-white flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-500/20 transition-transform active:scale-95">
+            <button 
+              onClick={() => setShowAuditLogsModal(true)}
+              className="w-full mt-4 py-3 rounded-2xl nav-pill-active text-xs font-black text-white flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-500/20 transition-transform active:scale-95"
+            >
               <span>View Full Audit Logs</span>
               <ArrowRight className="h-4 w-4" />
             </button>
@@ -661,9 +667,13 @@ export default function AdminDashboard() {
                       <div className="rounded-xl border border-slate-200 bg-white p-3 flex flex-col items-center justify-center min-h-[120px] text-center">
                         {doc.fileUrl && (doc.fileUrl.startsWith('data:image') || doc.fileUrl.match(/\.(jpeg|jpg|png|gif|webp|svg)/i) || doc.fileUrl.includes('placehold.co') || doc.fileUrl.includes('unsplash.com')) ? (
                           <img
-                            src={doc.fileUrl}
+                            src={doc.fileUrl.startsWith('http') || doc.fileUrl.startsWith('data:') ? doc.fileUrl : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${doc.fileUrl}`}
                             alt={doc.type}
                             className="max-h-48 max-w-full rounded-lg object-contain shadow-xs border border-slate-200"
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = 'https://placehold.co/400x300/png?text=Image+Unavailable';
+                            }}
                           />
                         ) : (
                           <>
@@ -696,6 +706,102 @@ export default function AdminDashboard() {
               </button>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* Audit Logs Full Modal */}
+      {showAuditLogsModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white border border-slate-200 text-slate-900 rounded-3xl max-w-3xl w-full p-6 space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+              <h2 className="font-heading font-black text-xl text-slate-900 flex items-center gap-2">
+                <Activity className="h-6 w-6 text-blue-600" />
+                <span>Full Audit Logs</span>
+              </h2>
+              <button
+                onClick={() => setShowAuditLogsModal(false)}
+                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl cursor-pointer transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Logs List */}
+            <div className="space-y-4 overflow-y-auto flex-grow pr-2">
+              {/* Entry 1 */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 hover:border-blue-300 transition-colors">
+                <div className="flex justify-between items-center text-xs font-black">
+                  <span className="text-emerald-700 flex items-center gap-2">
+                    <span className="h-5 w-5 bg-emerald-100 border border-emerald-300 rounded-full flex items-center justify-center text-emerald-700">✓</span>
+                    Approved Caregiver Profile
+                  </span>
+                  <span className="text-slate-500 font-bold">Jul 22, 03:45 PM</span>
+                </div>
+                <p className="text-sm text-slate-700 font-medium leading-normal pl-7">
+                  Verified and authorized registration profile for <span className="font-bold text-slate-900">Sarah Jenkins</span>.
+                </p>
+              </div>
+
+              {/* Entry 2 */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 hover:border-blue-300 transition-colors">
+                <div className="flex justify-between items-center text-xs font-black">
+                  <span className="text-blue-700 flex items-center gap-2">
+                    <span className="h-5 w-5 bg-blue-100 border border-blue-300 rounded-full flex items-center justify-center text-blue-700">❖</span>
+                    Added Service Type: Elder care
+                  </span>
+                  <span className="text-slate-500 font-bold">Jul 22, 03:42 PM</span>
+                </div>
+                <p className="text-sm text-slate-700 font-medium leading-normal pl-7">
+                  Verified and authorized registration profile for marketplace category.
+                </p>
+              </div>
+
+              {/* Entry 3 */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 hover:border-blue-300 transition-colors">
+                <div className="flex justify-between items-center text-xs font-black">
+                  <span className="text-blue-600 flex items-center gap-2">
+                    <span className="h-5 w-5 bg-blue-100 border border-blue-300 rounded-full flex items-center justify-center text-blue-600">+</span>
+                    Added Service Type: Physiotherapy
+                  </span>
+                  <span className="text-slate-500 font-bold">Jul 22, 03:41 PM</span>
+                </div>
+                <p className="text-sm text-slate-700 font-medium leading-normal pl-7">
+                  Verified and authorized registration profile for specialized support.
+                </p>
+              </div>
+
+              {/* Entry 4 */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 hover:border-blue-300 transition-colors">
+                <div className="flex justify-between items-center text-xs font-black">
+                  <span className="text-rose-600 flex items-center gap-2">
+                    <span className="h-5 w-5 bg-rose-100 border border-rose-300 rounded-full flex items-center justify-center text-rose-600">✕</span>
+                    Deleted Service Type: Nursing
+                  </span>
+                  <span className="text-slate-500 font-bold">Jul 22, 03:39 PM</span>
+                </div>
+                <p className="text-sm text-slate-700 font-medium leading-normal pl-7">
+                  Service type has been removed from marketplace directory.
+                </p>
+              </div>
+
+              {/* Dynamic Session Logs */}
+              {adminLogs.map((log) => (
+                <div key={log.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                  <div className="flex justify-between items-center text-xs font-black">
+                    <span className="text-blue-600 flex items-center gap-2">
+                      <span className="h-5 w-5 bg-blue-100 border border-blue-300 rounded-full flex items-center justify-center text-blue-600">i</span>
+                      {log.action}
+                    </span>
+                    <span className="text-slate-500 font-bold">{formatDate(log.createdAt)}</span>
+                  </div>
+                  <p className="text-sm text-slate-700 font-medium leading-normal pl-7">
+                    Target action completed for <span className="text-blue-700 font-bold">{log.targetName}</span>.
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

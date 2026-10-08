@@ -87,7 +87,7 @@ export async function GET(req: NextRequest) {
       const profileObj = Array.isArray(cg.profiles) ? cg.profiles[0] : cg.profiles;
 
       const services = cg.caregiver_services?.map((cs: any) => cs.services?.name).filter(Boolean) || [];
-      
+
       const availability: any = {};
       cg.caregiver_availability?.forEach((av: any) => {
         availability[av.day_of_week] = {

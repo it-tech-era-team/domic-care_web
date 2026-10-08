@@ -124,9 +124,6 @@ export default function MediaPicker({ value, onChange, type, label }: MediaPicke
             <span className="block text-xs font-black text-slate-900 truncate">
               {type === 'avatar' ? 'Profile Avatar Selected' : 'Verification Document Loaded'}
             </span>
-            <span className="block text-[10px] text-blue-600 font-mono truncate mt-0.5">
-              {isBase64 ? 'Custom base64 file' : value}
-            </span>
           </div>
 
           <button

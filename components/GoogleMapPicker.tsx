@@ -25,8 +25,8 @@ declare global {
 const FALLBACK_LAT = 33.6844; // Islamabad
 const FALLBACK_LNG = 73.0479;
 
-const LEAFLET_CSS_URL = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-const LEAFLET_JS_URL = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+const LEAFLET_CSS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css';
+const LEAFLET_JS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';
 
 const NOMINATIM_SEARCH_URL = 'https://nominatim.openstreetmap.org/search';
 const NOMINATIM_REVERSE_URL = 'https://nominatim.openstreetmap.org/reverse';
@@ -173,6 +173,12 @@ export default function GoogleMapPicker({
     if (!isScriptLoaded || !mapRef.current) return;
 
     const L = (window as any).L;
+
+    // Check if container is already initialized and clear it (React 18 Strict Mode bug fix)
+    const container = mapRef.current as any;
+    if (container._leaflet_id) {
+      container._leaflet_id = null;
+    }
 
     // Priority for initial position: saved location > fallback
     const initialLat = savedLatitude ?? FALLBACK_LAT;

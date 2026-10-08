@@ -19,7 +19,8 @@ import {
   Image as ImageIcon,
   X,
   Phone,
-  AlertCircle
+  AlertCircle,
+  ArrowLeft
 } from 'lucide-react';
 import MediaPicker from '@/components/MediaPicker';
 
@@ -37,6 +38,7 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
   const [showMediaPicker, setShowMediaPicker] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showChatMobile, setShowChatMobile] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -52,6 +54,7 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
   useEffect(() => {
     if (initialConvId) {
       setActiveConvId(initialConvId);
+      setShowChatMobile(true);
     } else if (userConvs.length > 0 && !activeConvId) {
       setActiveConvId(userConvs[0].id);
     }
@@ -124,7 +127,7 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
       supabase.removeChannel(channel);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [activeConvId, convUpdatedAt, convLastMsg]);
+  }, [activeConvId]);
 
   // Smooth scroll to bottom on message updates
   useEffect(() => {
@@ -149,7 +152,6 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
     setShowMediaPicker(false);
 
     await sendMessage(currentConvId, currentUser.id, contentToSend);
-    await fetchMessages(currentConvId);
   };
 
   const handleChipClick = (chipText: string) => {
@@ -201,11 +203,11 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
   const peerRole = role === 'user' ? 'Caregiver Professional' : 'Family Client';
 
   return (
-    <div className="flex bg-white border border-slate-200 rounded-3xl shadow-xs overflow-hidden min-h-[calc(100vh-120px)] max-h-[85vh] animate-fade-in text-slate-900">
-      
+    <div className="flex bg-white md:border md:border-slate-200 md:rounded-3xl md:shadow-xs overflow-hidden h-[calc(100dvh-64px)] md:h-[calc(100vh-120px)] md:min-h-[600px] animate-fade-in text-slate-900 w-[calc(100%+2rem)] -mx-4 -my-6 md:m-0 md:w-full border-0 rounded-none shadow-none z-10 relative">
+
       {/* ================= LEFT SIDEBAR: CONVERSATIONS ================= */}
-      <div className="w-full md:w-80 lg:w-96 border-r border-slate-200 flex flex-col bg-slate-50 text-slate-900 shrink-0">
-        
+      <div className={`w-full md:w-80 lg:w-96 border-r border-slate-200 flex-col bg-slate-50 text-slate-900 shrink-0 ${showChatMobile ? 'hidden md:flex' : 'flex'}`}>
+
         {/* Sidebar Header Banner */}
         <div className="p-5 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white shadow-xs space-y-4 border-b border-blue-900/20">
           <div className="flex items-center justify-between">
@@ -258,6 +260,7 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
                   onClick={() => {
                     setActiveConvId(conv.id);
                     fetchMessages(conv.id);
+                    setShowChatMobile(true);
                   }}
                   className={`
                     w-full p-4 text-left flex items-start gap-3.5 transition-all cursor-pointer relative
@@ -310,19 +313,25 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
       </div>
 
       {/* ================= RIGHT WORKSPACE: CHAT FEED ================= */}
-      <div className="flex-1 flex flex-col bg-slate-50 text-slate-900 overflow-hidden relative">
+      <div className={`flex-1 flex-col bg-slate-50 text-slate-900 overflow-hidden relative ${showChatMobile ? 'flex' : 'hidden md:flex'}`}>
         {activeConv ? (
           <>
             {/* Active Chat Header */}
             <div className="bg-white px-6 py-4.5 border-b border-slate-200 flex items-center justify-between shadow-xs z-10 text-slate-900">
               <div className="flex items-center gap-4">
-                <div className="relative">
+                <button
+                  onClick={() => setShowChatMobile(false)}
+                  className="md:hidden p-2 -ml-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 cursor-pointer"
+                >
+                  <ArrowLeft size={18} />
+                </button>
+                <div className="relative shrink-0">
                   <img
                     src={peerAvatar || 'https://api.dicebear.com/7.x/adventurer/svg?seed=User'}
                     alt={peerName}
-                    className="h-12 w-12 rounded-2xl object-cover border-2 border-slate-200 bg-slate-100 shadow-xs ring-2 ring-emerald-500/30"
+                    className="h-14 w-14 rounded-full object-cover border-2 border-slate-200 bg-slate-100 shadow-xs ring-2 ring-emerald-500/30"
                   />
-                  <span className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-emerald-500 border-2 border-white shadow-xs animate-pulse" />
+                  <span className="absolute bottom-0 right-0 h-4 w-4 rounded-full bg-emerald-500 border-2 border-white shadow-xs animate-pulse" />
                 </div>
 
                 <div>
@@ -330,7 +339,7 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
                     <h2 className="font-heading font-black text-lg text-slate-900 leading-tight">
                       {peerName}
                     </h2>
-                    <span className="rounded-full bg-blue-50 border border-blue-200 px-3 py-0.5 text-[10px] font-extrabold text-blue-700 uppercase tracking-wider">
+                    <span className="hidden md:inline-flex rounded-full bg-blue-50 border border-blue-200 px-3 py-0.5 text-[10px] font-extrabold text-blue-700 uppercase tracking-wider">
                       {peerRole}
                     </span>
                   </div>
@@ -417,14 +426,30 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
                           )}
 
                           <div className={`max-w-[75%] sm:max-w-[65%] space-y-1.5 ${isMe ? 'items-end' : 'items-start'}`}>
-                            
+
                             {/* Image Attachment render */}
                             {m.message.startsWith('data:image') || m.message.match(/\.(jpeg|jpg|png|webp|gif)/i) ? (
                               <div className="p-1.5 rounded-3xl bg-white border border-slate-200 shadow-xs">
                                 <img
-                                  src={m.message}
+                                  src={
+                                    m.message.startsWith('http') || m.message.startsWith('data:') 
+                                      ? m.message 
+                                      : (() => {
+                                          const parts = m.message.split('/');
+                                          if (parts.length >= 2) {
+                                            const bucket = parts[0];
+                                            const filePath = parts.slice(1).join('/');
+                                            return supabase.storage.from(bucket).getPublicUrl(filePath).data.publicUrl;
+                                          }
+                                          return m.message;
+                                        })()
+                                  }
                                   alt="Attachment"
                                   className="max-h-64 w-auto rounded-2xl object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.onerror = null; // Prevents infinite loop
+                                    e.currentTarget.src = 'https://placehold.co/400x300/png?text=Image+Unavailable';
+                                  }}
                                 />
                               </div>
                             ) : (

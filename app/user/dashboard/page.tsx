@@ -471,10 +471,13 @@ export default function UserDashboard() {
                   </div>
                 </div>
 
-                <Link href="/user/messages" className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
+                <button 
+                  onClick={() => window.dispatchEvent(new CustomEvent('open-notifications'))} 
+                  className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1 cursor-pointer bg-transparent border-none p-0"
+                >
                   <span>View All</span>
                   <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
+                </button>
               </div>
 
               {/* Notification Items */}

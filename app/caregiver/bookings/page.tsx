@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useCareConnect } from '@/context/useCareConnect';
 import {
   Calendar, Clock, Star, AlertTriangle, CheckCircle2,
-  XCircle, ChevronRight, MessageSquare, ClipboardList
+  XCircle, ChevronRight, MessageSquare, ClipboardList, MapPin
 } from 'lucide-react';
 
 export default function CaregiverBookings() {
@@ -13,7 +13,7 @@ export default function CaregiverBookings() {
   const { currentUser, bookings, updateBookingStatus, createConversation } = useCareConnect();
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'awaiting_payment' | 'accepted' | 'completed' | 'cancelled'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'accepted' | 'completed' | 'cancelled'>('all');
 
   if (!currentUser) {
     return (
@@ -59,7 +59,7 @@ export default function CaregiverBookings() {
 
       {/* Tabs Menu */}
       <div className="flex flex-wrap border-b border-slate-200 gap-1 sm:gap-2">
-        {(['all', 'pending', 'awaiting_payment', 'accepted', 'completed', 'cancelled'] as const).map((tab) => (
+        {(['all', 'accepted', 'completed', 'cancelled'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -70,7 +70,7 @@ export default function CaregiverBookings() {
                 : 'border-transparent text-slate-500 hover:text-slate-900'}
             `}
           >
-            {tab === 'pending' ? 'Pending Approval' : tab === 'awaiting_payment' ? 'Awaiting Payment' : tab === 'accepted' ? 'Active / Scheduled' : tab}
+            {tab === 'accepted' ? 'Active / Scheduled' : tab}
           </button>
         ))}
       </div>
@@ -107,9 +107,15 @@ export default function CaregiverBookings() {
                   </span>
                   
                   {b.notes && (
-                    <p className="text-xs text-slate-700 leading-relaxed font-medium bg-slate-50 border border-slate-200 rounded-xl p-3 max-w-lg">
+                    <p className="text-xs text-slate-700 leading-relaxed font-medium bg-slate-50 border border-slate-200 rounded-xl p-3 max-w-lg mt-2">
                       <strong className="text-slate-900 font-bold">Client notes:</strong> &ldquo;{b.notes}&rdquo;
                     </p>
+                  )}
+                  {b.location && (
+                    <div className="flex items-center gap-1.5 text-xs text-slate-600 font-medium mt-2">
+                      <MapPin className="h-4 w-4 text-blue-500" />
+                      <span><strong className="text-slate-900 font-bold">Location:</strong> {b.location}</span>
+                    </div>
                   )}
 
                   {/* Rating left by family */}
@@ -142,69 +148,31 @@ export default function CaregiverBookings() {
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row md:flex-col items-start sm:items-center md:items-end gap-3">
+                <div className="flex items-center gap-3">
                   {/* Status Badge */}
                   <span className={`
-                    inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-extrabold border capitalize
+                    inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-bold border capitalize
                     ${b.status === 'pending' && 'bg-amber-50 text-amber-800 border-amber-200'}
-                    ${b.status === 'awaiting_payment' && 'bg-purple-50 text-purple-800 border-purple-200'}
                     ${b.status === 'accepted' && 'bg-emerald-50 text-emerald-800 border-emerald-200'}
+                    ${b.status === 'awaiting_payment' && 'bg-emerald-50 text-emerald-800 border-emerald-200'}
                     ${b.status === 'completed' && 'bg-blue-50 text-blue-700 border-blue-200'}
                     ${b.status === 'cancelled' && 'bg-rose-50 text-rose-800 border-rose-200'}
                     ${b.status === 'rejected' && 'bg-rose-50 text-rose-800 border-rose-200'}
                   `}>
                     {b.status === 'pending' && 'Awaiting Your Approval'}
-                    {b.status === 'awaiting_payment' && 'Awaiting Client Payment'}
-                    {b.status === 'accepted' && 'Scheduled & Confirmed'}
+                    {b.status === 'accepted' && 'Scheduled'}
+                    {b.status === 'awaiting_payment' && 'Scheduled'}
                     {b.status === 'completed' && 'Completed'}
                     {b.status === 'cancelled' && 'Cancelled by family'}
                     {b.status === 'rejected' && 'Declined by you'}
                   </span>
 
-                  {/* Pending Approval Actions */}
-                  {b.status === 'pending' && (
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => updateBookingStatus(b.id, 'rejected')}
-                        className="rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-600 px-3.5 py-1.5 text-[11px] font-extrabold text-rose-700 hover:text-white transition cursor-pointer active:scale-95"
-                      >
-                        Decline Request
-                      </button>
-                      <button
-                        onClick={() => updateBookingStatus(b.id, 'accepted')}
-                        className="rounded-xl nav-pill-active px-4 py-1.5 text-[11px] font-black text-white shadow-xs transition-all cursor-pointer active:scale-95"
-                      >
-                        Accept Request
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Awaiting Payment Actions */}
-                  {b.status === 'awaiting_payment' && (
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={async () => {
-                          const convId = await createConversation(b.userId);
-                          if (convId) {
-                            router.push(`/caregiver/messages?conv=${convId}`);
-                          } else {
-                            router.push('/caregiver/messages');
-                          }
-                        }}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-800 px-3.5 py-1.5 text-[11px] font-extrabold transition-all cursor-pointer shadow-xs active:scale-95"
-                      >
-                        <MessageSquare className="h-3.5 w-3.5" />
-                        <span>Chat with Client</span>
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Scheduled & Confirmed Actions */}
+                  {/* Actions */}
                   {b.status === 'accepted' && (
                     <div className="flex items-center gap-2">
                       <button
                         onClick={async () => {
-                          const convId = await createConversation(b.userId);
+                          const convId = await createConversation(currentUser.id);
                           if (convId) {
                             router.push(`/caregiver/messages?conv=${convId}`);
                           } else {
@@ -219,15 +187,20 @@ export default function CaregiverBookings() {
 
                       <button
                         onClick={() => updateBookingStatus(b.id, 'completed')}
-                        className="rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 text-[11px] font-black shadow-xs transition-all cursor-pointer active:scale-95"
+                        disabled={new Date() < new Date(b.endDate)}
+                        className={`rounded-xl px-3.5 py-1.5 text-[11px] font-black shadow-xs transition-all
+                          ${
+                            new Date() >= new Date(b.endDate)
+                              ? "bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer active:scale-95"
+                              : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-200"
+                          }`}
                       >
-                        Mark Completed
+                        {new Date() < new Date(b.endDate) ? "In Progress" : "Mark Completed"}
                       </button>
                     </div>
                   )}
                 </div>
               </div>
-
 
             </div>
           ))

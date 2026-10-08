@@ -10,8 +10,9 @@ const NAV_LINKS = [
   { label: 'Home', href: '/' },
   { label: 'Services', href: '/#services' },
   { label: 'Caregivers', href: '/get-started' },
-  { label: 'Pricing', href: '#' },
-  { label: 'About Us', href: '#' },
+  // { label: 'Pricing', href: '#' },
+  { label: 'About Us', href: '/about' },
+  { label: 'Contact', href: '/contact' },
 ];
 
 export default function Navbar() {
@@ -56,11 +57,10 @@ export default function Navbar() {
                 <Link
                   key={link.label}
                   href={link.href}
-                  className={`relative px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${
-                    isActive
-                      ? 'text-blue-600 bg-blue-50'
-                      : 'text-slate-600 hover:text-blue-600 hover:bg-slate-50'
-                  }`}
+                  className={`relative px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${isActive
+                    ? 'text-blue-600 bg-blue-50'
+                    : 'text-slate-600 hover:text-blue-600 hover:bg-slate-50'
+                    }`}
                 >
                   {link.label}
                   {isActive && (
@@ -69,10 +69,7 @@ export default function Navbar() {
                 </Link>
               );
             })}
-            {/* Resources dropdown stub */}
-            <button className="flex items-center gap-1 px-4 py-2 text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-slate-50 rounded-lg transition-all duration-200">
-              Resources <ChevronDown className="h-3.5 w-3.5 opacity-60" />
-            </button>
+
           </div>
 
           {/* Desktop Auth Buttons */}
@@ -149,13 +146,7 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <Link
-              href="#"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-            >
-              Resources <ChevronDown className="h-4 w-4 opacity-60" />
-            </Link>
+
 
             <div className="pt-2 border-t border-slate-100 mt-2">
               {currentUser ? (

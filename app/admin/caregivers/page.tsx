@@ -206,6 +206,8 @@ export default function AdminCaregiversPage() {
   }, [selectedCaregiver]);
 
   const filteredCaregivers = useMemo(() => {
+    const statusOrder: Record<string, number> = { active: 1, suspended: 2, deleted: 3 };
+
     return caregivers.filter((cg) => {
       const matchesSearch =
         cg.fullName.toLowerCase().includes(search.toLowerCase()) ||
@@ -218,22 +220,26 @@ export default function AdminCaregiversPage() {
           : cg.approvalStatus === statusFilter;
 
       return matchesSearch && matchesStatus;
+    }).sort((a, b) => {
+      const aStatus = a.isDeleted ? 'deleted' : (a.accountStatus || 'active');
+      const bStatus = b.isDeleted ? 'deleted' : (b.accountStatus || 'active');
+      return (statusOrder[aStatus] || 4) - (statusOrder[bStatus] || 4);
     });
   }, [caregivers, search, statusFilter]);
 
   const stats = {
     total: caregivers.length,
 
-    approved: caregivers.filter(
-      (c) => c.approvalStatus === "approved"
+    active: caregivers.filter(
+      (c) => c.accountStatus === "active" && !c.isDeleted
     ).length,
 
     pending: caregivers.filter(
       (c) => c.approvalStatus === "pending"
     ).length,
 
-    rejected: caregivers.filter(
-      (c) => c.approvalStatus === "rejected"
+    deleted: caregivers.filter(
+      (c) => c.accountStatus === "deleted" || c.isDeleted
     ).length,
   };
 
@@ -541,9 +547,9 @@ export default function AdminCaregiversPage() {
               <div className="h-12 w-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center font-bold">
                 <CheckCircle size={24} />
               </div>
-              <span className="rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 text-[10px] font-extrabold uppercase">Approved</span>
+              <span className="rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 text-[10px] font-extrabold uppercase">Active</span>
             </div>
-            <h2 className="mt-6 text-4xl font-black text-slate-900">{stats.approved}</h2>
+            <h2 className="mt-6 text-4xl font-black text-slate-900">{stats.active}</h2>
             <p className="mt-1 text-xs text-slate-500 font-semibold">Active Caregivers</p>
           </div>
 
@@ -563,10 +569,10 @@ export default function AdminCaregiversPage() {
               <div className="h-12 w-12 rounded-2xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center font-bold">
                 <XCircle size={24} />
               </div>
-              <span className="rounded-full bg-rose-50 text-rose-800 border border-rose-200 px-3 py-1 text-[10px] font-extrabold uppercase">Rejected</span>
+              <span className="rounded-full bg-rose-50 text-rose-800 border border-rose-200 px-3 py-1 text-[10px] font-extrabold uppercase">Deleted</span>
             </div>
-            <h2 className="mt-6 text-4xl font-black text-slate-900">{stats.rejected}</h2>
-            <p className="mt-1 text-xs text-slate-500 font-semibold">Rejected Accounts</p>
+            <h2 className="mt-6 text-4xl font-black text-slate-900">{stats.deleted}</h2>
+            <p className="mt-1 text-xs text-slate-500 font-semibold">Deleted Accounts</p>
           </div>
         </div>
 
@@ -644,20 +650,15 @@ export default function AdminCaregiversPage() {
 
           <div className="overflow-x-auto">
 
-            <table className="w-full min-w-[1100px] text-left text-sm">
+            <table className="w-full text-left text-sm">
 
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/80 text-xs font-bold uppercase tracking-wide text-slate-500">
                   <th className="px-5 py-4">Caregiver</th>
                   <th className="px-5 py-4">Email</th>
-                  <th className="px-5 py-4">City</th>
-                  <th className="px-5 py-4">Experience</th>
-                  <th className="px-5 py-4">Hourly Rate</th>
-                  <th className="px-5 py-4">Bookings</th>
-                  <th className="px-5 py-4">Rating</th>
                   <th className="px-5 py-4">Approval</th>
                   <th className="px-5 py-4">Account</th>
-                  <th className="px-5 py-4 text-right">Actions</th>
+                  <th className="px-5 py-4 text-left">Actions</th>
                 </tr>
               </thead>
 
@@ -685,44 +686,6 @@ export default function AdminCaregiversPage() {
                       {cg.email}
                     </td>
 
-                    <td className="px-5 py-4 text-slate-600">
-                      {cg.city || "—"}
-                    </td>
-
-                    <td className="px-5 py-4">
-                      <span className="rounded-lg bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
-                        {cg.experienceYears} {cg.experienceYears === 1 ? "Year" : "Years"}
-                      </span>
-                    </td>
-
-                    <td className="px-5 py-4 font-bold text-slate-800">
-                      £{cg.hourlyRate}/hr
-                    </td>
-
-                    <td className="px-5 py-4">
-                      <div className="flex flex-col gap-0.5 text-xs">
-                        <span className="font-bold text-slate-800">
-                          {cg.totalBookings} Total
-                        </span>
-                        <span className="text-green-600">
-                          {cg.completedBookings} Completed
-                        </span>
-                        <span className="text-red-500">
-                          {cg.cancelledBookings} Cancelled
-                        </span>
-                      </div>
-                    </td>
-
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-1 font-bold text-slate-800">
-                        <Star size={14} className="fill-yellow-400 text-yellow-400" />
-                        {cg.averageRating ? cg.averageRating.toFixed(1) : "0.0"}
-                      </div>
-                      <p className="text-xs text-slate-400">
-                        {cg.totalReviews} Reviews
-                      </p>
-                    </td>
-
                     <td className="px-5 py-4">
                       {approvalBadge(cg.approvalStatus)}
                     </td>
@@ -732,7 +695,7 @@ export default function AdminCaregiversPage() {
                     </td>
 
                     <td className="px-5 py-4">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-start gap-2">
                         <button
                           onClick={() => viewCaregiver(cg)}
                           title="View"
@@ -1445,25 +1408,40 @@ export default function AdminCaregiversPage() {
             {/* Preview Container */}
             <div className="flex-1 overflow-auto bg-slate-950/5 rounded-2xl border border-slate-200/80 p-4 flex items-center justify-center min-h-[320px] max-h-[60vh] relative">
               {(previewDoc.fileUrl || previewDoc.url) ? (
-                (previewDoc.fileUrl || previewDoc.url || '').startsWith('data:application/pdf') || (previewDoc.fileUrl || previewDoc.url || '').endsWith('.pdf') ? (
-                  <iframe
-                    src={previewDoc.fileUrl || previewDoc.url}
-                    title={previewDoc.type}
-                    className="w-full h-full min-h-[450px] rounded-xl border-0"
-                  />
-                ) : (previewDoc.fileUrl || previewDoc.url || '').startsWith('data:image') || (previewDoc.fileUrl || previewDoc.url || '').match(/\.(jpeg|jpg|png|gif|webp|svg)/i) || (previewDoc.fileUrl || previewDoc.url || '').includes('placehold.co') || (previewDoc.fileUrl || previewDoc.url || '').includes('unsplash.com') || (previewDoc.fileUrl || previewDoc.url || '').startsWith('http') ? (
-                  <img
-                    src={previewDoc.fileUrl || previewDoc.url}
-                    alt={previewDoc.type}
-                    className="max-h-[55vh] max-w-full rounded-xl object-contain shadow-md border border-slate-200 bg-white"
-                  />
-                ) : (
-                  <div className="text-center p-8 space-y-3">
-                    <FileText size={48} className="mx-auto text-blue-500 animate-pulse" />
-                    <p className="text-xs font-bold text-slate-700">Verification Document Loaded</p>
-                    <p className="text-[10px] text-slate-400 max-w-md mx-auto truncate bg-white p-2 rounded-lg border">{(previewDoc.fileUrl || previewDoc.url || '').slice(0, 120)}...</p>
-                  </div>
-                )
+                (() => {
+                  const rawUrl = previewDoc.fileUrl || previewDoc.url || '';
+                  const fullUrl = rawUrl.startsWith('http') || rawUrl.startsWith('data:') ? rawUrl : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${rawUrl}`;
+                  
+                  if (fullUrl.startsWith('data:application/pdf') || fullUrl.endsWith('.pdf')) {
+                    return (
+                      <iframe
+                        src={fullUrl}
+                        title={previewDoc.type}
+                        className="w-full h-full min-h-[450px] rounded-xl border-0"
+                      />
+                    );
+                  } else if (fullUrl.startsWith('data:image') || fullUrl.match(/\.(jpeg|jpg|png|gif|webp|svg)/i) || fullUrl.includes('placehold.co') || fullUrl.includes('unsplash.com') || fullUrl.startsWith('http')) {
+                    return (
+                      <img
+                        src={fullUrl}
+                        alt={previewDoc.type}
+                        className="max-h-[55vh] max-w-full rounded-xl object-contain shadow-md border border-slate-200 bg-white"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = 'https://placehold.co/400x300/png?text=Image+Unavailable';
+                        }}
+                      />
+                    );
+                  } else {
+                    return (
+                      <div className="text-center p-8 space-y-3">
+                        <FileText size={48} className="mx-auto text-blue-500 animate-pulse" />
+                        <p className="text-xs font-bold text-slate-700">Verification Document Loaded</p>
+                        <p className="text-[10px] text-slate-400 max-w-md mx-auto truncate bg-white p-2 rounded-lg border">{fullUrl.slice(0, 120)}...</p>
+                      </div>
+                    );
+                  }
+                })()
               ) : (
                 <div className="text-center p-8 text-slate-400">
                   <ImageOff size={40} className="mx-auto text-slate-300 mb-2" />
@@ -1486,9 +1464,11 @@ export default function AdminCaregiversPage() {
                 {(previewDoc.fileUrl || previewDoc.url) && (
                   <button
                     onClick={() => {
-                      const fileTarget = previewDoc.fileUrl || previewDoc.url || '';
+                      const rawUrl = previewDoc.fileUrl || previewDoc.url || '';
+                      const fullUrl = rawUrl.startsWith('http') || rawUrl.startsWith('data:') ? rawUrl : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${rawUrl}`;
                       const a = document.createElement('a');
-                      a.href = fileTarget;
+                      a.href = fullUrl;
+                      a.target = "_blank";
                       a.download = `${(previewDoc.type || 'document').replace(/\s+/g, '_')}`;
                       document.body.appendChild(a);
                       a.click();

@@ -9,8 +9,6 @@ export default function UserMessagesPage() {
   const convId = searchParams.get('conv');
 
   return (
-    <div className="space-y-6">
-      <ProChatWindow role="user" initialConvId={convId || undefined} />
-    </div>
+    <ProChatWindow role="user" initialConvId={convId || undefined} />
   );
 }

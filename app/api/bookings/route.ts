@@ -20,6 +20,7 @@ export async function GET(req: NextRequest) {
         service_id,
         start_date,
         end_date,
+        location,
         status,
         notes,
         total_amount,
@@ -80,6 +81,7 @@ export async function GET(req: NextRequest) {
         startDate: b.start_date,
         endDate: b.end_date,
         status: b.status,
+        location: b.location || "Location not provided",
         notes: b.notes || "",
         totalAmount: b.total_amount ? Number(b.total_amount) : 0,
         platformFee: b.platform_fee ? Number(b.platform_fee) : 0,
@@ -108,10 +110,11 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { caregiverId, serviceName, startDate, endDate, notes } = body;
+    console.log("[POST /api/bookings] Received body:", body);
+    const { caregiverId, serviceName, startDate, endDate, location, notes } = body;
 
-    if (!caregiverId || !serviceName || !startDate || !endDate) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!caregiverId || !serviceName || !startDate || !endDate || !location) {
+      return NextResponse.json({ error: "Missing fields: " + JSON.stringify(body) }, { status: 400 });
     }
 
     const supabase = createServerSupabaseClient();
@@ -152,6 +155,7 @@ export async function POST(req: NextRequest) {
         service_id: service.id,
         start_date: startDate,
         end_date: endDate,
+        location,
         status: "pending",
         total_amount: split.totalAmountUSD,
         platform_fee: split.platformFeeUSD,
