@@ -63,7 +63,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6 sm:space-y-8 max-w-7xl w-full mx-auto animate-fade-in text-slate-900">
-      
+
       {/* Title & Greeting Header Banner */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-50/90 via-sky-50/60 to-blue-100/40 border border-blue-100/80 p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xs">
         <div className="max-w-xl space-y-3 z-10">
@@ -108,7 +108,7 @@ export default function AdminDashboard() {
 
       {/* 4 Decent Executive Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        
+
         {/* Card 1: TOTAL ACCOUNTS */}
         <div className="bg-white rounded-3xl border border-slate-200 p-6 text-slate-900 shadow-xs hover:border-blue-300 hover:shadow-md transition-all flex flex-col justify-between min-h-[145px]">
           <div className="flex items-center justify-between">
@@ -182,26 +182,25 @@ export default function AdminDashboard() {
 
       {/* Main Grid: Approvals Panel (Left 2 cols) & Audit Logs (Right 1 col) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-        
+
         {/* Left Column Container */}
         <div className="lg:col-span-2 space-y-6">
-          
+
           {/* Main White Panel for Approvals / Services */}
           <div className="bg-white border border-slate-200 rounded-3xl p-6 space-y-6 text-slate-900 shadow-xs">
-            
+
             {/* Tabs Header */}
             <div className="flex gap-6 border-b border-slate-200 pb-3 text-sm font-bold">
               <button
                 onClick={() => setActiveTab('approvals')}
-                className={`pb-1 transition-all relative cursor-pointer ${
-                  activeTab === 'approvals' 
-                    ? 'text-blue-600 border-b-2 border-blue-600 font-black' 
+                className={`pb-1 transition-all relative cursor-pointer ${activeTab === 'approvals'
+                    ? 'text-blue-600 border-b-2 border-blue-600 font-black'
                     : 'text-slate-500 hover:text-blue-600 font-bold'
-                }`}
+                  }`}
               >
                 Caregiver Approvals ({pendingCaregivers.length})
               </button>
-              <button
+              {/* <button
                 onClick={() => setActiveTab('services')}
                 className={`pb-1 transition-all relative cursor-pointer ${
                   activeTab === 'services' 
@@ -210,7 +209,7 @@ export default function AdminDashboard() {
                 }`}
               >
                 Manage Marketplace Services ({services.length})
-              </button>
+              </button> */}
             </div>
 
             {activeTab === 'approvals' ? (
@@ -228,7 +227,7 @@ export default function AdminDashboard() {
                     <div className="relative">
                       <div className="absolute -top-3 -right-3 h-3.5 w-3.5 bg-blue-500 rounded-full animate-ping" />
                       <div className="absolute -bottom-2 -left-4 h-2.5 w-2.5 bg-sky-400 rounded-full animate-bounce" />
-                      
+
                       {/* 3D Folder Container */}
                       <div className="h-24 w-28 rounded-3xl bg-gradient-to-tr from-blue-700 via-blue-600 to-sky-400 p-0.5 shadow-xl shadow-blue-500/30 flex items-center justify-center">
                         <div className="h-full w-full bg-white rounded-[22px] flex items-center justify-center relative">
@@ -389,7 +388,7 @@ export default function AdminDashboard() {
 
           {/* Bottom Left Charts Overview */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            
+
             {/* Accounts Overview Donut Chart Card */}
             <div className="bg-white border border-slate-200 rounded-3xl p-5 space-y-4 text-slate-900 shadow-xs">
               <div className="flex items-center justify-between">
@@ -524,7 +523,7 @@ export default function AdminDashboard() {
 
               {/* Audit Log entries */}
               <div className="space-y-3.5 mt-4 max-h-[420px] overflow-y-auto pr-1">
-                
+
                 {/* Entry 1 */}
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5 hover:border-blue-300 transition-colors">
                   <div className="flex justify-between items-center text-[10px] font-black">
@@ -597,7 +596,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Bottom Button */}
-            <button 
+            <button
               onClick={() => setShowAuditLogsModal(true)}
               className="w-full mt-4 py-3 rounded-2xl nav-pill-active text-xs font-black text-white flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-500/20 transition-transform active:scale-95"
             >
@@ -654,15 +653,14 @@ export default function AdminDashboard() {
                     <div key={doc.id} className="p-3.5 border border-slate-200 rounded-2xl bg-slate-50 space-y-2">
                       <div className="flex justify-between items-center text-xs">
                         <span className="font-bold text-slate-900">{doc.type}</span>
-                        <span className={`text-[9px] uppercase font-extrabold px-2.5 py-0.5 rounded-full border ${
-                          doc.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                          doc.status === 'rejected' ? 'bg-rose-50 text-rose-700 border-rose-200' :
-                          'bg-amber-50 text-amber-700 border-amber-200'
-                        }`}>
+                        <span className={`text-[9px] uppercase font-extrabold px-2.5 py-0.5 rounded-full border ${doc.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                            doc.status === 'rejected' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                              'bg-amber-50 text-amber-700 border-amber-200'
+                          }`}>
                           {doc.status || 'pending'}
                         </span>
                       </div>
-                      
+
                       {/* Document Preview Card */}
                       <div className="rounded-xl border border-slate-200 bg-white p-3 flex flex-col items-center justify-center min-h-[120px] text-center">
                         {doc.fileUrl && (doc.fileUrl.startsWith('data:image') || doc.fileUrl.match(/\.(jpeg|jpg|png|gif|webp|svg)/i) || doc.fileUrl.includes('placehold.co') || doc.fileUrl.includes('unsplash.com')) ? (
