@@ -80,10 +80,10 @@ export default function Footer() {
             <span className="text-sm font-bold text-white block mb-5">Resources</span>
             <ul className="space-y-3 text-sm">
               {[
-                { label: 'Help Center', href: '#' },
+                { label: 'Help Center', href: '/help' },
                 { label: 'FAQs', href: '/faq' },
-                { label: 'Privacy Policy', href: '#' },
-                { label: 'Terms of Service', href: '#' },
+                { label: 'Privacy Policy', href: '/privacy' },
+                { label: 'Terms of Service', href: '/terms' },
               ].map((item) => (
                 <li key={item.label}>
                   <Link

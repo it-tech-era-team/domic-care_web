@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Montserrat, Inter, Caveat } from 'next/font/google';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { ArrowRight, Check, ChevronDown, Clock, Headset, Loader2, Mail, MapPin, Phone, Send, ShieldCheck, Users } from 'lucide-react';
+import { AlertCircle, ArrowRight, Check, ChevronDown, Clock, Headset, Loader2, Mail, MapPin, Phone, Send, ShieldCheck, Users } from 'lucide-react';
 
 const heading = Montserrat({ subsets: ['latin'], variable: '--font-heading', weight: ['500', '600', '700', '800'] });
 const sans = Inter({ subsets: ['latin'], variable: '--font-sans' });
@@ -13,8 +13,8 @@ const script = Caveat({ subsets: ['latin'], variable: '--font-script', weight: [
 /* Replace this with your own background image (put it in /public/images) */
 const HERO_IMAGE = '/images/contact-hero.jpg';
 
-const PHONE = { label: '+1 (833) 728-2576', href: 'tel:+18337282576' };
-const EMAIL = 'info@domiccare.com';
+const PHONE = { label: '089 276 0944', href: 'tel:+0892760944' };
+const EMAIL = 'legal@domiccare.com';
 const MAX = 500;
 
 const inputCls =
@@ -31,19 +31,47 @@ const FEATURES = [
 const CONTACTS = [
   { icon: Phone, title: 'Phone', main: PHONE.label, href: PHONE.href, sub: 'Mon - Fri, 8:00 AM - 6:00 PM (EST)' },
   { icon: Mail, title: 'Email', main: EMAIL, href: `mailto:${EMAIL}`, sub: 'We’ll respond within 24 hours' },
-  { icon: MapPin, title: 'Office Address', main: '2800 Corporate Exchange Dr, Suite 410', sub: 'Columbus, OH 43231, USA' },
+  { icon: MapPin, title: 'Office Address', main: 'Street G.S.Rakovski 48 ', sub: 'Pleven, 5800, Bulgaria' },
 ];
 
 export default function ContactPage() {
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatus('sending');
-    // TODO: replace with fetch('/api/contact', { method: 'POST', body: new FormData(e.currentTarget) })
-    await new Promise((r) => setTimeout(r, 1200));
-    setStatus('sent');
+    setErrorMessage(null);
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`https://formspree.io/f/${EMAIL}`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        setStatus('sent');
+        form.reset();
+        setMessage('');
+      } else {
+        const data = await response.json().catch(() => null);
+        const errMsg =
+          data?.errors?.map((err: { message: string }) => err.message).join(', ') ||
+          `Submission failed. Please try again or email us directly at ${EMAIL}.`;
+        setErrorMessage(errMsg);
+        setStatus('idle');
+      }
+    } catch {
+      setErrorMessage(`Network error. Please check your connection or email ${EMAIL} directly.`);
+      setStatus('idle');
+    }
   };
 
   return (
@@ -170,6 +198,7 @@ export default function ContactPage() {
                   onClick={() => {
                     setStatus('idle');
                     setMessage('');
+                    setErrorMessage(null);
                   }}
                   className="mt-6 text-sm font-semibold text-[#1677FF] hover:underline"
                 >
@@ -177,10 +206,19 @@ export default function ContactPage() {
                 </button>
               </div>
             ) : (
-              <form onSubmit={onSubmit}>
+              <form action="https://formspree.io/f/legal@domiccare.com" method="POST" onSubmit={onSubmit}>
+                <input type="hidden" name="_to" value={EMAIL} />
+                <input type="hidden" name="_subject" value="New Contact Inquiry - DomicCare" />
                 <span className={pillCls}>Send us a message</span>
                 <h3 className="mt-4 font-[family-name:var(--font-heading)] text-2xl font-bold tracking-tight">We’re Here to Help</h3>
                 <p className="mt-2 text-xs text-slate-500">Fill out the form below and we’ll get back to you as soon as possible.</p>
+
+                {errorMessage && (
+                  <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs text-red-700">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-red-500 mt-0.5" aria-hidden="true" />
+                    <span>{errorMessage}</span>
+                  </div>
+                )}
 
                 <div className="mt-7 space-y-5">
                   <div className="grid gap-5 sm:grid-cols-2">

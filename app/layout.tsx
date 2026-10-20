@@ -18,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full scroll-smooth">
+    <html lang="en" className="h-full scroll-smooth" data-scroll-behavior="smooth">
       <head>
         <link rel="icon" href="/domic_care_logo_without_text-removebg-preview.png" type="image/png" sizes="any" />
         <link rel="shortcut icon" href="/domic_care_logo_without_text-removebg-preview.png" type="image/png" />

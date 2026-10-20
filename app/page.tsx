@@ -797,14 +797,14 @@ export default function Home() {
               </p>
               <div className="pt-2">
                 <a
-                  href="tel:+923000000000"
+                  href="tel:+0892760944"
                   className="inline-flex items-center gap-3.5 rounded-2xl border-2 border-blue-400/70 bg-blue-600/30 hover:bg-blue-600/50 backdrop-blur-md px-7 py-4 text-base font-bold text-white shadow-xl transition-all hover:scale-[1.03] active:scale-[0.98]"
                 >
                   <div className="h-10 w-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/40 shrink-0">
                     <Phone className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <span className="block text-base font-extrabold text-white leading-none">+92 300 000 0000</span>
+                    <span className="block text-base font-extrabold text-white leading-none">089 276 0944</span>
                     <span className="block text-xs font-semibold text-blue-200 mt-1">Call Now for Immediate Assistance</span>
                   </div>
                 </a>
@@ -1089,7 +1089,7 @@ export default function Home() {
           SECTION 10 — FOOTER
       ══════════════════════════════════════════════════════════════════════════ */}
       <Footer />
-    
+
     </div>
   );
 }
