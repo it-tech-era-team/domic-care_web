@@ -10,6 +10,9 @@ export const metadata: Metadata = {
     shortcut: "/domic_care_logo_without_text-removebg-preview.png",
     apple: "/domic_care_logo_without_text-removebg-preview.png",
   },
+  verification: {
+    google: "19KRYyqvfNEcQwN3bMB6_ocZstlCHrWnYGusIUcAJkY",
+  },
 };
 
 export default function RootLayout({
@@ -20,6 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full scroll-smooth" data-scroll-behavior="smooth">
       <head>
+        <meta name="google-site-verification" content="19KRYyqvfNEcQwN3bMB6_ocZstlCHrWnYGusIUcAJkY" />
         <link rel="icon" href="/domic_care_logo_without_text-removebg-preview.png" type="image/png" sizes="any" />
         <link rel="shortcut icon" href="/domic_care_logo_without_text-removebg-preview.png" type="image/png" />
         <link rel="apple-touch-icon" href="/domic_care_logo_without_text-removebg-preview.png" />
