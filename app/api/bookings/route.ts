@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json().catch(() => ({}));
     console.log("[POST /api/bookings] Received body:", body);
-    const { caregiverId, serviceName, startDate, endDate, location, notes } = body;
+    const { caregiverId, serviceName, startDate, endDate, location, notes, totalAmount, platformFee, caregiverPayout } = body;
 
     if (!caregiverId || !serviceName || !startDate || !endDate || !location) {
       return NextResponse.json({ error: "Missing fields: " + JSON.stringify(body) }, { status: 400 });
@@ -142,9 +142,13 @@ export async function POST(req: NextRequest) {
     const startMs = new Date(startDate).getTime();
     const endMs = new Date(endDate).getTime();
     const hours = Math.max(1, Math.ceil((endMs - startMs) / (1000 * 60 * 60)));
-    const totalUSD = hours * hourlyRate;
+    const calculatedCaregiverPayout = hours * hourlyRate;
+    const calculatedPlatformFee = Number((calculatedCaregiverPayout * 0.12).toFixed(2));
+    const calculatedTotalUSD = Number((calculatedCaregiverPayout + calculatedPlatformFee).toFixed(2));
 
-    const split = calculateBookingSplit(totalUSD);
+    const finalTotalAmount = Number(totalAmount || calculatedTotalUSD);
+    const finalPlatformFee = Number(platformFee || calculatedPlatformFee);
+    const finalCaregiverPayout = Number(caregiverPayout || calculatedCaregiverPayout);
 
     // 3. Insert booking
     const { data: booking, error: insertError } = await supabase
@@ -157,9 +161,9 @@ export async function POST(req: NextRequest) {
         end_date: endDate,
         location,
         status: "pending",
-        total_amount: split.totalAmountUSD,
-        platform_fee: split.platformFeeUSD,
-        caregiver_payout: split.caregiverPayoutUSD,
+        total_amount: finalTotalAmount,
+        platform_fee: finalPlatformFee,
+        caregiver_payout: finalCaregiverPayout,
         payment_status: "unpaid",
         notes,
       })
@@ -176,7 +180,7 @@ export async function POST(req: NextRequest) {
     await supabase.from("notifications").insert({
       user_id: caregiverId,
       title: "New Booking Request",
-      message: `You received a new request for ${serviceName} ($${split.totalAmountUSD.toFixed(2)}) from ${user.fullName} on ${dateOnly}.`,
+      message: `You received a new request for ${serviceName} ($${finalTotalAmount.toFixed(2)}) from ${user.fullName} on ${dateOnly}.`,
       type: "booking_request",
       is_read: false,
     });

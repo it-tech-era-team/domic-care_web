@@ -66,7 +66,9 @@ export async function POST(req: NextRequest) {
       const end = new Date(booking.end_date).getTime();
       const hours = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60)));
 
-      totalUSD = hours * hourlyRate;
+      const caregiverSubtotal = hours * hourlyRate;
+      const fee = Number((caregiverSubtotal * 0.12).toFixed(2));
+      totalUSD = caregiverSubtotal + fee;
     }
 
     const split = calculateBookingSplit(totalUSD);
