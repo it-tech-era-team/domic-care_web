@@ -20,6 +20,9 @@
     "react-dom": "19.2.4",
     "stripe": "^22.6.2"
   },
+  "overrides": {
+    "minimatch": "^11.0.1"
+  },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^20",
