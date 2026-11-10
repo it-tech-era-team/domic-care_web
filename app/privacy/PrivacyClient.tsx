@@ -29,7 +29,8 @@ import {
   User,
   HeartPulse,
   BadgeCheck,
-  PhoneCall
+  PhoneCall,
+  CreditCard
 } from 'lucide-react';
 
 interface SectionNav {
@@ -187,11 +188,10 @@ export default function PrivacyClient() {
                 </button>
                 <button
                   onClick={() => setShowPlainSummary(!showPlainSummary)}
-                  className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all border cursor-pointer ${
-                    showPlainSummary
+                  className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all border cursor-pointer ${showPlainSummary
                       ? 'bg-blue-600 border-blue-400 text-white shadow-md shadow-blue-600/30'
                       : 'bg-white/10 border-white/20 text-slate-200 hover:bg-white/20'
-                  }`}
+                    }`}
                 >
                   <Sparkles className="h-3.5 w-3.5 text-yellow-300" />
                   {showPlainSummary ? 'Summary Notes: ON' : 'Summary Notes: OFF'}
@@ -204,7 +204,7 @@ export default function PrivacyClient() {
         {/* Content Layout */}
         <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
           <div className="grid grid-cols-1 lg:grid-cols-[18rem_minmax(0,1fr)] gap-8 lg:gap-12">
-            
+
             {/* Sidebar Sticky Nav */}
             <aside className="lg:block">
               <div className="lg:sticky lg:top-24 space-y-5">
@@ -246,11 +246,10 @@ export default function PrivacyClient() {
                         <button
                           key={sec.id}
                           onClick={() => scrollToSection(sec.id)}
-                          className={`w-full text-left flex items-center justify-between rounded-xl px-3 py-2 text-xs font-medium transition-all cursor-pointer ${
-                            isActive
+                          className={`w-full text-left flex items-center justify-between rounded-xl px-3 py-2 text-xs font-medium transition-all cursor-pointer ${isActive
                               ? 'bg-blue-50 text-blue-700 font-semibold border-l-4 border-blue-600'
                               : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                          }`}
+                            }`}
                         >
                           <span className="truncate pr-2">{sec.title}</span>
                           {sec.badge && (
@@ -304,7 +303,7 @@ export default function PrivacyClient() {
 
             {/* Main Content Sections */}
             <div className="space-y-12">
-              
+
               {/* Executive Overview Pill Banner */}
               <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-5 sm:p-6 text-slate-800">
                 <div className="flex items-center gap-2.5 mb-3">
@@ -330,7 +329,7 @@ export default function PrivacyClient() {
               </div>
 
               {/* SECTION 1 */}
-              {matchesSearch('Introduction Agreement domiccare.com consent platform') && (
+              {matchesSearch('Introduction Agreement domiccare.com mobile application app consent platform') && (
                 <article id="section-1" className="scroll-mt-28 space-y-4">
                   <div className="flex items-center gap-2.5">
                     <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100 text-blue-700 font-bold text-xs">
@@ -353,7 +352,7 @@ export default function PrivacyClient() {
 
                   <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 text-sm leading-relaxed text-slate-700">
                     <p>
-                      <strong>DomicCare</strong> (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) respects the privacy of our users (&quot;User&quot; or &quot;you&quot;). This Privacy Policy explains how we collect, store, use, disclose, and safeguard your personal information when you visit <strong className="text-slate-900 font-semibold">domiccare.com</strong> (the &quot;Platform&quot;).
+                      <strong>DomicCare</strong> (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) respects the privacy of our users (&quot;User&quot; or &quot;you&quot;). This Privacy Policy explains how we collect, store, use, disclose, and safeguard your personal information when you use our website <strong className="text-slate-900 font-semibold">domiccare.com</strong> and our mobile applications (collectively, the &quot;Platform&quot; or the &quot;DomicCare App&quot;).
                     </p>
                     <p>
                       Please read this Privacy Policy carefully. By using our Platform, you consent to the data practices described in this policy.
@@ -363,7 +362,7 @@ export default function PrivacyClient() {
               )}
 
               {/* SECTION 2 */}
-              {matchesSearch('Information We Collect direct account care requirement details caregiver credentials technical usage data') && (
+              {matchesSearch('Information We Collect direct account care requirement details caregiver credentials technical usage data device identifiers unique device ID') && (
                 <article id="section-2" className="scroll-mt-28 space-y-4">
                   <div className="flex items-center gap-2.5">
                     <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100 text-blue-700 font-bold text-xs">
@@ -434,6 +433,10 @@ export default function PrivacyClient() {
                       </div>
                       <p className="text-xs text-slate-600 leading-relaxed">
                         IP addresses, operating system, browser configuration, access timestamps, and analytical browsing patterns collected via standard log files and cookies.
+                      </p>
+                      <p className="text-xs text-slate-600 leading-relaxed">
+                        <strong className="text-slate-800">Device &amp; Technical Identifiers: </strong>
+                        When you access the DomicCare Mobile Application or Website, we and our authorized service providers (such as payment processors) may collect device identifiers (including device model, operating system version, unique device identifiers, and network IP addresses) necessary for app functionality, session security, and fraud prevention.
                       </p>
                     </div>
                   </div>
@@ -621,7 +624,7 @@ export default function PrivacyClient() {
               )}
 
               {/* SECTION 5 */}
-              {matchesSearch('Disclosure of Information Service Match Delivery Infrastructure cloud AWS GCP Legal compliance subpoena') && (
+              {matchesSearch('Disclosure of Information Service Match Delivery Infrastructure cloud AWS GCP Stripe payment processor Legal compliance subpoena') && (
                 <article id="section-5" className="scroll-mt-28 space-y-4">
                   <div className="flex items-center gap-2.5">
                     <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100 text-blue-700 font-bold text-xs">
@@ -637,7 +640,7 @@ export default function PrivacyClient() {
                       <Sparkles className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
                       <div>
                         <strong className="font-semibold">Summary Note: </strong>
-                        We do not sell personal data. We disclose data only to matched caregivers to perform care, vetted enterprise cloud partners under strict contracts, or when lawfully required by a court order.
+                        We do not sell personal data. We disclose data only to matched caregivers to perform care, vetted enterprise cloud partners and payment processors under strict contracts, or when lawfully required by a court order.
                       </div>
                     </div>
                   )}
@@ -670,6 +673,16 @@ export default function PrivacyClient() {
                       </div>
                       <p className="text-xs text-slate-600 leading-relaxed">
                         We may disclose data if mandated by law, court subpoena, or investigative agencies in response to lawful inquiries.
+                      </p>
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-2 md:col-span-3">
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="h-4 w-4 text-emerald-600" />
+                        <h3 className="text-sm font-bold text-slate-900">Payment Processors (Stripe)</h3>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed">
+                        We use third-party payment processing services, including Stripe, to process payments securely. We do not store full credit card numbers or sensitive payment credentials on our servers. Stripe collects and processes payment card details, transaction information, and device identifiers in accordance with its privacy policy to complete transactions and prevent fraudulent activity.
                       </p>
                     </div>
                   </div>
