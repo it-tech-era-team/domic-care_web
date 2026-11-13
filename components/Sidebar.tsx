@@ -75,7 +75,7 @@ export default function Sidebar({ role }: SidebarProps) {
   return (
     <>
       {/* Mobile Top Header */}
-      <div className="flex md:hidden items-center justify-between w-full min-w-0 bg-white/95 backdrop-blur-2xl border-b border-slate-200/80 px-4 sm:px-5 py-3 sticky top-0 z-40 shadow-xs text-slate-900 transition-all">
+      <div className="flex md:hidden items-center justify-between w-full min-w-0 bg-white/95 backdrop-blur-2xl border-b border-slate-200/80 px-4 sm:px-5 py-3 sticky top-0 z-40 shadow-xs text-slate-900 transition-all shrink-0">
         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
           <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-2xl bg-gradient-to-tr from-blue-50 to-indigo-50 flex items-center justify-center shadow-inner border border-blue-100/60 p-1 shrink-0">
             <div className="h-full w-full bg-white rounded-[11px] flex items-center justify-center overflow-hidden p-0.5 shadow-[0_2px_8px_-2px_rgba(37,99,235,0.15)]">
@@ -119,7 +119,7 @@ export default function Sidebar({ role }: SidebarProps) {
       <aside
         className={`
           fixed top-0 bottom-0 left-0 z-50 w-64 border-r border-blue-900/30 bg-gradient-to-b from-blue-700 via-blue-800 to-indigo-900 text-white p-5 flex flex-col justify-between
-          transition-transform duration-300 md:translate-x-0 md:sticky md:h-screen md:shrink-0 overflow-hidden shadow-xl
+          transition-transform duration-300 md:translate-x-0 md:static md:h-screen md:shrink-0 overflow-hidden shadow-xl
           ${isOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none md:pointer-events-auto'}
         `}
       >

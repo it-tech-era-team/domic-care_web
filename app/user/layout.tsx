@@ -1,14 +1,17 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import { useCareConnect } from '@/context/useCareConnect';
 import { ShieldAlert } from 'lucide-react';
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { currentUser, authLoading } = useCareConnect();
+
+  const isMessagesPage = pathname?.includes('/messages');
 
   useEffect(() => {
     if (!authLoading && currentUser === null) {
@@ -61,12 +64,12 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen w-full overflow-x-hidden bg-slate-50 text-slate-900">
+    <div className="flex flex-col md:flex-row h-screen h-[100dvh] w-full overflow-hidden bg-slate-50 text-slate-900">
       {/* Sidebar Navigation */}
       <Sidebar role="user" />
 
       {/* Main Content Area */}
-      <main className="flex-1 min-w-0 w-full flex flex-col min-h-screen overflow-x-hidden overflow-y-auto px-4 py-6 md:p-8">
+      <main className={`flex-1 min-w-0 min-h-0 w-full ${isMessagesPage ? 'p-0 md:p-6 lg:p-8 overflow-hidden flex flex-col' : 'overflow-y-auto px-4 py-6 md:p-8'}`}>
         {children}
       </main>
     </div>
