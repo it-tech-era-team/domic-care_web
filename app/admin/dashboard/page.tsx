@@ -62,28 +62,28 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8 max-w-7xl w-full mx-auto animate-fade-in text-slate-900">
+    <div className="space-y-6 sm:space-y-8 max-w-7xl w-full mx-auto animate-fade-in text-slate-900 overflow-x-hidden">
 
       {/* Title & Greeting Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-50/90 via-sky-50/60 to-blue-100/40 border border-blue-100/80 p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xs">
-        <div className="max-w-xl space-y-3 z-10">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-50/90 via-sky-50/60 to-blue-100/40 border border-blue-100/80 p-5 sm:p-8 flex flex-col xl:flex-row items-center justify-between gap-6 shadow-xs">
+        <div className="w-full xl:max-w-xl space-y-3 z-10 min-w-0">
+          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight break-words">
             <span>Welcome back, {currentUser?.fullName?.split(' ')[0] || 'Adnan'}! 👋</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed break-words">
             Here's what's happening with your care marketplace network, provider approvals, and daily operations.
           </p>
-          <div className="flex items-center gap-3 pt-2">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 pt-2">
             <Link
               href="/admin/users"
-              className="inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 hover:bg-blue-50 text-slate-800 px-5 py-2.5 text-xs font-bold shadow-xs transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 hover:bg-blue-50 text-slate-800 px-4 sm:px-5 py-2.5 text-xs font-bold shadow-xs transition-all cursor-pointer"
             >
               <UserCheck className="h-4 w-4 text-blue-600" />
               <span>User Management</span>
             </Link>
             <Link
               href="/admin/caregivers"
-              className="inline-flex items-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 text-xs font-bold shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-5 py-2.5 text-xs font-bold shadow-md shadow-blue-500/20 transition-all cursor-pointer"
             >
               <Stethoscope className="h-4 w-4 text-white" />
               <span>Caregiver Management</span>
@@ -92,8 +92,8 @@ export default function AdminDashboard() {
         </div>
 
         {/* Hero Background Image Cutout */}
-        <div className="relative w-full md:w-80 h-44 sm:h-52 shrink-0 flex items-center justify-center">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-200/50 to-sky-300/40 rounded-3xl transform rotate-2 scale-95" />
+        <div className="relative w-full xl:w-80 h-44 sm:h-52 shrink-0 flex items-center justify-center overflow-hidden rounded-3xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-200/50 to-sky-300/40 rounded-3xl transform rotate-1 scale-95" />
           <img
             src="/hero/admin-hero.jpg"
             alt="Admin Care Marketplace"
@@ -107,7 +107,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* 4 Decent Executive Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
 
         {/* Card 1: TOTAL ACCOUNTS */}
         <div className="bg-white rounded-3xl border border-slate-200 p-6 text-slate-900 shadow-xs hover:border-blue-300 hover:shadow-md transition-all flex flex-col justify-between min-h-[145px]">

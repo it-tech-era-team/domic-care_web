@@ -314,8 +314,8 @@ export default function StripePaymentModal({
   if (!mounted) return null;
 
   const modalContent = (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 sm:p-6 overflow-y-auto animate-fade-in">
-      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xl max-w-md w-full p-6 sm:p-8 space-y-6 relative text-slate-900 my-auto">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-3 sm:p-6 overflow-y-auto animate-fade-in">
+      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xl max-w-md w-full max-h-[90dvh] overflow-y-auto p-5 sm:p-8 space-y-5 sm:space-y-6 relative text-slate-900 my-auto">
         
         {/* Header */}
         <div className="flex justify-between items-start border-b border-slate-100 pb-4">

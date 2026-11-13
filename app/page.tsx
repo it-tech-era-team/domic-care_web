@@ -283,7 +283,7 @@ export default function Home() {
 
   // ─── RENDER ──────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div className="flex flex-col min-h-screen bg-white w-full overflow-x-hidden">
       <Navbar />
 
       {/* ═══════════════════════════════════════════════════════════════════════
@@ -388,7 +388,7 @@ export default function Home() {
                 className="relative animate-float"
                 style={{ filter: 'drop-shadow(0 32px 64px rgba(30,64,175,0.45))' }}
               >
-                <div className="relative w-[340px] sm:w-[420px] h-[460px] sm:h-[520px] rounded-[32px] overflow-hidden border-4 border-white/60 lg:translate-x-6">
+                <div className="relative w-full max-w-[340px] sm:max-w-none sm:w-[420px] h-[440px] sm:h-[520px] rounded-[32px] overflow-hidden border-4 border-white/60 lg:translate-x-6 mx-auto">
                   <img
                     src="/Background images/Caregiver_assisting_elderly_woma%E2%80%A6_202607311845.jpeg"
                     alt="Professional caregiver assisting elderly woman"
@@ -404,34 +404,34 @@ export default function Home() {
                 </div>
 
                 {/* Layer 4A — Glass card: 24/7 Support (top-right) */}
-                <div className="glass-card absolute -top-4 -right-4 sm:-right-8 z-20 rounded-2xl px-4 py-3 shadow-2xl flex items-center gap-3 min-w-[170px]">
-                  <div className="h-10 w-10 rounded-xl bg-blue-600 flex items-center justify-center shrink-0 shadow-md shadow-blue-500/30">
-                    <Phone className="h-5 w-5 text-white" />
+                <div className="glass-card absolute -top-3 right-0 sm:-right-8 z-20 rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 shadow-2xl flex items-center gap-2.5 sm:gap-3 min-w-[140px] sm:min-w-[170px]">
+                  <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-blue-600 flex items-center justify-center shrink-0 shadow-md shadow-blue-500/30">
+                    <Phone className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-white" />
                   </div>
                   <div>
-                    <p className="text-[11px] font-extrabold text-slate-900 leading-none">24/7 Support</p>
-                    <p className="text-[10px] text-slate-500 font-medium mt-0.5">We are here to help</p>
+                    <p className="text-[10px] sm:text-[11px] font-extrabold text-slate-900 leading-none">24/7 Support</p>
+                    <p className="text-[9px] sm:text-[10px] text-slate-500 font-medium mt-0.5">We are here to help</p>
                   </div>
                 </div>
 
                 {/* Layer 4B — Glass card: Rating (bottom-left) */}
-                <div className="glass-card absolute -bottom-4 -left-4 sm:-left-8 z-20 rounded-2xl px-4 py-3 shadow-2xl min-w-[160px]">
+                <div className="glass-card absolute -bottom-3 left-0 sm:-left-8 z-20 rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 shadow-2xl min-w-[140px] sm:min-w-[160px]">
                   <div className="flex items-center gap-2 mb-1">
                     <Star className="h-4 w-4 fill-amber-400 text-amber-400 star-glow" />
-                    <span className="text-sm font-extrabold text-slate-900">4.9 Rating</span>
+                    <span className="text-xs sm:text-sm font-extrabold text-slate-900">4.9 Rating</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <div className="flex -space-x-1">
                       {['#3b82f6', '#10b981', '#f59e0b', '#ec4899'].map((c, i) => (
-                        <span key={i} className="h-5 w-5 rounded-full border-2 border-white" style={{ background: c }} />
+                        <span key={i} className="h-4 w-4 sm:h-5 sm:w-5 rounded-full border-2 border-white" style={{ background: c }} />
                       ))}
                     </div>
-                    <span className="text-[10px] text-slate-500 font-medium ml-1">230+ reviews</span>
+                    <span className="text-[9px] sm:text-[10px] text-slate-500 font-medium ml-1">230+ reviews</span>
                   </div>
                 </div>
 
                 {/* Layer 4C — Glass card: Verified (mid-left) */}
-                <div className="glass-card absolute top-1/2 -translate-y-1/2 -left-6 sm:-left-10 z-20 rounded-2xl px-3 py-2.5 shadow-2xl flex items-center gap-2.5">
+                <div className="hidden sm:flex glass-card absolute top-1/2 -translate-y-1/2 -left-6 sm:-left-10 z-20 rounded-2xl px-3 py-2.5 shadow-2xl items-center gap-2.5">
                   <div className="h-9 w-9 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/30">
                     <ShieldCheck className="h-4.5 w-4.5 text-white" />
                   </div>

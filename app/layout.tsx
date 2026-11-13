@@ -1,6 +1,12 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { CareConnectProvider } from "@/context/useCareConnect";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 export const metadata: Metadata = {
   title: "Domic Care | Family Care & Professional Caregiver Marketplace",
@@ -23,6 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full scroll-smooth" data-scroll-behavior="smooth">
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="google-site-verification" content="19KRYyqvfNEcQwN3bMB6_ocZstlCHrWnYGusIUcAJkY" />
         <link rel="icon" href="/domic_care_logo_without_text-removebg-preview.png" type="image/png" sizes="any" />
         <link rel="shortcut icon" href="/domic_care_logo_without_text-removebg-preview.png" type="image/png" />

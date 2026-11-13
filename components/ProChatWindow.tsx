@@ -317,11 +317,11 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
         {activeConv ? (
           <>
             {/* Active Chat Header */}
-            <div className="bg-white px-6 py-4.5 border-b border-slate-200 flex items-center justify-between shadow-xs z-10 text-slate-900">
-              <div className="flex items-center gap-4">
+            <div className="bg-white px-4 sm:px-6 py-3.5 sm:py-4.5 border-b border-slate-200 flex items-center justify-between shadow-xs z-10 text-slate-900 gap-2 min-w-0">
+              <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                 <button
                   onClick={() => setShowChatMobile(false)}
-                  className="md:hidden p-2 -ml-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  className="md:hidden p-2 -ml-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 cursor-pointer shrink-0"
                 >
                   <ArrowLeft size={18} />
                 </button>
@@ -329,43 +329,43 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
                   <img
                     src={peerAvatar || 'https://api.dicebear.com/7.x/adventurer/svg?seed=User'}
                     alt={peerName}
-                    className="h-14 w-14 rounded-full object-cover border-2 border-slate-200 bg-slate-100 shadow-xs ring-2 ring-emerald-500/30"
+                    className="h-10 w-10 sm:h-14 sm:w-14 rounded-full object-cover border-2 border-slate-200 bg-slate-100 shadow-xs ring-2 ring-emerald-500/30"
                   />
-                  <span className="absolute bottom-0 right-0 h-4 w-4 rounded-full bg-emerald-500 border-2 border-white shadow-xs animate-pulse" />
+                  <span className="absolute bottom-0 right-0 h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-emerald-500 border-2 border-white shadow-xs animate-pulse" />
                 </div>
 
-                <div>
-                  <div className="flex items-center gap-2.5">
-                    <h2 className="font-heading font-black text-lg text-slate-900 leading-tight">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <h2 className="font-heading font-black text-sm sm:text-lg text-slate-900 leading-tight truncate">
                       {peerName}
                     </h2>
-                    <span className="hidden md:inline-flex rounded-full bg-blue-50 border border-blue-200 px-3 py-0.5 text-[10px] font-extrabold text-blue-700 uppercase tracking-wider">
+                    <span className="hidden md:inline-flex rounded-full bg-blue-50 border border-blue-200 px-3 py-0.5 text-[10px] font-extrabold text-blue-700 uppercase tracking-wider shrink-0">
                       {peerRole}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-3 text-xs text-slate-600 mt-1 font-semibold">
-                    <span className="flex items-center gap-1.5 text-emerald-600 font-bold">
+                  <div className="flex items-center gap-2 sm:gap-3 text-xs text-slate-600 mt-0.5 sm:mt-1 font-semibold min-w-0">
+                    <span className="flex items-center gap-1.5 text-emerald-600 font-bold text-[11px] sm:text-xs shrink-0">
                       <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                      Active Care Channel
+                      Active
                     </span>
                     {activeConv.bookingService && (
-                      <span className="hidden sm:inline-flex items-center gap-1 text-white nav-pill-active px-3 py-0.5 rounded-full font-bold text-[10px] shadow-xs">
-                        <Calendar size={11} />
-                        {activeConv.bookingService} • Confirmed
+                      <span className="hidden sm:inline-flex items-center gap-1 text-white nav-pill-active px-3 py-0.5 rounded-full font-bold text-[10px] shadow-xs truncate">
+                        <Calendar size={11} className="shrink-0" />
+                        <span className="truncate">{activeConv.bookingService} • Confirmed</span>
                       </span>
                     )}
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={handleManualSync}
-                  className="p-2.5 rounded-2xl border border-slate-200 bg-slate-100 text-slate-700 hover:text-slate-900 hover:bg-slate-200 transition cursor-pointer shadow-xs"
+                  className="p-2 sm:p-2.5 rounded-2xl border border-slate-200 bg-slate-100 text-slate-700 hover:text-slate-900 hover:bg-slate-200 transition cursor-pointer shadow-xs"
                   title="Sync Messages"
                 >
-                  <RefreshCw size={16} className={isRefreshing ? 'animate-spin text-blue-600' : ''} />
+                  <RefreshCw size={15} className={isRefreshing ? 'animate-spin text-blue-600' : ''} />
                 </button>
               </div>
             </div>
@@ -432,17 +432,17 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
                               <div className="p-1.5 rounded-3xl bg-white border border-slate-200 shadow-xs">
                                 <img
                                   src={
-                                    m.message.startsWith('http') || m.message.startsWith('data:') 
-                                      ? m.message 
+                                    m.message.startsWith('http') || m.message.startsWith('data:')
+                                      ? m.message
                                       : (() => {
-                                          const parts = m.message.split('/');
-                                          if (parts.length >= 2) {
-                                            const bucket = parts[0];
-                                            const filePath = parts.slice(1).join('/');
-                                            return supabase.storage.from(bucket).getPublicUrl(filePath).data.publicUrl;
-                                          }
-                                          return m.message;
-                                        })()
+                                        const parts = m.message.split('/');
+                                        if (parts.length >= 2) {
+                                          const bucket = parts[0];
+                                          const filePath = parts.slice(1).join('/');
+                                          return supabase.storage.from(bucket).getPublicUrl(filePath).data.publicUrl;
+                                        }
+                                        return m.message;
+                                      })()
                                   }
                                   alt="Attachment"
                                   className="max-h-64 w-auto rounded-2xl object-cover"
@@ -455,7 +455,7 @@ export default function ProChatWindow({ role, initialConvId }: ProChatWindowProp
                             ) : (
                               <div
                                 className={`
-                                  p-4 rounded-3xl text-xs sm:text-sm font-semibold leading-relaxed shadow-xs
+                                  p-4 rounded-3xl text-xs sm:text-sm font-semibold leading-relaxed shadow-xs break-words
                                   ${isMe
                                     ? 'bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white rounded-br-xs'
                                     : 'bg-white text-slate-900 border border-slate-200 rounded-bl-xs'}

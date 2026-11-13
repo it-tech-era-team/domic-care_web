@@ -92,7 +92,7 @@ const VALUES = [
 export default function AboutPage() {
   return (
     <main
-      className={`${heading.variable} ${sans.variable} min-h-screen bg-white text-[#0B2A5B] selection:bg-[#1677FF] selection:text-white`}
+      className={`${heading.variable} ${sans.variable} min-h-screen bg-white text-[#0B2A5B] selection:bg-[#1677FF] selection:text-white w-full overflow-x-hidden`}
       style={{ fontFamily: 'var(--font-sans), system-ui, sans-serif' }}
     >
       <style>{MOTION_CSS}</style>
@@ -167,28 +167,28 @@ export default function AboutPage() {
               />
             </div>
 
-            <div className="a-pop absolute -bottom-6 left-4 sm:-left-6" style={d(1000)}>
-              <div className="a-float flex items-center gap-3 rounded-2xl bg-white p-4 shadow-[0_16px_40px_rgba(11,42,91,0.15)]">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#E4F0FF] text-[#1677FF]">
-                  <ShieldCheck className="h-5 w-5" aria-hidden="true" />
+            <div className="a-pop absolute -bottom-4 left-2 sm:-bottom-6 sm:-left-6" style={d(1000)}>
+              <div className="a-float flex items-center gap-2.5 sm:gap-3 rounded-2xl bg-white p-3 sm:p-4 shadow-[0_16px_40px_rgba(11,42,91,0.15)]">
+                <span className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-[#E4F0FF] text-[#1677FF] shrink-0">
+                  <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
                 </span>
-                <p className="text-sm font-bold leading-tight">
+                <p className="text-xs sm:text-sm font-bold leading-tight">
                   Every caregiver
                   <br />
-                  <span className="font-medium text-slate-500">is background-checked</span>
+                  <span className="font-medium text-slate-500 text-[10px] sm:text-xs">is background-checked</span>
                 </p>
               </div>
             </div>
 
-            <div className="a-pop absolute -top-5 right-4 sm:-right-4" style={d(1200)}>
-              <div className="a-float-slow rounded-2xl bg-white px-4 py-3 shadow-[0_16px_40px_rgba(11,42,91,0.15)]">
+            <div className="a-pop absolute -top-4 right-2 sm:-top-5 sm:-right-4" style={d(1200)}>
+              <div className="a-float-slow rounded-2xl bg-white px-3 sm:px-4 py-2 sm:py-3 shadow-[0_16px_40px_rgba(11,42,91,0.15)]">
                 <div className="flex gap-0.5 text-[#FFB020]" aria-hidden="true">
                   {[0, 1, 2, 3, 4].map((n) => (
-                    <Star key={n} className="h-3.5 w-3.5 fill-current" />
+                    <Star key={n} className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-current" />
                   ))}
                 </div>
-                <p className="mt-1 text-sm font-bold">
-                  4.9 <span className="font-medium text-slate-500">family rating</span>
+                <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm font-bold">
+                  4.9 <span className="font-medium text-slate-500 text-[10px] sm:text-xs">family rating</span>
                 </p>
               </div>
             </div>

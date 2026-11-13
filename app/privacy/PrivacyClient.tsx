@@ -109,7 +109,7 @@ export default function PrivacyClient() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-blue-100 selection:text-blue-900">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-blue-100 selection:text-blue-900 w-full overflow-x-hidden">
       {/* Scroll Progress Bar */}
       <div
         className="fixed top-0 left-0 h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-400 z-50 transition-all duration-150"

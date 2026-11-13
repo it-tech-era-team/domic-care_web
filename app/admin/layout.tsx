@@ -61,12 +61,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 text-slate-900">
+    <div className="flex flex-col md:flex-row min-h-screen w-full overflow-x-hidden bg-slate-50 text-slate-900">
       {/* Sidebar Navigation */}
       <Sidebar role="admin" />
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-h-screen overflow-y-auto px-4 py-6 md:p-8">
+      <main className="flex-1 min-w-0 w-full flex flex-col min-h-screen overflow-x-hidden overflow-y-auto px-4 py-6 md:p-8">
         {children}
       </main>
     </div>

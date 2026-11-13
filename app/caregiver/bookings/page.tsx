@@ -148,7 +148,7 @@ export default function CaregiverBookings() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   {/* Status Badge */}
                   <span className={`
                     inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-bold border capitalize

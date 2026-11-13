@@ -162,41 +162,41 @@ export default function UserDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f7fc] text-slate-900 pb-12 animate-fade-in">
-      <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 space-y-6">
+    <div className="min-h-screen bg-[#f4f7fc] text-slate-900 pb-12 animate-fade-in w-full overflow-x-hidden">
+      <div className="mx-auto max-w-[1440px] px-0 sm:px-2 md:px-4 space-y-6">
         
         {/* Pending Payment Notification Banner */}
         {pendingPaymentBookings.length > 0 && (
-          <div className="rounded-3xl bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-blue-500/10 border-2 border-amber-300/80 p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-amber-500/20">
-                <AlertTriangle className="h-6 w-6" />
+          <div className="rounded-3xl bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-blue-500/10 border-2 border-amber-300/80 p-4 sm:p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in">
+            <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0 flex-1">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-amber-500/20">
+                <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-slate-900 text-sm sm:text-base">Payment Required for Care Session</span>
-                  <span className="bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full">
+              <div className="space-y-1 min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-extrabold text-slate-900 text-sm sm:text-base break-words">Payment Required for Care Session</span>
+                  <span className="bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full shrink-0">
                     Action Needed
                   </span>
                 </div>
-                <p className="text-xs text-slate-600 font-medium">
+                <p className="text-xs text-slate-600 font-medium break-words">
                   Caregiver <span className="font-bold text-slate-900">{pendingPaymentBookings[0].caregiverFullName}</span> has accepted your request. Complete payment of ${(pendingPaymentBookings[0].totalAmount || 0).toFixed(2)} USD to confirm or cancel if plans changed.
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2.5 self-end sm:self-center shrink-0">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5 w-full sm:w-auto shrink-0 pt-1 sm:pt-0">
               <button
                 onClick={() => handleCancelBooking(pendingPaymentBookings[0].id)}
                 disabled={isCancelling}
-                className="px-4 py-2.5 rounded-xl bg-white hover:bg-rose-50 text-rose-700 border border-rose-200 font-bold text-xs transition cursor-pointer disabled:opacity-60"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white hover:bg-rose-50 text-rose-700 border border-rose-200 font-bold text-xs transition cursor-pointer disabled:opacity-60 text-center"
               >
                 {isCancelling ? 'Cancelling...' : 'Cancel Booking'}
               </button>
               <button
                 onClick={() => handleOpenPayModal(pendingPaymentBookings[0])}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs shadow-md shadow-blue-500/20 transition cursor-pointer flex items-center gap-1.5"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs shadow-md shadow-blue-500/20 transition cursor-pointer flex items-center justify-center gap-1.5"
               >
-                <CreditCard className="h-4 w-4" />
+                <CreditCard className="h-4 w-4 shrink-0" />
                 <span>Pay Now (${(pendingPaymentBookings[0].totalAmount || 0).toFixed(2)})</span>
               </button>
             </div>
@@ -204,18 +204,18 @@ export default function UserDashboard() {
         )}
 
         {/* Greeting Banner with Background Image Cutout */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-50/90 via-sky-50/60 to-blue-100/40 border border-blue-100/80 p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xs">
-          <div className="max-w-xl space-y-3 z-10">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-50/90 via-sky-50/60 to-blue-100/40 border border-blue-100/80 p-5 sm:p-8 flex flex-col xl:flex-row items-center justify-between gap-6 shadow-xs">
+          <div className="w-full xl:max-w-xl space-y-3 z-10 min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight break-words">
               <span>{getGreeting()}, {currentUser?.fullName?.split(' ')[0] || 'aqib'} 👋</span>
             </h1>
-            <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed break-words">
               Here's a quick overview of your family care coordination, upcoming caregiver sessions, and direct communications.
             </p>
             <div className="pt-2">
               <Link
                 href="/user/search-caregivers"
-                className="inline-flex items-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 text-xs font-bold shadow-lg shadow-blue-500/25 transition-all hover:scale-[1.02] cursor-pointer"
+                className="inline-flex items-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white px-5 sm:px-6 py-2.5 sm:py-3 text-xs font-bold shadow-lg shadow-blue-500/25 transition-all hover:scale-[1.02] cursor-pointer"
               >
                 <span>Find Caregivers</span>
                 <ArrowRight className="h-4 w-4" />
@@ -224,8 +224,8 @@ export default function UserDashboard() {
           </div>
 
           {/* Banner Hero Image */}
-          <div className="relative w-full md:w-80 h-44 sm:h-52 shrink-0 flex items-center justify-center">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-200/50 to-sky-300/40 rounded-3xl transform rotate-2 scale-95" />
+          <div className="relative w-full xl:w-80 h-44 sm:h-52 shrink-0 flex items-center justify-center overflow-hidden rounded-3xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-200/50 to-sky-300/40 rounded-3xl transform rotate-1 scale-95" />
             <img
               src="/hero/user-hero.jpg"
               alt="Caregiver Assisting Senior"
@@ -238,8 +238,8 @@ export default function UserDashboard() {
           </div>
         </div>
 
-        {/* 4 Executive Cards Matching Screenshot */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        {/* 4 Executive Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
           
           {/* Card 1: Confirmed Appointments */}
           <div className="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between min-h-[140px] relative overflow-hidden group">
@@ -253,9 +253,9 @@ export default function UserDashboard() {
             </div>
             <div className="relative z-10 mt-4">
               <span className="text-xs font-bold text-slate-600 block mb-1">Confirmed Appointments</span>
-              <div className="flex items-baseline justify-between">
-                <span className="text-3xl font-black text-slate-900 tracking-tight">{upcomingCare.length || 1}</span>
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+              <div className="flex items-baseline justify-between flex-wrap gap-1.5">
+                <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{upcomingCare.length || 1}</span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 shrink-0">
                   <span>+0 this week</span>
                 </span>
               </div>
@@ -274,9 +274,9 @@ export default function UserDashboard() {
             </div>
             <div className="relative z-10 mt-4">
               <span className="text-xs font-bold text-slate-600 block mb-1">Pending Approval Requests</span>
-              <div className="flex items-baseline justify-between">
-                <span className="text-3xl font-black text-slate-900 tracking-tight">{activeRequests.length}</span>
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+              <div className="flex items-baseline justify-between flex-wrap gap-1.5">
+                <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{activeRequests.length}</span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 shrink-0">
                   <span>No action required</span>
                 </span>
               </div>
@@ -295,9 +295,9 @@ export default function UserDashboard() {
             </div>
             <div className="relative z-10 mt-4">
               <span className="text-xs font-bold text-slate-600 block mb-1">Audited Network Caregivers</span>
-              <div className="flex items-baseline justify-between">
-                <span className="text-3xl font-black text-slate-900 tracking-tight">100%</span>
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+              <div className="flex items-baseline justify-between flex-wrap gap-1.5">
+                <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">100%</span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 shrink-0">
                   <span>All verified</span>
                 </span>
               </div>
@@ -316,9 +316,9 @@ export default function UserDashboard() {
             </div>
             <div className="relative z-10 mt-4">
               <span className="text-xs font-bold text-slate-600 block mb-1">Active Messaging Channels</span>
-              <div className="flex items-baseline justify-between">
-                <span className="text-3xl font-black text-slate-900 tracking-tight">{conversations.length || 1}</span>
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-purple-600 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
+              <div className="flex items-baseline justify-between flex-wrap gap-1.5">
+                <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{conversations.length || 1}</span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-purple-600 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200 shrink-0">
                   <span>+0 this week</span>
                 </span>
               </div>
@@ -384,18 +384,18 @@ export default function UserDashboard() {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-slate-600 font-medium bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-blue-600" />
-                      <span>{formatBookingDate(b.startDate)}</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2 text-xs text-slate-600 font-medium bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Calendar className="h-4 w-4 text-blue-600 shrink-0" />
+                      <span className="truncate">{formatBookingDate(b.startDate)}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-blue-600" />
-                      <span>{formatBookingTime(b.startDate)} - {formatBookingTime(b.endDate)}</span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Clock className="h-4 w-4 text-blue-600 shrink-0" />
+                      <span className="truncate">{formatBookingTime(b.startDate)} - {formatBookingTime(b.endDate)}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-blue-600" />
-                      <span>Home Visit</span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <MapPin className="h-4 w-4 text-blue-600 shrink-0" />
+                      <span className="truncate">Home Visit</span>
                     </div>
                   </div>
 
@@ -409,11 +409,11 @@ export default function UserDashboard() {
                           router.push('/user/messages');
                         }
                       }}
-                      className="rounded-full bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 text-xs font-bold shadow-md shadow-blue-500/20 cursor-pointer flex items-center gap-2 transition"
+                      className="w-full sm:w-auto justify-center rounded-full bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 text-xs font-bold shadow-md shadow-blue-500/20 cursor-pointer flex items-center gap-2 transition"
                     >
-                      <MessageSquare className="h-4 w-4" />
+                      <MessageSquare className="h-4 w-4 shrink-0" />
                       <span>Chat with Caregiver</span>
-                      <ArrowRight className="h-3.5 w-3.5" />
+                      <ArrowRight className="h-3.5 w-3.5 shrink-0" />
                     </button>
                   </div>
                 </div>
@@ -484,14 +484,14 @@ export default function UserDashboard() {
               <div className="space-y-3">
                 
                 {/* Item 1: Booking ACCEPTED */}
-                <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-100 flex items-start justify-between gap-3 hover:bg-blue-50/50 transition cursor-pointer">
-                  <div className="flex items-start gap-3">
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50/80 border border-slate-100 flex items-start justify-between gap-3 hover:bg-blue-50/50 transition cursor-pointer">
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
                     <div className="h-8 w-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 mt-0.5">
                       <Check className="h-4 w-4 stroke-[3]" />
                     </div>
-                    <div className="space-y-1">
-                      <span className="block font-black text-slate-900 text-xs uppercase tracking-wider">Booking ACCEPTED</span>
-                      <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
+                    <div className="space-y-1 min-w-0 flex-1">
+                      <span className="block font-black text-slate-900 text-xs uppercase tracking-wider truncate">Booking ACCEPTED</span>
+                      <p className="text-[11px] text-slate-600 leading-relaxed font-medium break-words">
                         fahad has marked your Elder care booking for 2028-08-31 as accepted.
                       </p>
                     </div>
@@ -504,14 +504,14 @@ export default function UserDashboard() {
                 </div>
 
                 {/* Item 2: New Chat Message */}
-                <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-100 flex items-start justify-between gap-3 hover:bg-blue-50/50 transition cursor-pointer">
-                  <div className="flex items-start gap-3">
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50/80 border border-slate-100 flex items-start justify-between gap-3 hover:bg-blue-50/50 transition cursor-pointer">
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
                     <div className="h-8 w-8 rounded-full bg-purple-500 text-white flex items-center justify-center shrink-0 mt-0.5">
                       <MessageSquare className="h-4 w-4" />
                     </div>
-                    <div className="space-y-1">
-                      <span className="block font-black text-slate-900 text-xs uppercase tracking-wider">New Chat Message</span>
-                      <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
+                    <div className="space-y-1 min-w-0 flex-1">
+                      <span className="block font-black text-slate-900 text-xs uppercase tracking-wider truncate">New Chat Message</span>
+                      <p className="text-[11px] text-slate-600 leading-relaxed font-medium break-words">
                         You received a message from Fahad: "I'm on my way!"
                       </p>
                     </div>
@@ -524,14 +524,14 @@ export default function UserDashboard() {
                 </div>
 
                 {/* Item 3: Booking COMPLETED */}
-                <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-100 flex items-start justify-between gap-3 hover:bg-blue-50/50 transition cursor-pointer">
-                  <div className="flex items-start gap-3">
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50/80 border border-slate-100 flex items-start justify-between gap-3 hover:bg-blue-50/50 transition cursor-pointer">
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
                     <div className="h-8 w-8 rounded-full bg-blue-500 text-white flex items-center justify-center shrink-0 mt-0.5">
                       <Clock className="h-4 w-4" />
                     </div>
-                    <div className="space-y-1">
-                      <span className="block font-black text-slate-900 text-xs uppercase tracking-wider">Booking COMPLETED</span>
-                      <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
+                    <div className="space-y-1 min-w-0 flex-1">
+                      <span className="block font-black text-slate-900 text-xs uppercase tracking-wider truncate">Booking COMPLETED</span>
+                      <p className="text-[11px] text-slate-600 leading-relaxed font-medium break-words">
                         fahad has marked your Elder care booking for 2026-09-05 as completed.
                       </p>
                     </div>
@@ -544,14 +544,14 @@ export default function UserDashboard() {
                 </div>
 
                 {/* Item 4: Booking COMPLETED */}
-                <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-100 flex items-start justify-between gap-3 hover:bg-blue-50/50 transition cursor-pointer">
-                  <div className="flex items-start gap-3">
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50/80 border border-slate-100 flex items-start justify-between gap-3 hover:bg-blue-50/50 transition cursor-pointer">
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
                     <div className="h-8 w-8 rounded-full bg-blue-500 text-white flex items-center justify-center shrink-0 mt-0.5">
                       <Clock className="h-4 w-4" />
                     </div>
-                    <div className="space-y-1">
-                      <span className="block font-black text-slate-900 text-xs uppercase tracking-wider">Booking COMPLETED</span>
-                      <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
+                    <div className="space-y-1 min-w-0 flex-1">
+                      <span className="block font-black text-slate-900 text-xs uppercase tracking-wider truncate">Booking COMPLETED</span>
+                      <p className="text-[11px] text-slate-600 leading-relaxed font-medium break-words">
                         fahad has marked your Elder care booking for 2026-08-29 as completed.
                       </p>
                     </div>
@@ -573,8 +573,8 @@ export default function UserDashboard() {
 
       {/* AUTOMATIC POP-UP MODAL FOR PENDING PAYMENTS */}
       {mounted && pendingPopupBooking && createPortal(
-        <div className="fixed inset-0 z-[99998] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 sm:p-6 animate-fade-in">
-          <div className="bg-white rounded-3xl border border-amber-200/80 shadow-2xl max-w-md w-full p-6 sm:p-8 space-y-6 relative text-slate-900 my-auto overflow-hidden">
+        <div className="fixed inset-0 z-[99998] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-3 sm:p-6 overflow-y-auto animate-fade-in">
+          <div className="bg-white rounded-3xl border border-amber-200/80 shadow-2xl max-w-md w-full max-h-[90dvh] overflow-y-auto p-5 sm:p-8 space-y-5 sm:space-y-6 relative text-slate-900 my-auto">
             {/* Top Bar Accent */}
             <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-amber-500 via-indigo-600 to-blue-600" />
             

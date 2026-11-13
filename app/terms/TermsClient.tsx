@@ -104,7 +104,7 @@ export default function TermsClient() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-blue-100 selection:text-blue-900">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-blue-100 selection:text-blue-900 w-full overflow-x-hidden">
       {/* Scroll Progress Bar */}
       <div
         className="fixed top-0 left-0 h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-400 z-50 transition-all duration-150"
@@ -175,11 +175,10 @@ export default function TermsClient() {
                 </button>
                 <button
                   onClick={() => setShowPlainSummary(!showPlainSummary)}
-                  className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all border cursor-pointer ${
-                    showPlainSummary
+                  className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all border cursor-pointer ${showPlainSummary
                       ? 'bg-blue-600 border-blue-400 text-white shadow-md shadow-blue-600/30'
                       : 'bg-white/10 border-white/20 text-slate-200 hover:bg-white/20'
-                  }`}
+                    }`}
                 >
                   <Sparkles className="h-3.5 w-3.5 text-yellow-300" />
                   {showPlainSummary ? 'Easy Explanations: ON' : 'Easy Explanations: OFF'}
@@ -192,7 +191,7 @@ export default function TermsClient() {
         {/* Content Layout */}
         <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
           <div className="grid grid-cols-1 lg:grid-cols-[18rem_minmax(0,1fr)] gap-8 lg:gap-12">
-            
+
             {/* Sidebar Sticky Nav */}
             <aside className="lg:block">
               <div className="lg:sticky lg:top-24 space-y-5">
@@ -232,20 +231,18 @@ export default function TermsClient() {
                         <li key={sec.id}>
                           <button
                             onClick={() => scrollToSection(sec.id)}
-                            className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-between gap-2 group cursor-pointer ${
-                              isActive
+                            className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-between gap-2 group cursor-pointer ${isActive
                                 ? 'bg-blue-50 text-blue-700 shadow-sm font-bold'
                                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                            }`}
+                              }`}
                           >
                             <span className="truncate">{sec.title}</span>
                             {sec.badge && (
                               <span
-                                className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold tracking-tight shrink-0 ${
-                                  isActive
+                                className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold tracking-tight shrink-0 ${isActive
                                     ? 'bg-blue-600 text-white'
                                     : 'bg-blue-100 text-blue-700 group-hover:bg-blue-200'
-                                }`}
+                                  }`}
                               >
                                 {sec.badge}
                               </span>
@@ -279,13 +276,12 @@ export default function TermsClient() {
 
             {/* Main Terms Content */}
             <div className="min-w-0 space-y-12">
-              
+
               {/* Section 1 */}
               <article
                 id="section-1"
-                className={`scroll-mt-24 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm transition-all duration-200 ${
-                  matchesSearch('agreement binding platform entity') ? 'block' : 'opacity-40'
-                }`}
+                className={`scroll-mt-24 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm transition-all duration-200 ${matchesSearch('agreement binding platform entity') ? 'block' : 'opacity-40'
+                  }`}
               >
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
                   <div className="flex items-center gap-3">
@@ -311,9 +307,8 @@ export default function TermsClient() {
               {/* Section 2 */}
               <article
                 id="section-2"
-                className={`scroll-mt-24 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm transition-all duration-200 ${
-                  matchesSearch('marketplace independent contractor listings') ? 'block' : 'opacity-40'
-                }`}
+                className={`scroll-mt-24 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm transition-all duration-200 ${matchesSearch('marketplace independent contractor listings') ? 'block' : 'opacity-40'
+                  }`}
               >
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
                   <div className="flex items-center gap-3">
@@ -392,9 +387,8 @@ export default function TermsClient() {
               {/* Section 3: Medical Emergency Disclaimer */}
               <article
                 id="section-3"
-                className={`scroll-mt-24 rounded-3xl border-2 border-rose-200 bg-rose-50/60 p-6 sm:p-8 shadow-sm transition-all duration-200 ${
-                  matchesSearch('medical emergency 911 112 999 hospital trauma') ? 'block' : 'opacity-40'
-                }`}
+                className={`scroll-mt-24 rounded-3xl border-2 border-rose-200 bg-rose-50/60 p-6 sm:p-8 shadow-sm transition-all duration-200 ${matchesSearch('medical emergency 911 112 999 hospital trauma') ? 'block' : 'opacity-40'
+                  }`}
               >
                 <div className="flex items-center gap-3 border-b border-rose-200/80 pb-4 mb-5">
                   <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-600 text-white font-bold">
@@ -446,9 +440,8 @@ export default function TermsClient() {
               {/* Section 4: Software Developers & Safe Harbor (UPDATED) */}
               <article
                 id="section-4"
-                className={`scroll-mt-24 rounded-3xl border-2 border-blue-200 bg-white p-6 sm:p-8 shadow-md shadow-blue-500/5 transition-all duration-200 ${
-                  matchesSearch('technical developers safe harbor independent contractor indemnity circumvention signed agreement') ? 'block' : 'opacity-40'
-                }`}
+                className={`scroll-mt-24 rounded-3xl border-2 border-blue-200 bg-white p-6 sm:p-8 shadow-md shadow-blue-500/5 transition-all duration-200 ${matchesSearch('technical developers safe harbor independent contractor indemnity circumvention signed agreement') ? 'block' : 'opacity-40'
+                  }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-5 mb-6">
                   <div className="flex items-center gap-3">
@@ -672,9 +665,8 @@ export default function TermsClient() {
               {/* Section 5: Account Registration, Security, and Lifecycle (UPDATED) */}
               <article
                 id="section-5"
-                className={`scroll-mt-24 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm transition-all duration-200 ${
-                  matchesSearch('account security incident reporting deletion retention access patient data') ? 'block' : 'opacity-40'
-                }`}
+                className={`scroll-mt-24 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm transition-all duration-200 ${matchesSearch('account security incident reporting deletion retention access patient data') ? 'block' : 'opacity-40'
+                  }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4 mb-6">
                   <div className="flex items-center gap-3">
@@ -812,9 +804,8 @@ export default function TermsClient() {
               {/* Section 6: User Verification & Disclaimer of Caregiver Guarantees */}
               <article
                 id="section-6"
-                className={`scroll-mt-24 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm transition-all duration-200 ${
-                  matchesSearch('verification background check screening diligence warranty') ? 'block' : 'opacity-40'
-                }`}
+                className={`scroll-mt-24 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm transition-all duration-200 ${matchesSearch('verification background check screening diligence warranty') ? 'block' : 'opacity-40'
+                  }`}
               >
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
                   <div className="flex items-center gap-3">
@@ -871,9 +862,8 @@ export default function TermsClient() {
               {/* Section 7: Limitation of Liability (UPDATED) */}
               <article
                 id="section-7"
-                className={`scroll-mt-24 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm transition-all duration-200 ${
-                  matchesSearch('limitation liability cap damages indirect statutory') ? 'block' : 'opacity-40'
-                }`}
+                className={`scroll-mt-24 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm transition-all duration-200 ${matchesSearch('limitation liability cap damages indirect statutory') ? 'block' : 'opacity-40'
+                  }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4 mb-6">
                   <div className="flex items-center gap-3">
@@ -948,9 +938,8 @@ export default function TermsClient() {
               {/* Section 8: Governing Law and Dispute Resolution */}
               <article
                 id="section-8"
-                className={`scroll-mt-24 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm transition-all duration-200 ${
-                  matchesSearch('governing law dispute pleven bulgaria resolution consumer venue') ? 'block' : 'opacity-40'
-                }`}
+                className={`scroll-mt-24 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm transition-all duration-200 ${matchesSearch('governing law dispute pleven bulgaria resolution consumer venue') ? 'block' : 'opacity-40'
+                  }`}
               >
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
                   <div className="flex items-center gap-3">

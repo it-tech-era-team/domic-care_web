@@ -40,7 +40,7 @@ export default function Login() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen relative overflow-hidden bg-slate-950 font-sans">
+    <div className="flex flex-col min-h-screen relative overflow-hidden bg-slate-950 font-sans w-full overflow-x-hidden">
       <Navbar />
 
       {/* Main Hero Section with Reference Image Background & White Form */}

@@ -278,7 +278,7 @@ export default function CaregiverProfilePage() {
       </div>
 
       {/* Main Mode Tabs: Account Settings vs Professional Application */}
-      <div className="bg-slate-200/80 p-1.5 rounded-2xl flex gap-2 font-bold text-xs shadow-xs">
+      <div className="bg-slate-200/80 p-1.5 rounded-2xl flex flex-col sm:flex-row gap-1.5 sm:gap-2 font-bold text-xs shadow-xs">
         <button
           type="button"
           onClick={() => setActiveMainTab('account')}

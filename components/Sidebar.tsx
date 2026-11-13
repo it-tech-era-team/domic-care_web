@@ -75,9 +75,9 @@ export default function Sidebar({ role }: SidebarProps) {
   return (
     <>
       {/* Mobile Top Header */}
-      <div className="flex md:hidden items-center justify-between bg-white/80 backdrop-blur-2xl border-b border-slate-200/80 px-5 py-3 sticky top-0 z-40 shadow-sm text-slate-900 transition-all">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-gradient-to-tr from-blue-50 to-indigo-50 flex items-center justify-center shadow-inner border border-blue-100/60 p-1">
+      <div className="flex md:hidden items-center justify-between w-full min-w-0 bg-white/95 backdrop-blur-2xl border-b border-slate-200/80 px-4 sm:px-5 py-3 sticky top-0 z-40 shadow-xs text-slate-900 transition-all">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+          <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-2xl bg-gradient-to-tr from-blue-50 to-indigo-50 flex items-center justify-center shadow-inner border border-blue-100/60 p-1 shrink-0">
             <div className="h-full w-full bg-white rounded-[11px] flex items-center justify-center overflow-hidden p-0.5 shadow-[0_2px_8px_-2px_rgba(37,99,235,0.15)]">
               <img
                 src="/domic_care_logo_without_text-removebg-preview.png"
@@ -86,28 +86,29 @@ export default function Sidebar({ role }: SidebarProps) {
               />
             </div>
           </div>
-          <div className="flex flex-col justify-center">
-            <span className="font-heading text-[17px] font-black text-slate-900 leading-tight tracking-tight">DomicCare</span>
-            <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest leading-none mt-0.5">
+          <div className="flex flex-col justify-center min-w-0 truncate">
+            <span className="font-heading text-base sm:text-[17px] font-black text-slate-900 leading-tight tracking-tight truncate">DomicCare</span>
+            <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest leading-none mt-0.5 truncate">
               {role === 'user' ? 'Family Portal' : role === 'caregiver' ? 'Caregiver Portal' : 'Admin Panel'}
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <button
             onClick={() => setShowNotifPopover(!showNotifPopover)}
-            className="relative p-2.5 text-slate-500 hover:bg-blue-50 hover:text-blue-600 rounded-2xl cursor-pointer transition-colors"
+            className="relative p-2 text-slate-500 hover:bg-blue-50 hover:text-blue-600 rounded-xl cursor-pointer transition-colors"
             title="Notifications"
           >
-            <Bell className="h-[22px] w-[22px] stroke-[2.2]" />
+            <Bell className="h-5 w-5 stroke-[2.2]" />
             {unreadNotifsCount > 0 && (
-              <span className="absolute top-2 right-2.5 h-2.5 w-2.5 bg-rose-500 border-[2px] border-white rounded-full animate-pulse shadow-sm" />
+              <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 bg-rose-500 border-2 border-white rounded-full animate-pulse shadow-xs" />
             )}
           </button>
 
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="p-2 text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:text-blue-600 rounded-xl cursor-pointer transition-all shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] active:scale-95"
+            aria-label="Toggle menu"
           >
             {isOpen ? <X className="h-5 w-5 stroke-[2.5]" /> : <Menu className="h-5 w-5 stroke-[2.5]" />}
           </button>
@@ -117,9 +118,9 @@ export default function Sidebar({ role }: SidebarProps) {
       {/* Sidebar Container */}
       <aside
         className={`
-          fixed top-0 bottom-0 left-0 z-40 w-64 border-r border-blue-900/30 bg-gradient-to-b from-blue-700 via-blue-800 to-indigo-900 text-white p-5 flex flex-col justify-between
-          transition-transform duration-300 md:translate-x-0 md:sticky md:h-screen overflow-hidden shadow-xl
-          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          fixed top-0 bottom-0 left-0 z-50 w-64 border-r border-blue-900/30 bg-gradient-to-b from-blue-700 via-blue-800 to-indigo-900 text-white p-5 flex flex-col justify-between
+          transition-transform duration-300 md:translate-x-0 md:sticky md:h-screen md:shrink-0 overflow-hidden shadow-xl
+          ${isOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none md:pointer-events-auto'}
         `}
       >
         <div className="space-y-6 relative z-10">
@@ -254,8 +255,8 @@ export default function Sidebar({ role }: SidebarProps) {
 
       {/* Global Notifications Popover overlay */}
       {showNotifPopover && (
-        <div className="fixed inset-0 z-50 flex items-start justify-end md:justify-start p-4 md:p-6 pointer-events-none">
-          <div className="w-80 md:w-96 rounded-3xl bg-white border border-slate-200 p-5 shadow-2xl space-y-4 pointer-events-auto animate-fade-in mt-12 md:mt-2 md:ml-64 text-slate-900">
+        <div className="fixed inset-0 z-50 flex items-start justify-end md:justify-start p-3 sm:p-4 md:p-6 pointer-events-none">
+          <div className="w-full max-w-[calc(100vw-1.5rem)] sm:w-80 md:w-96 rounded-3xl bg-white border border-slate-200 p-4 sm:p-5 shadow-2xl space-y-4 pointer-events-auto animate-fade-in mt-14 md:mt-2 md:ml-64 text-slate-900">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <Bell className="h-4.5 w-4.5 text-blue-600" />

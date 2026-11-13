@@ -76,7 +76,7 @@ export default function ContactPage() {
 
   return (
     <main
-      className={`${heading.variable} ${sans.variable} ${script.variable} min-h-screen bg-white text-[#0B2A5B]`}
+      className={`${heading.variable} ${sans.variable} ${script.variable} min-h-screen bg-white text-[#0B2A5B] w-full overflow-x-hidden`}
       style={{ fontFamily: 'var(--font-sans), system-ui, sans-serif' }}
     >
       <Navbar />
@@ -93,22 +93,22 @@ export default function ContactPage() {
           <img src="/Background images/contact-img.png" alt="" className="h-full w-full object-cover object-top" />
         </div>
 
-        <div className="relative mx-auto max-w-6xl px-6">
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
           <div className="max-w-md">
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#1677FF]">Contact Us</p>
-            <h1 className="mt-5 font-[family-name:var(--font-heading)] text-5xl font-extrabold leading-[1.1] tracking-tight lg:text-6xl">
+            <h1 className="mt-5 font-[family-name:var(--font-heading)] text-3xl sm:text-5xl font-extrabold leading-[1.1] tracking-tight lg:text-6xl break-words">
               We’re Here to
               <br />
               <span className="text-[#1677FF]">Help You</span>
             </h1>
-            <p className="mt-6 text-[15px] leading-relaxed text-slate-600">
+            <p className="mt-4 sm:mt-6 text-xs sm:text-[15px] leading-relaxed text-slate-600 break-words">
               Have a question, need support, or want to learn more about our services? Our team is just a message or call away. We’re happy to assist you.
             </p>
-            <div className="mt-8 flex gap-8">
+            <div className="mt-6 sm:mt-8 flex flex-wrap gap-4 sm:gap-8">
               {FEATURES.map(({ icon: Icon, text }) => (
-                <div key={text[0]} className="flex items-center gap-2.5">
-                  <Icon className="h-6 w-6 text-[#1677FF]" strokeWidth={1.75} aria-hidden="true" />
-                  <span className="text-[11px] font-medium leading-tight text-slate-600">
+                <div key={text[0]} className="flex items-center gap-2">
+                  <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-[#1677FF] shrink-0" strokeWidth={1.75} aria-hidden="true" />
+                  <span className="text-[10px] sm:text-[11px] font-medium leading-tight text-slate-600">
                     {text[0]}
                     <br />
                     {text[1]}

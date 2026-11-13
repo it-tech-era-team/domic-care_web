@@ -10,7 +10,7 @@ import { Home, Stethoscope, ArrowRight, CheckCircle2, Zap, Clock, MapPin, PhoneC
 export default function GetStarted() {
   const router = useRouter();
   const { signupUser } = useCareConnect();
-  
+
   const [selectedRole, setSelectedRole] = useState<Role>('user');
   const [step, setStep] = useState<1 | 2>(1);
   const [fullName, setFullName] = useState('');
@@ -39,12 +39,12 @@ export default function GetStarted() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen relative overflow-hidden bg-slate-950 font-sans">
+    <div className="flex flex-col min-h-screen relative overflow-hidden bg-slate-950 font-sans w-full overflow-x-hidden">
       <Navbar />
 
       {/* Main Hero Section with Reference Image Background & White Form */}
       <main className="flex-1 relative flex items-center justify-center p-4 sm:p-6 lg:p-12">
-        
+
         {/* Background Image Layer with Dark Royal Blue Gradient */}
         <div className="absolute inset-0 z-0">
           <img
@@ -61,10 +61,10 @@ export default function GetStarted() {
 
         {/* Content Grid */}
         <div className="mx-auto max-w-7xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10 py-6">
-          
+
           {/* Left Column: Background Hero Banner Details (Matching Screenshot) */}
           <div className="lg:col-span-7 space-y-6 text-white text-left pr-0 lg:pr-6">
-            
+
             {/* Top Badge */}
             <div className="inline-flex items-center gap-2 rounded-full bg-amber-400/15 border border-amber-400/40 px-4 py-1.5 text-xs font-extrabold text-amber-300 shadow-sm backdrop-blur-md">
               <Zap className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
@@ -83,7 +83,7 @@ export default function GetStarted() {
 
             {/* 3 Glass Info Cards Matching Screenshot */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2">
-              
+
               <div className="p-4 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-md space-y-1.5 shadow-lg">
                 <div className="h-9 w-9 rounded-xl bg-blue-500/30 border border-blue-400/40 flex items-center justify-center text-blue-300">
                   <Clock className="h-5 w-5" />
@@ -142,7 +142,7 @@ export default function GetStarted() {
           {/* Right Column: Crisp White Form Card */}
           <div className="lg:col-span-5 w-full flex justify-center lg:justify-end">
             <div className="w-full max-w-md bg-white rounded-3xl p-8 sm:p-10 shadow-2xl border border-slate-100 animate-fade-in text-slate-900">
-              
+
               {step === 1 ? (
                 <div className="space-y-6">
                   <div className="text-center space-y-2">

@@ -142,7 +142,7 @@ export default function CaregiverClient({ id }: ClientProps) {
 
   return (
     <div className="space-y-6 max-w-5xl w-full mx-auto animate-fade-in text-slate-900">
-      
+
       {/* Back Button */}
       <Link
         href="/user/search-caregivers"
@@ -197,11 +197,11 @@ export default function CaregiverClient({ id }: ClientProps) {
 
       {/* Main Details and Booking Booking */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">
-        
+
         {/* Left Side: Detail Tabs */}
         <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-6 min-h-[400px]">
           {/* Tabs header */}
-          <div className="flex border-b border-slate-200">
+          <div className="flex border-b border-slate-200 overflow-x-auto scrollbar-hide">
             {(['about', 'availability', 'reviews'] as const).map((tab) => (
               <button
                 key={tab}
@@ -330,7 +330,7 @@ export default function CaregiverClient({ id }: ClientProps) {
             </div>
           ) : (
             <form onSubmit={handleBookingSubmit} className="space-y-4">
-              
+
               {/* Select Service */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Select Service</label>

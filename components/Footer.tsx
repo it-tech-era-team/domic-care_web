@@ -99,7 +99,7 @@ export default function Footer() {
           </div>
 
           {/* Download App col */}
-          <div>
+          <div className="col-span-2 sm:col-span-1">
             <span className="text-sm font-bold text-white block mb-5">Download App</span>
             <p className="text-xs text-slate-400 mb-4 leading-relaxed">Get the DomicCare app for a better experience.</p>
             <div className="space-y-3">

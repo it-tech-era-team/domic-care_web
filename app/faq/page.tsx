@@ -193,7 +193,7 @@ export default function FAQPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 w-full overflow-x-hidden">
       <Navbar />
 
       <main className="flex-grow">
