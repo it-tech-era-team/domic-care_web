@@ -1,12 +1,13 @@
 import Stripe from "stripe";
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+// Read Stripe secret key. If missing at build time, supply a dummy key format so Stripe() does not crash during Next.js static evaluation.
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY || "sk_test_dummy_key_for_build_environment_only_123456789";
 
-if (!stripeSecretKey) {
+if (!process.env.STRIPE_SECRET_KEY) {
   console.warn("STRIPE_SECRET_KEY is missing from environment variables.");
 }
 
-export const stripe = new Stripe(stripeSecretKey || "", {
+export const stripe = new Stripe(stripeSecretKey, {
   typescript: true,
 });
 

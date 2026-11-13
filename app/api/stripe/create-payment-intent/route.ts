@@ -3,6 +3,8 @@ import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { verifyRequestSession } from "@/lib/supabase-auth";
 import { stripe, calculateBookingSplit } from "@/lib/stripe";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   try {
     const user = await verifyRequestSession(req);
