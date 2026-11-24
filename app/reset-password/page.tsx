@@ -1,36 +1,105 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/lib/supabase";
-import { Lock, CheckCircle, ShieldAlert, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
+import { Lock, CheckCircle, ShieldAlert, ArrowRight, Loader2, Eye, EyeOff, Clock } from "lucide-react";
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
+  const [isExpired, setIsExpired] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(true);
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    // Check if recovery access token is in URL hash or session
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        // If no active recovery session, check hash params
-        const hash = window.location.hash;
-        if (!hash.includes("access_token")) {
-          setError("Invalid or expired password reset link. Please request a new one.");
+    let isMounted = true;
+
+    const verifyTokenAndSession = async () => {
+      try {
+        const tokenHash = searchParams.get("token_hash");
+        const exp = searchParams.get("exp");
+
+        // 1. Check 60-second expiration timestamp if present in query params
+        if (exp) {
+          const expirationTime = Number(exp);
+          if (!isNaN(expirationTime) && Date.now() > expirationTime) {
+            if (isMounted) {
+              setError("This password reset link has expired (valid for 60 seconds). Please request a fresh reset link.");
+              setIsExpired(true);
+              setIsVerifying(false);
+            }
+            return;
+          }
+        }
+
+        // 2. Direct OTP verification if token_hash is present
+        if (tokenHash) {
+          const { data, error: otpError } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: "recovery",
+          });
+
+          if (otpError) {
+            console.warn("[verifyOtp] Token verification failed:", otpError.message);
+            if (isMounted) {
+              setError("Invalid or expired password reset link. Please request a new one.");
+              setIsExpired(true);
+              setIsVerifying(false);
+            }
+            return;
+          }
+
+          if (isMounted) {
+            setError("");
+            setIsExpired(false);
+            setIsVerifying(false);
+          }
+          return;
+        }
+
+        // 3. Fallback: Check if recovery access token is in URL hash or session
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (!sessionData?.session) {
+          const hash = typeof window !== "undefined" ? window.location.hash : "";
+          if (!hash.includes("access_token")) {
+            if (isMounted) {
+              setError("Invalid or expired password reset link. Please request a new one.");
+              setIsExpired(true);
+              setIsVerifying(false);
+            }
+            return;
+          }
+        }
+
+        if (isMounted) {
+          setIsVerifying(false);
+        }
+      } catch (err: any) {
+        console.error("[ResetPassword] Verification error:", err);
+        if (isMounted) {
+          setError("Failed to verify reset credentials. Please request a fresh link.");
+          setIsExpired(true);
+          setIsVerifying(false);
         }
       }
     };
-    checkSession();
-  }, []);
+
+    verifyTokenAndSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [searchParams]);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,21 +162,43 @@ export default function ResetPasswordPage() {
             </p>
           </div>
 
-          {error && (
-            <div className="mb-4 flex items-center gap-2 rounded-2xl bg-rose-50 p-3.5 text-xs font-bold text-rose-600 border border-rose-200">
-              <ShieldAlert className="h-4.5 w-4.5 shrink-0" />
-              <span>{error}</span>
+          {/* Verifying Spinner */}
+          {isVerifying && (
+            <div className="py-8 flex flex-col items-center justify-center space-y-3">
+              <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+              <p className="text-xs font-semibold text-slate-500">Verifying secure recovery link...</p>
             </div>
           )}
 
+          {/* Error / Expiry Alert */}
+          {!isVerifying && error && (
+            <div className="mb-5 space-y-3">
+              <div className="flex items-start gap-2.5 rounded-2xl bg-rose-50 p-4 text-xs font-bold text-rose-700 border border-rose-200">
+                <ShieldAlert className="h-4.5 w-4.5 shrink-0 text-rose-600 mt-0.5" />
+                <span className="leading-relaxed">{error}</span>
+              </div>
+              {isExpired && (
+                <Link
+                  href="/forgot-password"
+                  className="w-full flex items-center justify-center gap-2 rounded-2xl bg-blue-600 py-3.5 text-xs font-black text-white hover:bg-blue-700 shadow-md shadow-blue-500/25 transition-all cursor-pointer"
+                >
+                  <Clock className="h-4 w-4" />
+                  <span>Request Fresh 60s Reset Link</span>
+                </Link>
+              )}
+            </div>
+          )}
+
+          {/* Success Banner */}
           {success && (
-            <div className="mb-4 flex items-center gap-2 rounded-2xl bg-emerald-50 p-3.5 text-xs font-bold text-emerald-700 border border-emerald-200">
+            <div className="mb-4 flex items-center gap-2 rounded-2xl bg-emerald-50 p-3.5 text-xs font-bold text-emerald-700 border border-emerald-200 animate-fade-in">
               <CheckCircle className="h-4.5 w-4.5 shrink-0" />
               <span>Password successfully updated! Redirecting to login...</span>
             </div>
           )}
 
-          {!success && (
+          {/* Reset Form */}
+          {!isVerifying && !isExpired && !success && (
             <form onSubmit={handleReset} className="space-y-4">
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-slate-700">New Password</label>
@@ -183,5 +274,19 @@ export default function ResetPasswordPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+        </div>
+      }
+    >
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

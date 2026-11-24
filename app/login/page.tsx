@@ -19,12 +19,7 @@ function LoginForm() {
   const [bannerNotice, setBannerNotice] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Forgot password & resend state
-  const [showForgotModal, setShowForgotModal] = useState(false);
-  const [forgotEmail, setForgotEmail] = useState('');
-  const [forgotStatus, setForgotStatus] = useState<{ message: string; isError: boolean } | null>(null);
-  const [isForgotLoading, setIsForgotLoading] = useState(false);
-
+  // Email confirmation resend state
   const [resendStatus, setResendStatus] = useState<{ message: string; isError: boolean } | null>(null);
   const [isResendLoading, setIsResendLoading] = useState(false);
 
@@ -56,37 +51,6 @@ function LoginForm() {
     } catch {
       setError('An error occurred. Please try again.');
       setIsSubmitting(false);
-    }
-  };
-
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!forgotEmail || isForgotLoading) return;
-
-    setIsForgotLoading(true);
-    setForgotStatus(null);
-    try {
-      const res = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: forgotEmail.trim() }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setForgotStatus({
-          message: data.data?.message || 'Password reset link sent to your email.',
-          isError: false,
-        });
-      } else {
-        setForgotStatus({
-          message: data.error?.message || 'Failed to send reset email.',
-          isError: true,
-        });
-      }
-    } catch {
-      setForgotStatus({ message: 'Network error. Please try again.', isError: true });
-    } finally {
-      setIsForgotLoading(false);
     }
   };
 
@@ -288,17 +252,12 @@ function LoginForm() {
                       <label htmlFor="pass" className="block text-xs font-bold text-slate-700">
                         Password
                       </label>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setForgotEmail(email);
-                          setForgotStatus(null);
-                          setShowForgotModal(true);
-                        }}
+                      <Link
+                        href="/forgot-password"
                         className="text-[11px] font-bold text-blue-600 hover:underline cursor-pointer"
                       >
                         Forgot Password?
-                      </button>
+                      </Link>
                     </div>
                     <div className="relative">
                       <Key className="absolute top-3.5 left-3.5 h-4.5 w-4.5 text-slate-400" />
@@ -397,52 +356,6 @@ function LoginForm() {
                     </Link>
                   </span>
                 </div>
-
-                {/* Forgot Password Modal */}
-                {showForgotModal && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
-                    <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-sm w-full shadow-2xl border border-slate-100 relative space-y-4">
-                      <div className="flex justify-between items-center">
-                        <h3 className="text-lg font-black text-slate-900">Reset Password</h3>
-                        <button
-                          type="button"
-                          onClick={() => setShowForgotModal(false)}
-                          className="h-8 w-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700"
-                        >
-                          <X className="h-4.5 w-4.5" />
-                        </button>
-                      </div>
-
-                      <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                        Enter your registered email address to receive password reset instructions.
-                      </p>
-
-                      {forgotStatus && (
-                        <div className={`p-3 rounded-2xl text-xs font-bold border ${forgotStatus.isError ? 'bg-rose-50 text-rose-600 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
-                          {forgotStatus.message}
-                        </div>
-                      )}
-
-                      <form onSubmit={handleForgotPassword} className="space-y-3">
-                        <input
-                          type="email"
-                          required
-                          value={forgotEmail}
-                          onChange={(e) => setForgotEmail(e.target.value)}
-                          placeholder="name@example.com"
-                          className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-600 focus:bg-white focus:outline-none"
-                        />
-                        <button
-                          type="submit"
-                          disabled={isForgotLoading}
-                          className="w-full rounded-2xl bg-blue-600 py-3 text-sm font-bold text-white hover:bg-blue-700 shadow-md shadow-blue-500/20 disabled:opacity-70 cursor-pointer"
-                        >
-                          {isForgotLoading ? 'Sending...' : 'Send Reset Link'}
-                        </button>
-                      </form>
-                    </div>
-                  </div>
-                )}
 
               </div>
             </div>

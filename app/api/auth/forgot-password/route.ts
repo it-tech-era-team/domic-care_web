@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       .eq("email", cleanEmail)
       .maybeSingle();
 
-    // 2. Generate secure recovery link using Supabase Admin (replaces Supabase default SMTP email)
+    // 2. Generate secure recovery link using Supabase Admin
     const { data: linkData, error: linkError } = await supabaseServer.auth.admin.generateLink({
       type: "recovery",
       email: cleanEmail,
@@ -44,15 +44,27 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    let resetUrl = linkData?.properties?.action_link || `${origin}/reset-password`;
+    if (linkError || !linkData?.properties) {
+      console.error("[generateLink error]:", linkError);
+      return apiError("LINK_GENERATION_FAILED", "Unable to generate password reset token.", 500);
+    }
 
-    // Ensure reset link never points to localhost when deployed on live domain
-    if (!origin.includes("localhost") && resetUrl) {
-      resetUrl = resetUrl
-        .replaceAll("http%3A%2F%2Flocalhost%3A3000", encodeURIComponent(origin))
-        .replaceAll("http://localhost:3000", origin)
-        .replaceAll("http%3A%2F%2Flocalhost", encodeURIComponent(origin))
-        .replaceAll("http://localhost", origin);
+    const hashedToken = linkData.properties.hashed_token;
+    const expiresAt = Date.now() + 60 * 1000; // Strictly valid for 60 seconds
+
+    // Construct direct reset URL targeting our website directly (bypasses supabase.co hosted redirects completely)
+    let resetUrl = "";
+    if (hashedToken) {
+      resetUrl = `${origin}/reset-password?token_hash=${encodeURIComponent(hashedToken)}&type=recovery&exp=${expiresAt}`;
+    } else {
+      resetUrl = linkData?.properties?.action_link || `${origin}/reset-password`;
+      if (!origin.includes("localhost") && resetUrl) {
+        resetUrl = resetUrl
+          .replaceAll("http%3A%2F%2Flocalhost%3A3000", encodeURIComponent(origin))
+          .replaceAll("http://localhost:3000", origin)
+          .replaceAll("http%3A%2F%2Flocalhost", encodeURIComponent(origin))
+          .replaceAll("http://localhost", origin);
+      }
     }
 
     // 3. Dispatch branded DomicCare password reset email via Nodemailer

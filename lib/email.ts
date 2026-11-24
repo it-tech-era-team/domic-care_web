@@ -255,7 +255,7 @@ export async function sendPasswordResetEmail({
       <a href="${resetUrl}" class="button" target="_blank">Reset My Password &rarr;</a>
     </div>
     <div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 8px; margin: 20px 0; font-size: 13px; color: #92400e;">
-      ⏰ <strong>Expiry Notice:</strong> This reset link expires in 60 minutes. If you did not initiate this request, you can safely ignore this email — your account remains secure.
+      ⏰ <strong>Expiry Notice:</strong> This reset link is active for <strong>60 seconds</strong> for your security. If the link has elapsed, please request a fresh reset link from the forgot password page.
     </div>
     <p style="font-size: 12px; color: #64748b; margin-top: 20px; line-height: 1.5;">
       Button not working? Copy and paste this URL into your browser:<br>
