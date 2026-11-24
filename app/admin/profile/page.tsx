@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCareConnect } from '@/context/useCareConnect';
 import MediaPicker from '@/components/MediaPicker';
+import LanguageSettingsCard from '@/components/LanguageSettingsCard';
 import {
   User, Mail, Phone, Lock, Eye, EyeOff, ShieldCheck,
   AlertCircle, CheckCircle2, Shield
@@ -265,6 +266,9 @@ export default function AdminProfilePage() {
             {isSubmitting ? 'Saving Updates...' : 'Save Admin Profile Settings'}
           </button>
         </form>
+
+        {/* Language & Regional Preferences */}
+        <LanguageSettingsCard />
 
       </div>
 

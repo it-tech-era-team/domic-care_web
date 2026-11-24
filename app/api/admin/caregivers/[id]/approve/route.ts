@@ -1,19 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
-import { verifyRequestSession } from "@/lib/supabase-auth";
+import { requireAdmin } from "@/lib/auth-guard";
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await verifyRequestSession(req);
-    if (!user || user.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-    }
+    const { user, errorResponse } = await requireAdmin(req);
+    if (errorResponse) return errorResponse;
 
     const { id: caregiverId } = await params;
-
     const supabase = createServerSupabaseClient();
 
     // 1. Fetch caregiver details
@@ -21,22 +19,23 @@ export async function POST(
       .from("caregiver_profiles")
       .select("id, profiles ( full_name )")
       .eq("id", caregiverId)
-      .single();
+      .maybeSingle();
 
     if (fetchError || !cg) {
-      if (fetchError) console.error("[POST /api/admin/caregivers/[id]/approve] Fetch Error:", fetchError);
-      return NextResponse.json({ error: "Caregiver not found" }, { status: 404 });
+      return apiError("NOT_FOUND", "Caregiver profile not found.", 404, fetchError);
     }
 
     // 2. Approve caregiver profile
     const { error: profileError } = await supabase
       .from("caregiver_profiles")
-      .update({ approval_status: "approved" })
+      .update({
+        approval_status: "approved",
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", caregiverId);
 
     if (profileError) {
-      console.error("[POST /api/admin/caregivers/[id]/approve] Profile Update Error:", profileError);
-      return NextResponse.json({ error: profileError.message }, { status: 400 });
+      return apiError("UPDATE_FAILED", "Failed to approve caregiver profile.", 500, profileError);
     }
 
     // 3. Approve caregiver documents
@@ -48,7 +47,7 @@ export async function POST(
     // 4. Log admin action
     await supabase.from("admin_logs").insert({
       admin_id: user.id,
-      action: "Approved Caregiver Profile",
+      action: "Approved Caregiver Verification Application",
       target_id: caregiverId,
     });
 
@@ -56,14 +55,16 @@ export async function POST(
     await supabase.from("notifications").insert({
       user_id: caregiverId,
       title: "Profile Approved",
-      message: "Your Domic Care caregiver profile has been approved! You are now live in search results.",
+      message: "Congratulations! Your DomicCare caregiver profile and credentials have been verified and approved. You are now visible to clients.",
       type: "approval_update",
       is_read: false,
     });
 
-    return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error("[POST /api/admin/caregivers/[id]/approve]", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiSuccess({
+      message: "Caregiver approved successfully.",
+      status: "approved",
+    });
+  } catch (err: any) {
+    return apiError("INTERNAL_ERROR", "Error approving caregiver.", 500, err);
   }
 }

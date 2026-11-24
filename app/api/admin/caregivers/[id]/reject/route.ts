@@ -1,18 +1,19 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
-import { verifyRequestSession } from "@/lib/supabase-auth";
+import { requireAdmin } from "@/lib/auth-guard";
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await verifyRequestSession(req);
-    if (!user || user.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-    }
+    const { user, errorResponse } = await requireAdmin(req);
+    if (errorResponse) return errorResponse;
 
     const { id: caregiverId } = await params;
+    const body = await req.json().catch(() => ({}));
+    const reason = (body.reason || "").trim();
 
     const supabase = createServerSupabaseClient();
 
@@ -21,25 +22,26 @@ export async function POST(
       .from("caregiver_profiles")
       .select("id")
       .eq("id", caregiverId)
-      .single();
+      .maybeSingle();
 
     if (fetchError || !cg) {
-      if (fetchError) console.error("[POST /api/admin/caregivers/[id]/reject] Fetch Error:", fetchError);
-      return NextResponse.json({ error: "Caregiver not found" }, { status: 404 });
+      return apiError("NOT_FOUND", "Caregiver profile not found.", 404, fetchError);
     }
 
     // 2. Reject caregiver profile
     const { error: profileError } = await supabase
       .from("caregiver_profiles")
-      .update({ approval_status: "rejected" })
+      .update({
+        approval_status: "rejected",
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", caregiverId);
 
     if (profileError) {
-      console.error("[POST /api/admin/caregivers/[id]/reject] Profile Update Error:", profileError);
-      return NextResponse.json({ error: profileError.message }, { status: 400 });
+      return apiError("UPDATE_FAILED", "Failed to update profile rejection status.", 500, profileError);
     }
 
-    // 3. Reject caregiver documents
+    // 3. Mark documents rejected
     await supabase
       .from("caregiver_documents")
       .update({ status: "rejected" })
@@ -48,22 +50,29 @@ export async function POST(
     // 4. Log admin action
     await supabase.from("admin_logs").insert({
       admin_id: user.id,
-      action: "Rejected Caregiver Profile",
+      action: reason ? `Rejected Caregiver Verification: ${reason}` : "Rejected Caregiver Verification",
       target_id: caregiverId,
     });
 
-    // 5. Send notification to caregiver
+    // 5. Send notification to caregiver with custom reason
+    const rejectionMessage = reason
+      ? `Your caregiver application was not approved for the following reason: "${reason}". Please review your documents and resubmit.`
+      : "Your caregiver application was not approved. Please verify your credentials, update your bio, and resubmit.";
+
     await supabase.from("notifications").insert({
       user_id: caregiverId,
-      title: "Profile Rejected",
-      message: "Your profile registration details did not pass verification. Please upload valid certificates.",
+      title: "Application Needs Revision",
+      message: rejectionMessage,
       type: "approval_update",
       is_read: false,
     });
 
-    return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error("[POST /api/admin/caregivers/[id]/reject]", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiSuccess({
+      message: "Caregiver application rejected.",
+      status: "rejected",
+      reason: reason || null,
+    });
+  } catch (err: any) {
+    return apiError("INTERNAL_ERROR", "Error rejecting caregiver application.", 500, err);
   }
 }

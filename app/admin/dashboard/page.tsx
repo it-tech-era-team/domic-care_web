@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useCareConnect, CaregiverProfile } from '@/context/useCareConnect';
 import {
@@ -21,6 +21,17 @@ export default function AdminDashboard() {
 
   // Audit Logs Modal state
   const [showAuditLogsModal, setShowAuditLogsModal] = useState(false);
+
+  // Lock background scrolling when review modal or audit logs are active
+  useEffect(() => {
+    if (selectedCG || showAuditLogsModal) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [selectedCG, showAuditLogsModal]);
 
   // Tab Switcher and Form states
   const [activeTab, setActiveTab] = useState<'approvals' | 'services'>('approvals');
@@ -610,84 +621,101 @@ export default function AdminDashboard() {
 
       {/* Document Review Drawer / Modal overlay */}
       {selectedCG && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-white border border-slate-200 text-slate-900 rounded-3xl max-w-xl w-full p-6 space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            {/* Close Button */}
-            <button
-              onClick={() => setSelectedCG(null)}
-              className="absolute right-4 top-4 p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl cursor-pointer"
-            >
-              <X className="h-5 w-5" />
-            </button>
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 animate-fade-in">
+          <div className="bg-white border border-slate-200 text-slate-900 rounded-3xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden relative">
+            
+            {/* Header caregiver info (Pinned Top) */}
+            <div className="p-6 pb-4 border-b border-slate-200 shrink-0 flex items-start justify-between gap-4 bg-white">
+              <div className="flex items-start gap-4">
+                <img
+                  src={selectedCG.avatarUrl}
+                  alt={selectedCG.fullName}
+                  className="h-14 w-14 rounded-2xl object-cover border border-slate-200 bg-slate-100 shrink-0 shadow-xs"
+                />
+                <div className="space-y-1">
+                  <span className="block font-heading font-extrabold text-base text-slate-900">{selectedCG.fullName}</span>
+                  <span className="block text-xs text-slate-500 font-semibold">{selectedCG.address}, {selectedCG.city}</span>
+                  <span className="block text-[11px] font-bold text-blue-600">Hourly Rate: €{selectedCG.hourlyRate}/hr • Exp: {selectedCG.experienceYears} Years</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedCG(null)}
+                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl cursor-pointer transition-colors"
+                title="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
 
-            {/* Header caregiver info */}
-            <div className="flex items-start gap-4 pb-4 border-b border-slate-200">
-              <img
-                src={selectedCG.avatarUrl}
-                alt={selectedCG.fullName}
-                className="h-14 w-14 rounded-2xl object-cover border border-slate-200 bg-slate-100"
-              />
-              <div className="space-y-1">
-                <span className="block font-heading font-extrabold text-base text-slate-900">{selectedCG.fullName}</span>
-                <span className="block text-xs text-slate-500 font-semibold">{selectedCG.address}, {selectedCG.city}</span>
-                <span className="block text-[11px] font-bold text-blue-600">Hourly Rate: ${selectedCG.hourlyRate}/hr • Exp: {selectedCG.experienceYears} Years</span>
+            {/* Scrollable Body */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-5">
+              {/* Bio info */}
+              <div className="space-y-1.5">
+                <span className="block text-xs font-bold text-slate-700">Biography Details</span>
+                <p className="text-xs text-slate-600 leading-relaxed font-medium bg-slate-50 rounded-2xl p-3.5 border border-slate-200">
+                  {selectedCG.bio}
+                </p>
+              </div>
+
+              {/* Uploaded files audit */}
+              <div className="space-y-3">
+                <span className="block text-xs font-bold text-slate-700">Verification Documents ({selectedCG.documents.length})</span>
+                {selectedCG.documents.length === 0 ? (
+                  <p className="text-xs text-slate-400 italic">No files uploaded for auditing.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {selectedCG.documents.map((doc) => (
+                      <div key={doc.id} className="p-3.5 border border-slate-200 rounded-2xl bg-slate-50 space-y-2">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="font-bold text-slate-900">{doc.type}</span>
+                          <span className={`text-[9px] uppercase font-extrabold px-2.5 py-0.5 rounded-full border ${doc.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                              doc.status === 'rejected' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                                'bg-amber-50 text-amber-700 border-amber-200'
+                            }`}>
+                            {doc.status || 'pending'}
+                          </span>
+                        </div>
+
+                        {/* Document Preview Card */}
+                        <div className="rounded-xl border border-slate-200 bg-white p-3 flex flex-col items-center justify-center min-h-[140px] text-center">
+                          {doc.fileUrl && !doc.fileUrl.endsWith('.pdf') ? (
+                            <div className="space-y-2 w-full flex flex-col items-center">
+                              <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="block max-h-56 overflow-hidden rounded-lg hover:opacity-95 transition-opacity" title="Open full size">
+                                <img
+                                  src={doc.fileUrl}
+                                  alt={doc.type}
+                                  className="max-h-56 max-w-full rounded-lg object-contain shadow-xs border border-slate-200"
+                                  onError={(e) => {
+                                    e.currentTarget.onerror = null;
+                                    e.currentTarget.src = 'https://placehold.co/400x300/png?text=Image+Unavailable';
+                                  }}
+                                />
+                              </a>
+                              <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] font-bold text-blue-600 hover:text-blue-800 hover:underline">
+                                Open full document ↗
+                              </a>
+                            </div>
+                          ) : (
+                            <div className="py-4 space-y-2 text-center">
+                              <FileText className="h-10 w-10 text-blue-600 mx-auto" />
+                              <span className="block text-xs font-bold text-slate-800">{doc.type} (PDF Document)</span>
+                              {doc.fileUrl && (
+                                <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="inline-block text-[11px] font-bold text-blue-600 hover:underline">
+                                  View / Download PDF Document ↗
+                                </a>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Bio info */}
-            <div className="space-y-1.5">
-              <span className="block text-xs font-bold text-slate-700">Biography Details</span>
-              <p className="text-xs text-slate-600 leading-relaxed font-medium bg-slate-50 rounded-2xl p-3.5 border border-slate-200">
-                {selectedCG.bio}
-              </p>
-            </div>
-
-            {/* Uploaded files audit */}
-            <div className="space-y-3">
-              <span className="block text-xs font-bold text-slate-700">Verification Documents ({selectedCG.documents.length})</span>
-              {selectedCG.documents.length === 0 ? (
-                <p className="text-xs text-slate-400 italic">No files uploaded for auditing.</p>
-              ) : (
-                <div className="space-y-3">
-                  {selectedCG.documents.map((doc) => (
-                    <div key={doc.id} className="p-3.5 border border-slate-200 rounded-2xl bg-slate-50 space-y-2">
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="font-bold text-slate-900">{doc.type}</span>
-                        <span className={`text-[9px] uppercase font-extrabold px-2.5 py-0.5 rounded-full border ${doc.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                            doc.status === 'rejected' ? 'bg-rose-50 text-rose-700 border-rose-200' :
-                              'bg-amber-50 text-amber-700 border-amber-200'
-                          }`}>
-                          {doc.status || 'pending'}
-                        </span>
-                      </div>
-
-                      {/* Document Preview Card */}
-                      <div className="rounded-xl border border-slate-200 bg-white p-3 flex flex-col items-center justify-center min-h-[120px] text-center">
-                        {doc.fileUrl && (doc.fileUrl.startsWith('data:image') || doc.fileUrl.match(/\.(jpeg|jpg|png|gif|webp|svg)/i) || doc.fileUrl.includes('placehold.co') || doc.fileUrl.includes('unsplash.com')) ? (
-                          <img
-                            src={doc.fileUrl.startsWith('http') || doc.fileUrl.startsWith('data:') ? doc.fileUrl : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${doc.fileUrl}`}
-                            alt={doc.type}
-                            className="max-h-48 max-w-full rounded-lg object-contain shadow-xs border border-slate-200"
-                            onError={(e) => {
-                              e.currentTarget.onerror = null;
-                              e.currentTarget.src = 'https://placehold.co/400x300/png?text=Image+Unavailable';
-                            }}
-                          />
-                        ) : (
-                          <>
-                            <FileText className="h-8 w-8 text-blue-600 mb-1" />
-                            <span className="text-2xs font-bold text-slate-500 uppercase">{doc.type}</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Accept / Decline actions */}
-            <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+            {/* Accept / Decline actions (Pinned Bottom) */}
+            <div className="p-4 px-6 border-t border-slate-200 bg-slate-50 shrink-0 flex justify-end gap-3">
               <button
                 onClick={() => handleReject(selectedCG.id)}
                 className="rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-600 px-4 py-2.5 text-xs font-bold text-rose-700 hover:text-white flex items-center gap-1.5 cursor-pointer transition-colors"

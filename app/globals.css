@@ -148,3 +148,37 @@ body > iframe[style*="position:fixed"][style*="bottom"],
   opacity: 0 !important;
   pointer-events: none !important;
 }
+
+
+/* ==========================================================================
+   Suppress Google Translate UI bars, frames & preserve native layout
+   ========================================================================== */
+.goog-te-banner-frame,
+iframe.goog-te-banner-frame,
+.goog-te-balloon-frame {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+body {
+  top: 0px !important;
+  position: static !important;
+}
+
+#goog-gt-tt,
+.goog-te-spinner-pos {
+  display: none !important;
+}
+
+.goog-text-highlight {
+  background: none !important;
+  box-shadow: none !important;
+}
+
+#google_translate_element {
+  display: none !important;
+}
+
+.skiptranslate:not(.notranslate) {
+  display: none !important;
+}

@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const formattedCaregivers = (caregiversData || []).map((cg: any) => {
+    const formattedCaregivers = await Promise.all((caregiversData || []).map(async (cg: any) => {
       const services = cg.caregiver_services?.map((cs: any) => cs.services?.name).filter(Boolean) || [];
       
       const availability: any = {};
@@ -93,19 +93,38 @@ export async function GET(req: NextRequest) {
         };
       });
 
-      const documents = cg.caregiver_documents?.map((doc: any) => ({
-        id: doc.id,
-        type: doc.document_type,
-        fileUrl: doc.file_url,
-        status: doc.status,
-        uploaded_at: doc.uploaded_at,
-      })) || [];
+      const documents = await Promise.all((cg.caregiver_documents || []).map(async (doc: any) => {
+        const rawUrl = doc.file_url || doc.file_path || "";
+        let safeUrl = rawUrl;
+        if (rawUrl && !rawUrl.startsWith("http") && !rawUrl.startsWith("data:")) {
+          let bucket = "caregiver-documents";
+          let path = rawUrl;
+          if (path.startsWith("caregiver-documents/")) {
+            path = path.replace("caregiver-documents/", "");
+            bucket = "caregiver-documents";
+          } else if (path.startsWith("documents/")) {
+            path = path.replace("documents/", "");
+            bucket = "documents";
+          }
+          try {
+            const { data: signed } = await supabase.storage.from(bucket).createSignedUrl(path, 7200);
+            if (signed?.signedUrl) safeUrl = signed.signedUrl;
+          } catch (e) {}
+        }
+        return {
+          id: doc.id,
+          type: doc.document_type || "Document",
+          fileUrl: safeUrl,
+          status: doc.status || "pending",
+          uploaded_at: doc.uploaded_at,
+        };
+      }));
 
       const reviews = cg.reviews || [];
       const reviewsCount = reviews.length;
       const rating = reviewsCount > 0
         ? parseFloat((reviews.reduce((acc: number, r: any) => acc + r.rating, 0) / reviewsCount).toFixed(1))
-        : 5.0;
+        : null;
 
       const profileObj = Array.isArray(cg.profiles) ? cg.profiles[0] : cg.profiles;
       
@@ -136,7 +155,7 @@ export async function GET(req: NextRequest) {
         documents,
         distance,
       };
-    });
+    }));
 
     // Apply filtering
     let filtered = formattedCaregivers;
@@ -149,7 +168,9 @@ export async function GET(req: NextRequest) {
         const matchesQuery =
           cg.fullName.toLowerCase().includes(query) ||
           cg.bio.toLowerCase().includes(query) ||
-          cg.address.toLowerCase().includes(query);
+          cg.address.toLowerCase().includes(query) ||
+          (cg.city && cg.city.toLowerCase().includes(query)) ||
+          cg.services.some((s: string) => s.toLowerCase().includes(query));
         if (!matchesQuery) return false;
       }
 
@@ -171,7 +192,20 @@ export async function GET(req: NextRequest) {
 
       // Distance matching
       if (maxDistance !== null && userLat !== null && userLng !== null) {
-        if (cg.distance > maxDistance) return false;
+        if (maxDistance < 250) {
+          if (search) {
+            const query = search.toLowerCase();
+            const explicitlyMatchesSearch =
+              cg.fullName.toLowerCase().includes(query) ||
+              (cg.city && cg.city.toLowerCase().includes(query)) ||
+              cg.address.toLowerCase().includes(query);
+            if (!explicitlyMatchesSearch && cg.distance > maxDistance) {
+              return false;
+            }
+          } else if (cg.distance > maxDistance) {
+            return false;
+          }
+        }
       }
 
       // Availability matching

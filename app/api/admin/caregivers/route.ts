@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const formattedCaregivers = (caregiversData || []).map((cg: any) => {
+    const formattedCaregivers = await Promise.all((caregiversData || []).map(async (cg: any) => {
       const profileObj = Array.isArray(cg.profiles) ? cg.profiles[0] : cg.profiles;
 
       const services = cg.caregiver_services?.map((cs: any) => cs.services?.name).filter(Boolean) || [];
@@ -97,19 +97,41 @@ export async function GET(req: NextRequest) {
         };
       });
 
-      const documents = (cg.caregiver_documents || []).map((doc: any) => {
-        const rawUrl = doc.file_url || "";
-        // If legacy base64 string exists before backfill migration runs, truncate it to prevent response explosion
-        const safeUrl = rawUrl.startsWith("data:") ? `${rawUrl.substring(0, 100)}...[Base64]` : rawUrl;
+      const documents = await Promise.all((cg.caregiver_documents || []).map(async (doc: any) => {
+        const rawUrl = doc.file_url || doc.file_path || "";
+        let safeUrl = rawUrl;
+        if (rawUrl && !rawUrl.startsWith("http") && !rawUrl.startsWith("data:")) {
+          let bucket = "caregiver-documents";
+          let path = rawUrl;
+          if (path.startsWith("caregiver-documents/")) {
+            path = path.replace("caregiver-documents/", "");
+            bucket = "caregiver-documents";
+          } else if (path.startsWith("documents/")) {
+            path = path.replace("documents/", "");
+            bucket = "documents";
+          }
+          try {
+            const { data: signed } = await supabase.storage.from(bucket).createSignedUrl(path, 7200);
+            if (signed?.signedUrl) {
+              safeUrl = signed.signedUrl;
+            } else {
+              const altBucket = bucket === "caregiver-documents" ? "documents" : "caregiver-documents";
+              const { data: altSigned } = await supabase.storage.from(altBucket).createSignedUrl(path, 7200);
+              if (altSigned?.signedUrl) safeUrl = altSigned.signedUrl;
+            }
+          } catch (e) {
+            console.warn("Failed to generate signed document URL:", e);
+          }
+        }
         return {
           id: doc.id,
-          type: doc.document_type,
+          type: doc.document_type || doc.doc_type || "Document",
           fileUrl: safeUrl,
           url: safeUrl,
-          status: doc.status,
-          uploaded_at: doc.uploaded_at,
+          status: doc.status || "pending",
+          uploaded_at: doc.uploaded_at || doc.created_at,
         };
-      });
+      }));
 
       const reviews = (cg.reviews || []).map((r: any) => {
         const revProf = Array.isArray(r.profiles) ? r.profiles[0] : r.profiles;
@@ -188,7 +210,7 @@ export async function GET(req: NextRequest) {
         reviews,
         bookings,
       };
-    });
+    }));
 
     return NextResponse.json({ caregivers: formattedCaregivers });
   } catch (err) {

@@ -723,7 +723,7 @@ export default function Home() {
                           </div>
                           <div className="flex items-center gap-1 shrink-0 bg-amber-50 rounded-full px-2 py-0.5 border border-amber-100">
                             <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                            <span className="text-xs font-extrabold text-amber-700">{cg.rating}</span>
+                            <span className="text-xs font-extrabold text-amber-700">{cg.rating ? cg.rating : 'New'}</span>
                           </div>
                         </div>
 
@@ -737,7 +737,7 @@ export default function Home() {
                             {cg.city || 'Available'}
                           </span>
                           <span className="text-[11px] font-extrabold text-blue-600">
-                            ${cg.hourlyRate}/hr
+                            €{cg.hourlyRate}/hr
                           </span>
                         </div>
                       </div>

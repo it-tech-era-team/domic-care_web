@@ -144,7 +144,7 @@ interface CareConnectContextType {
   login: (email: string, password: string) => Promise<UserProfile | null>;
   logout: () => Promise<void>;
   signupUser: (fullName: string, email: string, phone: string, password: string, role: Role) => Promise<boolean>;
-  requestBooking: (caregiverId: string, serviceName: string, date: string, timeSlot: string, location: string, notes: string) => Promise<void>;
+  requestBooking: (caregiverId: string, serviceName: string, date: string, timeSlot: string, location: string, notes: string) => Promise<boolean>;
   updateBookingStatus: (bookingId: string, status: Booking['status']) => Promise<void>;
   submitReview: (bookingId: string, rating: number, comment: string) => Promise<void>;
   sendMessage: (conversationId: string, senderId: string, text: string) => Promise<void>;
@@ -177,9 +177,15 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [services, setServices] = useState<Service[]>([]);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const showToast = (title: string, message: string, type: Toast['type'] = 'info') => {
+  const showToast = (title: string, message: any, type: Toast['type'] = 'info') => {
+    let cleanMsg = '';
+    if (typeof message === 'object' && message !== null) {
+      cleanMsg = message.message || message.error || message.code || JSON.stringify(message);
+    } else {
+      cleanMsg = String(message || '');
+    }
     const id = Math.random().toString();
-    setToasts(prev => [...prev, { id, title, message, type }]);
+    setToasts(prev => [...prev, { id, title, message: cleanMsg, type }]);
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, 4500);
@@ -233,14 +239,14 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
       let url = user.role === 'admin' ? '/api/admin/caregivers' : '/api/caregivers';
       if (user.role !== 'admin') {
         const params = new URLSearchParams();
-        params.append('userLat', '40.7128');
-        params.append('userLng', '-74.0060');
+        params.append('userLat', '42.6977');
+        params.append('userLng', '23.3219');
         if (filters && filters.isActive) {
           if (filters.searchQuery) params.append('search', filters.searchQuery);
           if (filters.selectedService && filters.selectedService !== 'All') params.append('service', filters.selectedService);
           if (filters.maxRate) params.append('maxRate', String(filters.maxRate));
           if (filters.minExperience) params.append('minExperience', String(filters.minExperience));
-          if (filters.maxDistance) params.append('maxDistance', String(filters.maxDistance));
+          if (filters.maxDistance && filters.maxDistance < 250) params.append('maxDistance', String(filters.maxDistance));
           if (filters.selectedDay && filters.selectedDay !== 'All') params.append('day', filters.selectedDay);
         }
         url += '?' + params.toString();
@@ -458,7 +464,7 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   // Booking Operations
-  const requestBooking = async (caregiverId: string, serviceName: string, date: string, timeSlot: string, location: string, notes: string) => {
+  const requestBooking = async (caregiverId: string, serviceName: string, date: string, timeSlot: string, location: string, notes: string): Promise<boolean> => {
     try {
       const times = timeSlot.split('-');
       const startTimeStr = times[0]?.trim() || '09:00';
@@ -480,12 +486,15 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
       if (res.ok) {
         showToast('Booking Requested', 'Your booking request has been submitted.', 'success');
         await refreshData();
+        return true;
       } else {
         const data = await res.json().catch(() => ({}));
-        showToast('Request Failed', data.error || 'Failed to send booking request', 'error');
+        showToast('Request Failed', data.error?.message || data.error || 'Failed to send booking request', 'error');
+        return false;
       }
     } catch (err) {
       showToast('Booking Error', 'Could not request booking.', 'error');
+      return false;
     }
   };
 

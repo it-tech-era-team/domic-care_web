@@ -4,9 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCareConnect, CaregiverProfile } from '@/context/useCareConnect';
+import { formatRate } from '@/lib/currency';
 import {
   Star, ShieldCheck, Heart, ArrowLeft, Mail,
-  Calendar, Clock, DollarSign, FileText, CheckCircle2
+  Calendar, Clock, DollarSign, FileText, CheckCircle2, MapPin
 } from 'lucide-react';
 
 interface ClientProps {
@@ -38,6 +39,35 @@ export default function CaregiverClient({ id }: ClientProps) {
   const [bookingNotes, setBookingNotes] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [isBookingSubmitting, setIsBookingSubmitting] = useState(false);
+
+  // Location Autocomplete State
+  const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+
+  useEffect(() => {
+    if (!location || location.trim().length < 2) {
+      setLocationSuggestions([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        setIsLoadingSuggestions(true);
+        const res = await fetch(`/api/location/autocomplete?q=${encodeURIComponent(location.trim())}`);
+        if (res.ok) {
+          const json = await res.json();
+          setLocationSuggestions(json.data || []);
+        }
+      } catch (e) {
+        console.warn("Autocomplete fetch failed:", e);
+      } finally {
+        setIsLoadingSuggestions(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [location]);
 
   // Fetch details from backend
   useEffect(() => {
@@ -103,7 +133,7 @@ export default function CaregiverClient({ id }: ClientProps) {
     if (!bookingDate || !selectedService || !fromTime || !toTime || !caregiver) return;
 
     setIsBookingSubmitting(true);
-    await requestBooking(
+    const ok = await requestBooking(
       caregiver.id,
       selectedService,
       bookingDate,
@@ -113,10 +143,12 @@ export default function CaregiverClient({ id }: ClientProps) {
     );
 
     setIsBookingSubmitting(false);
-    setIsSuccess(true);
-    setTimeout(() => {
-      router.push('/user/bookings');
-    }, 1800);
+    if (ok) {
+      setIsSuccess(true);
+      setTimeout(() => {
+        router.push('/user/bookings');
+      }, 1800);
+    }
   };
 
   if (isLoading && !caregiver) {
@@ -176,14 +208,20 @@ export default function CaregiverClient({ id }: ClientProps) {
             <p className="text-xs text-slate-600 font-medium">{caregiver.address}, {caregiver.city}</p>
 
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs font-medium text-slate-600">
-              <div className="flex items-center gap-1 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 text-amber-800">
-                <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
-                <span className="font-bold text-amber-900">{caregiver.rating}</span>
-                <span className="text-slate-500">({caregiver.reviewsCount} reviews)</span>
-              </div>
+              {caregiver.reviewsCount > 0 && caregiver.rating ? (
+                <div className="flex items-center gap-1 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 text-amber-800">
+                  <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
+                  <span className="font-bold text-amber-900">{caregiver.rating}</span>
+                  <span className="text-slate-500">({caregiver.reviewsCount} reviews)</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200 text-blue-800">
+                  <span className="font-bold text-blue-900">New Caregiver</span>
+                </div>
+              )}
               <div className="text-slate-300">•</div>
               <div>
-                Hourly rate: <strong className="text-blue-600 font-extrabold">${caregiver.hourlyRate}/hr</strong>
+                Hourly rate: <strong className="text-blue-600 font-extrabold">{formatRate(caregiver.hourlyRate)}</strong>
               </div>
               <div className="text-slate-300">•</div>
               <div>
@@ -396,16 +434,46 @@ export default function CaregiverClient({ id }: ClientProps) {
               </div>
 
               {/* Location */}
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 relative">
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Service Location</label>
-                <input
-                  type="text"
-                  required
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="e.g. 123 Main St, Apt 4B or General Hospital"
-                  className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    value={location}
+                    onChange={(e) => {
+                      setLocation(e.target.value);
+                      setShowLocationSuggestions(true);
+                    }}
+                    onFocus={() => {
+                      if (locationSuggestions.length > 0) setShowLocationSuggestions(true);
+                    }}
+                    placeholder="e.g. 123 Main St, Pleven, Bulgaria"
+                    className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+                  />
+                  {isLoadingSuggestions && (
+                    <div className="absolute right-3.5 top-3 h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                  )}
+                </div>
+
+                {showLocationSuggestions && locationSuggestions.length > 0 && (
+                  <div className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto divide-y divide-slate-100">
+                    {locationSuggestions.map((item, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setLocation(item.displayName);
+                          setShowLocationSuggestions(false);
+                        }}
+                        className="w-full text-left px-3.5 py-2 hover:bg-blue-50 flex items-start gap-2 text-xs text-slate-800 transition-colors"
+                      >
+                        <MapPin className="h-3.5 w-3.5 text-blue-600 shrink-0 mt-0.5" />
+                        <span className="line-clamp-2">{item.displayName}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Notes */}
@@ -424,7 +492,7 @@ export default function CaregiverClient({ id }: ClientProps) {
               <div className="rounded-2xl bg-blue-50 border border-blue-200 p-3.5 flex justify-between items-center text-xs">
                 <div>
                   <span className="block text-blue-700 font-extrabold uppercase text-[9px]">Rate estimate</span>
-                  <span className="text-slate-900 font-black">${caregiver.hourlyRate}/hr</span>
+                  <span className="text-slate-900 font-black">{formatRate(caregiver.hourlyRate)}</span>
                 </div>
                 <div className="text-right">
                   <span className="block text-blue-700 font-extrabold uppercase text-[9px]">Platform fee</span>

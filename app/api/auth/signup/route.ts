@@ -1,64 +1,66 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { apiSuccess, apiError } from "@/lib/api-response";
+import { sendWelcomeEmail } from "@/lib/email";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
   try {
     const { fullName, email, phone, password, role } = await req.json().catch(() => ({}));
     if (!fullName || !email || !password || !role) {
-      return NextResponse.json({ error: "Name, email, password, and role are required" }, { status: 400 });
+      return apiError("VALIDATION_ERROR", "Full name, email, password, and role are required.", 400);
     }
 
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-    console.log("[DEBUG Signup] Supabase URL read at runtime:", url);
-    console.log("[DEBUG Signup] Supabase key length:", key ? key.length : "undefined");
-
     const supabase = createClient(url, key, {
       auth: { persistSession: false },
     });
 
-    const avatarUrl = `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(fullName)}`;
+    const origin = req.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "https://domiccare.com";
+    const emailRedirectTo = `${origin}/login?confirmed=true`;
+
+    const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(fullName)}`;
 
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo,
         data: {
           full_name: fullName,
           role: role,
           avatar_url: avatarUrl,
-        }
-      }
+        },
+      },
     });
 
     if (error || !data.user) {
-      console.error("[POST /api/auth/signup] Supabase Auth Error:", error);
-      return NextResponse.json({ error: error?.message || "Signup failed" }, { status: 400 });
+      return apiError("AUTH_SIGNUP_FAILED", error?.message || "Signup failed.", 400, error);
     }
 
     const supabaseServer = createServerSupabaseClient();
     
-    // 1. Hash the password and update profiles table with phone number and password_hash
+    // Hash password and store in profiles table for compatibility
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
     await supabaseServer
       .from("profiles")
-      .update({ phone, password_hash: passwordHash })
+      .update({ phone, password_hash: passwordHash, full_name: fullName, role, avatar_url: avatarUrl })
       .eq("id", data.user.id);
 
-    // 2. If caregiver, insert empty caregiver profile row
+    // If caregiver, insert default caregiver profile shell
     if (role === "caregiver") {
       const { error: caregiverError } = await supabaseServer
         .from("caregiver_profiles")
-        .insert({
+        .upsert({
           id: data.user.id,
           bio: "",
           experience_years: 0,
-          hourly_rate: 20.00,
+          hourly_rate: 25.00,
           approval_status: "pending",
         });
         
@@ -67,16 +69,27 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({
+    // Trigger branded DomicCare Welcome Email via Nodemailer (non-blocking)
+    sendWelcomeEmail({
+      to: email,
+      fullName,
+      roleTitle: role === "caregiver" ? "Caregiver" : "Family Member",
+      loginUrl: `${origin}/login`,
+    }).catch((emailErr) => console.error("[Signup] Welcome email send error:", emailErr));
+
+    return apiSuccess({
       user: {
         id: data.user.id,
         email: data.user.email,
         fullName,
         role,
-      }
+        requiresEmailConfirmation: !data.session,
+      },
+      message: data.session
+        ? "Account created successfully."
+        : "Account created. Please check your email to confirm your registration before signing in.",
     });
-  } catch (err) {
-    console.error("[POST /api/auth/signup]", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  } catch (err: any) {
+    return apiError("INTERNAL_ERROR", "An unexpected error occurred during signup.", 500, err);
   }
 }

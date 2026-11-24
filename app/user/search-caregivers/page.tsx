@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCareConnect, CaregiverProfile } from '@/context/useCareConnect';
 import GoogleMap from '@/components/GoogleMap';
 import {
@@ -10,14 +11,15 @@ import {
 } from 'lucide-react';
 
 export default function SearchCaregivers() {
+  const router = useRouter();
   const { caregivers, services, caregiverFilters, updateCaregiverFilters } = useCareConnect();
   
   // Local temporary states for filter inputs
   const [searchQuery, setSearchQuery] = useState(caregiverFilters.searchQuery || '');
   const [selectedService, setSelectedService] = useState(caregiverFilters.selectedService || 'All');
-  const [maxRate, setMaxRate] = useState(caregiverFilters.maxRate || 40);
+  const [maxRate, setMaxRate] = useState(caregiverFilters.maxRate || 50);
   const [minExperience, setMinExperience] = useState(caregiverFilters.minExperience || 0);
-  const [maxDistance, setMaxDistance] = useState(caregiverFilters.maxDistance || 15);
+  const [maxDistance, setMaxDistance] = useState(caregiverFilters.maxDistance ?? 250);
   const [selectedDay, setSelectedDay] = useState(caregiverFilters.selectedDay || 'All');
   const [selectedCaregiverId, setSelectedCaregiverId] = useState<string | null>(null);
 
@@ -36,16 +38,16 @@ export default function SearchCaregivers() {
   const handleResetFilters = () => {
     setSearchQuery('');
     setSelectedService('All');
-    setMaxRate(40);
+    setMaxRate(50);
     setMinExperience(0);
-    setMaxDistance(15);
+    setMaxDistance(250);
     setSelectedDay('All');
     updateCaregiverFilters({
       searchQuery: '',
       selectedService: 'All',
-      maxRate: 40,
+      maxRate: 50,
       minExperience: 0,
-      maxDistance: 15,
+      maxDistance: 250,
       selectedDay: 'All',
       isActive: false,
     });
@@ -55,8 +57,63 @@ export default function SearchCaregivers() {
   const servicesList = ['All', ...services.map(s => s.name)];
 
   const filteredCaregivers = useMemo(() => {
-    return caregivers;
-  }, [caregivers]);
+    return caregivers.filter((cg) => {
+      // 1. Search Query text (matches name, city, address, bio, or services)
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const nameMatch = cg.fullName.toLowerCase().includes(q);
+        const cityMatch = (cg.city || '').toLowerCase().includes(q);
+        const addressMatch = (cg.address || '').toLowerCase().includes(q);
+        const bioMatch = (cg.bio || '').toLowerCase().includes(q);
+        const serviceMatch = (cg.services || []).some((s: string) => s.toLowerCase().includes(q));
+        if (!nameMatch && !cityMatch && !addressMatch && !bioMatch && !serviceMatch) {
+          return false;
+        }
+      }
+
+      // 2. Service filter
+      if (selectedService && selectedService !== 'All') {
+        const hasService = (cg.services || []).some(
+          (s: string) => s.toLowerCase() === selectedService.toLowerCase()
+        );
+        if (!hasService) return false;
+      }
+
+      // 3. Hourly rate
+      if (maxRate && cg.hourlyRate > maxRate) {
+        return false;
+      }
+
+      // 4. Minimum Experience
+      if (minExperience && cg.experienceYears < minExperience) {
+        return false;
+      }
+
+      // 5. Day availability
+      if (selectedDay && selectedDay !== 'All') {
+        const dayAvail = cg.availability?.[selectedDay];
+        if (!dayAvail?.isAvailable) {
+          return false;
+        }
+      }
+
+      // 6. Maximum distance (if distance is calculated and less than 250 km)
+      if (maxDistance && maxDistance < 250 && cg.distance !== undefined && cg.distance !== null) {
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase().trim();
+          const cityMatch = (cg.city || '').toLowerCase().includes(q);
+          const nameMatch = cg.fullName.toLowerCase().includes(q);
+          if (!cityMatch && !nameMatch && cg.distance > maxDistance) {
+            return false;
+          }
+        } else if (cg.distance > maxDistance) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [caregivers, searchQuery, selectedService, maxRate, minExperience, selectedDay, maxDistance]);
 
   return (
     <div className="flex-1 flex flex-col lg:flex-row gap-6 sm:gap-8 max-w-7xl w-full mx-auto animate-fade-in min-h-[calc(100vh-100px)] text-slate-900">
@@ -131,12 +188,12 @@ export default function SearchCaregivers() {
             <div className="space-y-1.5">
               <div className="flex justify-between text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                 <span>Max Hourly Rate</span>
-                <span className="text-blue-600 font-extrabold">${maxRate}/hr</span>
+                <span className="text-blue-600 font-extrabold">€{maxRate}/hr</span>
               </div>
               <input
                 type="range"
                 min="15"
-                max="50"
+                max="60"
                 value={maxRate}
                 onChange={(e) => setMaxRate(Number(e.target.value))}
                 className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
@@ -147,12 +204,15 @@ export default function SearchCaregivers() {
             <div className="space-y-1.5">
               <div className="flex justify-between text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                 <span>Max Distance</span>
-                <span className="text-blue-600 font-extrabold">Within {maxDistance} km</span>
+                <span className="text-blue-600 font-extrabold">
+                  {maxDistance >= 250 ? 'All Bulgaria (Any)' : `Within ${maxDistance} km`}
+                </span>
               </div>
               <input
                 type="range"
-                min="2"
-                max="25"
+                min="10"
+                max="250"
+                step="10"
                 value={maxDistance}
                 onChange={(e) => setMaxDistance(Number(e.target.value))}
                 className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
@@ -247,7 +307,7 @@ export default function SearchCaregivers() {
                         </div>
                         <div className="flex items-center gap-1 justify-center sm:justify-start bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full self-center">
                           <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-500" />
-                          <span className="text-xs font-bold text-amber-700">{cg.rating}</span>
+                          <span className="text-xs font-bold text-amber-700">{cg.rating ? cg.rating : 'New'}</span>
                         </div>
                       </div>
 
@@ -268,7 +328,7 @@ export default function SearchCaregivers() {
                         <div className="flex items-center gap-3 shrink-0">
                           <div className="text-right">
                             <span className="block text-[9px] font-extrabold text-slate-400 uppercase leading-none">Hourly Rate</span>
-                            <span className="text-sm font-black text-slate-900">${cg.hourlyRate}<span className="text-[10px] text-slate-500 font-semibold">/hr</span></span>
+                            <span className="text-sm font-black text-slate-900">€{cg.hourlyRate}<span className="text-[10px] text-slate-500 font-semibold">/hr</span></span>
                           </div>
                           
                           <Link
@@ -296,7 +356,10 @@ export default function SearchCaregivers() {
         <GoogleMap
           caregivers={filteredCaregivers}
           selectedCaregiverId={selectedCaregiverId}
-          onSelectCaregiver={(id) => setSelectedCaregiverId(id)}
+          onSelectCaregiver={(id) => {
+            setSelectedCaregiverId(id);
+            router.push(`/user/caregiver/${id}`);
+          }}
           searchDistance={maxDistance}
         />
       </div>

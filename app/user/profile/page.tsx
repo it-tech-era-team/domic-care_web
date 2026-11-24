@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useCareConnect } from '@/context/useCareConnect';
 import MediaPicker from '@/components/MediaPicker';
-import { User, Mail, Phone, MapPin, CheckCircle2, Lock, Eye, EyeOff, ShieldCheck, AlertCircle } from 'lucide-react';
+import LanguageSettingsCard from '@/components/LanguageSettingsCard';
+import { User, Mail, Phone, MapPin, CheckCircle2, Lock, Eye, EyeOff, ShieldCheck, AlertCircle, Navigation } from 'lucide-react';
 
 export default function UserProfileEdit() {
   const { currentUser, updateUserProfile } = useCareConnect();
@@ -13,7 +14,9 @@ export default function UserProfileEdit() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
-  const [address, setAddress] = useState('Manhattan, New York');
+  const [address, setAddress] = useState('');
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationStatus, setLocationStatus] = useState<string | null>(null);
 
   // Password State
   const [newPassword, setNewPassword] = useState('');
@@ -31,8 +34,55 @@ export default function UserProfileEdit() {
       setEmail(currentUser.email || '');
       setPhone(currentUser.phone || '');
       setAvatarUrl(currentUser.avatarUrl || '');
+      if ((currentUser as any).address) {
+        setAddress((currentUser as any).address);
+      }
     }
   }, [currentUser]);
+
+  const handleUseCurrentLocation = () => {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      setLocationStatus('Geolocation is not supported by your browser.');
+      return;
+    }
+
+    setIsLocating(true);
+    setLocationStatus(null);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const res = await fetch(`/api/location/reverse?lat=${latitude}&lon=${longitude}`);
+          if (res.ok) {
+            const json = await res.json();
+            const resolved = json.data?.area || json.data?.displayName;
+            if (resolved) {
+              setAddress(resolved);
+              setLocationStatus('Location updated!');
+              setTimeout(() => setLocationStatus(null), 3000);
+            }
+          } else {
+            setLocationStatus('Could not determine address from location.');
+          }
+        } catch {
+          setLocationStatus('Failed to reverse geocode location.');
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (err) => {
+        setIsLocating(false);
+        if (err.code === err.PERMISSION_DENIED) {
+          setLocationStatus('Location permission denied. Enter manually.');
+        } else {
+          setLocationStatus('Location unavailable. Enter manually.');
+        }
+        setTimeout(() => setLocationStatus(null), 4000);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -178,16 +228,40 @@ export default function UserProfileEdit() {
 
               {/* Primary Address */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Primary Care Area</label>
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Primary Care Area</label>
+                  <button
+                    type="button"
+                    onClick={handleUseCurrentLocation}
+                    disabled={isLocating}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer disabled:opacity-50"
+                  >
+                    {isLocating ? (
+                      <>
+                        <div className="h-3 w-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                        <span>Detecting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Navigation className="h-3 w-3" />
+                        <span>Use my current location</span>
+                      </>
+                    )}
+                  </button>
+                </div>
                 <div className="relative">
                   <MapPin className="absolute top-3.5 left-3.5 h-4.5 w-4.5 text-blue-600" />
                   <input
                     type="text"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
+                    placeholder="e.g. Pleven, Bulgaria or Sofia, Center"
                     className="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-3.5 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:outline-none transition-all"
                   />
                 </div>
+                {locationStatus && (
+                  <p className="text-[11px] font-semibold text-blue-600 animate-fade-in">{locationStatus}</p>
+                )}
               </div>
 
             </div>
@@ -262,6 +336,9 @@ export default function UserProfileEdit() {
             {isSubmitting ? 'Saving Updates...' : 'Save Profile & Security Settings'}
           </button>
         </form>
+
+        {/* Section 3: Language & Regional Preferences */}
+        <LanguageSettingsCard />
 
       </div>
 

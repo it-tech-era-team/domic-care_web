@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useCareConnect } from '@/context/useCareConnect';
+import LanguageSwitcher from './LanguageSwitcher';
 import { Heart, User, LogOut, Menu, X, ArrowRight, ChevronDown } from 'lucide-react';
 
 const NAV_LINKS = [
@@ -74,6 +75,7 @@ export default function Navbar() {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-2">
+            <LanguageSwitcher />
             {currentUser ? (
               <div className="flex items-center gap-2">
                 <button

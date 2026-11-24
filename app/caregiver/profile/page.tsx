@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import { useCareConnect } from '@/context/useCareConnect';
 import MediaPicker from '@/components/MediaPicker';
 import CaregiverBankDetailsForm from '@/components/CaregiverBankDetailsForm';
+import LanguageSettingsCard from '@/components/LanguageSettingsCard';
 import {
   User, Mail, Phone, MapPin, Lock, Eye, EyeOff, ShieldCheck, AlertCircle,
   CheckCircle2, Clipboard, Stethoscope, Clock,
-  ArrowRight, ArrowLeft, Plus, Trash, Building2
+  ArrowRight, ArrowLeft, Plus, Trash, Building2, Navigation
 } from 'lucide-react';
 
 export default function CaregiverProfilePage() {
@@ -105,7 +106,54 @@ export default function CaregiverProfilePage() {
   const [gender, setGender] = useState(existingProfile?.gender || 'Female');
   const [dob, setDob] = useState(existingProfile?.dob || '1990-01-01');
   const [address, setAddress] = useState(existingProfile?.address || '');
-  const [city, setCity] = useState(existingProfile?.city || 'New York');
+  const [city, setCity] = useState(existingProfile?.city || '');
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationStatus, setLocationStatus] = useState<string | null>(null);
+
+  const handleUseCurrentLocation = () => {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      setLocationStatus('Geolocation is not supported by your browser.');
+      return;
+    }
+
+    setIsLocating(true);
+    setLocationStatus(null);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const res = await fetch(`/api/location/reverse?lat=${latitude}&lon=${longitude}`);
+          if (res.ok) {
+            const json = await res.json();
+            if (json.data) {
+              if (json.data.street) setAddress(json.data.street);
+              else if (json.data.displayName) setAddress(json.data.displayName);
+              if (json.data.city) setCity(json.data.city);
+              setLocationStatus('Location detected successfully!');
+              setTimeout(() => setLocationStatus(null), 3000);
+            }
+          } else {
+            setLocationStatus('Could not determine address from location.');
+          }
+        } catch {
+          setLocationStatus('Failed to reverse geocode coordinates.');
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (err) => {
+        setIsLocating(false);
+        if (err.code === err.PERMISSION_DENIED) {
+          setLocationStatus('Location permission denied. Enter manually.');
+        } else {
+          setLocationStatus('Location service unavailable.');
+        }
+        setTimeout(() => setLocationStatus(null), 4000);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   // Step 2: Experience
   const [experienceYears, setExperienceYears] = useState(existingProfile?.experienceYears || 2);
@@ -245,8 +293,8 @@ export default function CaregiverProfilePage() {
       dob,
       address,
       city,
-      latitude: existingProfile?.latitude || 40.7128,
-      longitude: existingProfile?.longitude || -74.0060,
+      latitude: existingProfile?.latitude || 42.6977,
+      longitude: existingProfile?.longitude || 23.3219,
       services: selectedServices,
       availability,
       documents: finalDocs,
@@ -480,6 +528,11 @@ export default function CaregiverProfilePage() {
             </button>
           </form>
 
+          {/* Language & Regional Preferences */}
+          <div className="pt-4 border-t border-slate-100">
+            <LanguageSettingsCard />
+          </div>
+
         </div>
       )}
 
@@ -585,7 +638,27 @@ export default function CaregiverProfilePage() {
                   </div>
 
                   <div className="space-y-1.5 sm:col-span-2">
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Residential Street Address</label>
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Residential Street Address</label>
+                      <button
+                        type="button"
+                        onClick={handleUseCurrentLocation}
+                        disabled={isLocating}
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer disabled:opacity-50"
+                      >
+                        {isLocating ? (
+                          <>
+                            <div className="h-3 w-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                            <span>Detecting...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Navigation className="h-3 w-3" />
+                            <span>Use my current location</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                     <input
                       type="text"
                       required
@@ -594,6 +667,9 @@ export default function CaregiverProfilePage() {
                       placeholder="e.g. 123 Health Ave, Medical District"
                       className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-3.5 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none transition-all"
                     />
+                    {locationStatus && (
+                      <p className="text-[11px] font-semibold text-blue-600 animate-fade-in">{locationStatus}</p>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">
@@ -650,7 +726,7 @@ export default function CaregiverProfilePage() {
                 </h3>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="rate" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Hourly Rate ($ USD)</label>
+                  <label htmlFor="rate" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Hourly Rate (€ EUR)</label>
                   <input
                     type="number"
                     id="rate"

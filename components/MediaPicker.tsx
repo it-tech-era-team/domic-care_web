@@ -43,12 +43,12 @@ export default function MediaPicker({ value, onChange, type, label }: MediaPicke
     setIsUploading(true);
     setErrorMsg(null);
     try {
-      const bucket = type === 'avatar' ? 'avatars' : 'documents';
+      const bucket = type === 'avatar' ? 'avatars' : 'caregiver-documents';
       const uploadedUrl = await uploadMediaToStorage(file, bucket, type);
       onChange(uploadedUrl);
     } catch (err: any) {
       console.error('[MediaPicker] Upload error:', err);
-      setErrorMsg(err.message || 'Failed to upload image. Please try again.');
+      setErrorMsg(err.message || 'Failed to upload file. Please try again.');
     } finally {
       setIsUploading(false);
     }
@@ -83,7 +83,7 @@ export default function MediaPicker({ value, onChange, type, label }: MediaPicke
     }
   };
 
-  const isBase64 = value.startsWith('data:');
+  const isBase64 = Boolean(value && value.startsWith('data:'));
 
   return (
     <div className="space-y-3 w-full animate-fade-in text-slate-900">

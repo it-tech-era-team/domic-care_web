@@ -6,6 +6,7 @@ import {
   calculateBookingSplit,
   ensureStripeCaregiverAccount,
 } from "@/lib/stripe";
+import { sendBookingConfirmationEmail } from "@/lib/email";
 
 export async function PATCH(
   req: NextRequest,
@@ -37,6 +38,7 @@ export async function PATCH(
         caregiver_id,
         status,
         start_date,
+        location,
         total_amount,
         platform_fee,
         caregiver_payout,
@@ -56,7 +58,8 @@ export async function PATCH(
           )
         ),
         profiles (
-          full_name
+          full_name,
+          email
         )
       `)
       .eq("id", bookingId)
@@ -212,6 +215,33 @@ export async function PATCH(
         }
       } catch (convErr) {
         console.error("[PATCH /api/bookings/[id]] Auto-Chat Error:", convErr);
+      }
+
+      // Dispatch branded DomicCare Booking & Payment Receipt Email via Nodemailer
+      try {
+        const clientEmail = (b.profiles as any)?.email;
+        const clientName = (b.profiles as any)?.full_name || "Client";
+        if (clientEmail) {
+          const appointmentDate = new Date(b.start_date);
+          const formattedDate = !isNaN(appointmentDate.getTime())
+            ? appointmentDate.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+            : dateOnly;
+
+          sendBookingConfirmationEmail({
+            to: clientEmail,
+            userName: clientName,
+            caregiverName,
+            serviceName,
+            appointmentDateTime: formattedDate,
+            location: b.location || "Client address",
+            caregiverPayout: updatePayload.caregiver_payout || booking.caregiver_payout || 0,
+            platformFee: updatePayload.platform_fee || booking.platform_fee || 0,
+            totalAmount: updatePayload.total_amount || booking.total_amount || 0,
+            bookingId: booking.id,
+          }).catch((emailErr) => console.error("[PATCH /api/bookings/[id]] Email send error:", emailErr));
+        }
+      } catch (emailErr) {
+        console.error("[PATCH /api/bookings/[id]] Email dispatch exception:", emailErr);
       }
     }
 

@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCareConnect, Booking } from '@/context/useCareConnect';
 import StripePaymentModal from '@/components/StripePaymentModal';
+import { formatCurrency } from '@/lib/currency';
 import {
   Calendar, Clock, Star, AlertTriangle, CheckCircle2,
   XCircle, ChevronRight, MessageSquare, CalendarDays, X, Check, CreditCard, ShieldCheck
@@ -133,7 +134,7 @@ export default function UserBookings() {
                       </span>
                       {b.totalAmount ? (
                         <span className="inline-flex rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-extrabold">
-                          ${b.totalAmount.toFixed(2)} USD
+                          {formatCurrency(b.totalAmount)}
                         </span>
                       ) : null}
                     </div>
@@ -177,7 +178,7 @@ export default function UserBookings() {
                         className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 px-3.5 py-1.5 text-xs font-black text-white shadow-md shadow-blue-500/20 cursor-pointer active:scale-95 transition-all"
                       >
                         <CreditCard className="h-3.5 w-3.5 text-white" />
-                        <span>Pay ${b.totalAmount ? b.totalAmount.toFixed(2) : ''} Now</span>
+                        <span>Pay {b.totalAmount ? formatCurrency(b.totalAmount) : ''} Now</span>
                       </button>
                     )}
 

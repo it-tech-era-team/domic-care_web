@@ -64,6 +64,7 @@ export default function Sidebar({ role }: SidebarProps) {
     ],
     admin: [
       { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+      { label: 'Verifications', href: '/admin/verifications', icon: ShieldCheck },
       { label: 'Caregivers', href: '/admin/caregivers', icon: Users },
       { label: 'Users', href: '/admin/users', icon: UserCircle },
       { label: 'Profile Settings', href: '/admin/profile', icon: Settings },

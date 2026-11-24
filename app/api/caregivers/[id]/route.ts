@@ -116,7 +116,7 @@ export async function GET(
     const reviewsCount = reviews.length;
     const rating = reviewsCount > 0
       ? parseFloat((reviews.reduce((acc: number, r: any) => acc + r.rating, 0) / reviewsCount).toFixed(1))
-      : 5.0;
+      : null;
 
     const profileObj = Array.isArray(cg.profiles) ? cg.profiles[0] : cg.profiles;
 

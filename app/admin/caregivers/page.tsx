@@ -883,7 +883,7 @@ export default function AdminCaregiversPage() {
                       ["Gender", selectedCaregiver.gender || "—"],
                       ["Date of Birth", formatDate(selectedCaregiver.dob)],
                       ["Experience", `${selectedCaregiver.experienceYears} Years`],
-                      ["Hourly Rate", `£${selectedCaregiver.hourlyRate}/hr`],
+                      ["Hourly Rate", `€${selectedCaregiver.hourlyRate}/hr`],
                       ["City", selectedCaregiver.city || "—"],
                       ["Joined Date", formatDate(selectedCaregiver.joinedAt)],
                     ].map(([label, value]) => (

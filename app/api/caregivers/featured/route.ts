@@ -45,7 +45,7 @@ export async function GET(_req: NextRequest) {
           ? parseFloat(
               (reviews.reduce((acc: number, r: any) => acc + r.rating, 0) / reviewsCount).toFixed(1)
             )
-          : 5.0;
+          : null;
 
       return {
         id: cg.id,
@@ -61,13 +61,9 @@ export async function GET(_req: NextRequest) {
       };
     });
 
-    // Sort by rating descending, filter out 'fahad' and 'boyan', take top 6
+    // Sort by rating descending (or experience), take top 6 approved caregivers
     const top = formatted
-      .filter((cg) => {
-        const name = cg.fullName.toLowerCase();
-        return name !== "fahad" && name !== "boyan";
-      })
-      .sort((a, b) => b.rating - a.rating)
+      .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0) || b.experienceYears - a.experienceYears)
       .slice(0, 6);
 
     const res = NextResponse.json({ caregivers: top });

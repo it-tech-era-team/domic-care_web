@@ -29,9 +29,11 @@ export default function GoogleMap({
   const mapInstanceRef = useRef<any>(null);
   const layersGroupRef = useRef<any>(null);
 
-  // Center coordinate (simulate New York center)
-  const centerLat = 40.7128;
-  const centerLng = -74.0060;
+  // Center coordinate (Default to Bulgaria center)
+  const centerLat = 42.7339;
+  const centerLng = 25.4858;
+  const userLat = 42.6977;
+  const userLng = 23.3219;
 
   // 1. Dynamically load Leaflet Assets (CSS and JS)
   useEffect(() => {
@@ -82,7 +84,7 @@ export default function GoogleMap({
         const map = L.map(mapRef.current, {
           zoomControl: false,
           attributionControl: false,
-        }).setView([centerLat, centerLng], 12);
+        }).setView([centerLat, centerLng], 7);
 
         mapInstanceRef.current = map;
 
@@ -119,14 +121,16 @@ export default function GoogleMap({
       // Clear existing markers/circles before drawing updated set
       layersGroup.clearLayers();
 
-      // 2a. Add Search distance radius circle
-      L.circle([centerLat, centerLng], {
-        color: '#2563eb',
-        fillColor: '#3b82f6',
-        fillOpacity: 0.1,
-        weight: 1.5,
-        radius: searchDistance * 1000, // convert km to meters
-      }).addTo(layersGroup);
+      // 2a. Add Search distance radius circle (only if radius is constrained)
+      if (searchDistance < 250) {
+        L.circle([userLat, userLng], {
+          color: '#2563eb',
+          fillColor: '#3b82f6',
+          fillOpacity: 0.1,
+          weight: 1.5,
+          radius: searchDistance * 1000, // convert km to meters
+        }).addTo(layersGroup);
+      }
 
       // 2b. Add User Pulsing Marker
       const userPulseIcon = L.divIcon({
@@ -141,9 +145,9 @@ export default function GoogleMap({
         iconAnchor: [10, 10],
       });
 
-      L.marker([centerLat, centerLng], { icon: userPulseIcon })
+      L.marker([userLat, userLng], { icon: userPulseIcon })
         .addTo(layersGroup)
-        .bindPopup('<div style="color:#0f172a; font-family: Inter, sans-serif; font-size:12px; font-weight:700; padding:4px;"><b style="color:#2563eb;">Your Location</b><br/>New York City</div>');
+        .bindPopup('<div style="color:#0f172a; font-family: Inter, sans-serif; font-size:12px; font-weight:700; padding:4px;"><b style="color:#2563eb;">Your Location</b><br/>Sofia, Bulgaria</div>');
 
       // 2c. Add Caregivers Markers
       caregivers.forEach((cg) => {
@@ -181,11 +185,11 @@ export default function GoogleMap({
               <img src="${cg.avatarUrl}" style="width: 38px; height: 38px; border-radius: 10px; object-fit: cover; border: 1.5px solid #e2e8f0; background: #f8fafc;" />
               <div>
                 <b style="font-size: 13px; color: #0f172a; display: block; line-height: 1.2; font-weight: 800;">${cg.fullName}</b>
-                <span style="font-size: 11.5px; color: #2563eb; font-weight: 800;">$${cg.hourlyRate}/hr</span>
+                <span style="font-size: 11.5px; color: #2563eb; font-weight: 800;">€${cg.hourlyRate}/hr</span>
               </div>
             </div>
             <div style="font-size: 11px; color: #475569; margin-bottom: 10px; font-weight: 600; display: flex; align-items: center; gap: 4px;">
-              <span style="color: #d97706;">⭐ ${cg.rating} Rating</span> • <span style="color: #64748b;">${cg.experienceYears} yrs exp</span>
+              ${cg.rating ? `<span style="color: #d97706;">⭐ ${cg.rating} Rating</span>` : '<span style="color: #0284c7; font-weight: 800;">✨ New</span>'} • <span style="color: #64748b;">${cg.experienceYears} yrs exp</span>
             </div>
             <button id="btn-popup-${cg.id}" style="width: 100%; border: none; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #ffffff; padding: 7.5px 0; border-radius: 10px; font-size: 11px; font-weight: 800; cursor: pointer; transition: transform 0.15s, opacity 0.15s; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);">
               Select Caregiver
@@ -221,6 +225,18 @@ export default function GoogleMap({
           });
         }
       });
+
+      // Fit bounds to show all visible caregivers and user on map
+      if (!selectedCaregiverId) {
+        const validCgs = caregivers.filter((cg) => cg.latitude && cg.longitude);
+        if (validCgs.length > 0) {
+          const bounds = L.latLngBounds([
+            [userLat, userLng],
+            ...validCgs.map((cg) => [cg.latitude, cg.longitude]),
+          ]);
+          map.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
+        }
+      }
     } catch (err) {
       console.error('Error rendering Leaflet Map layers:', err);
       // setApiError(true); // Disable global error state to prevent UI crash if one marker fails

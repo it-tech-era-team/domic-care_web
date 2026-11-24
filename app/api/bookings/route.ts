@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
-import { verifyRequestSession } from "@/lib/supabase-auth";
-import { calculateBookingSplit } from "@/lib/stripe";
+import { requireAuth } from "@/lib/auth-guard";
+import { apiSuccess, apiError } from "@/lib/api-response";
+import { calculatePricing, formatCurrency } from "@/lib/currency";
 
 export async function GET(req: NextRequest) {
   try {
-    const user = await verifyRequestSession(req);
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { user, errorResponse } = await requireAuth(req);
+    if (errorResponse) return errorResponse;
 
     const supabase = createServerSupabaseClient();
     let query = supabase
@@ -60,8 +59,7 @@ export async function GET(req: NextRequest) {
     const { data: bookingsData, error } = await query.order("created_at", { ascending: false });
 
     if (error) {
-      console.error("[GET /api/bookings] Supabase Error:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return apiError("DATABASE_ERROR", "Failed to retrieve bookings list.", 500, error);
     }
 
     const formattedBookings = (bookingsData || []).map((b: any) => {
@@ -77,7 +75,7 @@ export async function GET(req: NextRequest) {
         caregiverFullName: cgProf?.profiles?.full_name || "",
         caregiverAvatar: cgProf?.profiles?.avatar_url || "",
         serviceId: b.service_id,
-        serviceName: b.services?.name || "",
+        serviceName: b.services?.name || "General Care",
         startDate: b.start_date,
         endDate: b.end_date,
         status: b.status,
@@ -86,52 +84,63 @@ export async function GET(req: NextRequest) {
         totalAmount: b.total_amount ? Number(b.total_amount) : 0,
         platformFee: b.platform_fee ? Number(b.platform_fee) : 0,
         caregiverPayout: b.caregiver_payout ? Number(b.caregiver_payout) : 0,
+        currency: "EUR",
+        formattedTotal: formatCurrency(b.total_amount ? Number(b.total_amount) : 0),
         paymentStatus: b.payment_status || "unpaid",
         paymentIntentId: b.payment_intent_id || null,
         transferId: b.transfer_id || null,
         createdAt: b.created_at,
-        rating: reviewObj?.rating,
-        comment: reviewObj?.comment,
+        rating: reviewObj?.rating ?? null,
+        comment: reviewObj?.comment ?? null,
       };
     });
 
-    return NextResponse.json({ bookings: formattedBookings });
-  } catch (err) {
-    console.error("[GET /api/bookings]", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    // Provide both envelope and top-level key for backward compatibility with app
+    return NextResponse.json({
+      success: true,
+      bookings: formattedBookings,
+      data: { bookings: formattedBookings },
+    });
+  } catch (err: any) {
+    return apiError("INTERNAL_ERROR", "Unable to process bookings request.", 500, err);
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await verifyRequestSession(req);
-    if (!user || user.role !== "user") {
-      return NextResponse.json({ error: "Only clients can request bookings" }, { status: 403 });
-    }
+    const { user, errorResponse } = await requireAuth(req, ["user"]);
+    if (errorResponse) return errorResponse;
 
     const body = await req.json().catch(() => ({}));
-    console.log("[POST /api/bookings] Received body:", body);
     const { caregiverId, serviceName, startDate, endDate, location, notes, totalAmount, platformFee, caregiverPayout } = body;
 
     if (!caregiverId || !serviceName || !startDate || !endDate || !location) {
-      return NextResponse.json({ error: "Missing fields: " + JSON.stringify(body) }, { status: 400 });
+      return apiError("VALIDATION_ERROR", "Please fill in all required appointment fields (caregiver, service, date, time, address).", 400);
     }
 
     const supabase = createServerSupabaseClient();
 
-    // 1. Fetch service ID
-    const { data: service, error: serviceError } = await supabase
+    // 1. Fetch service ID with case-insensitive search and fallback
+    let matchedService: { id: string; name: string } | null = null;
+    const { data: serviceExact } = await supabase
       .from("services")
-      .select("id")
-      .eq("name", serviceName)
-      .single();
+      .select("id, name")
+      .ilike("name", serviceName.trim())
+      .maybeSingle();
 
-    if (serviceError || !service) {
-      if (serviceError) console.error("[POST /api/bookings] Service Lookup Error:", serviceError);
-      return NextResponse.json({ error: "Service type not found" }, { status: 400 });
+    if (serviceExact) {
+      matchedService = serviceExact;
+    } else {
+      // Fallback: look for partial match or first service
+      const { data: fallbackServices } = await supabase.from("services").select("id, name").limit(1);
+      matchedService = fallbackServices?.[0] || null;
     }
 
-    // 2. Lookup caregiver rate to calculate initial estimated total
+    if (!matchedService) {
+      return apiError("SERVICE_NOT_FOUND", "The requested service category could not be resolved.", 400);
+    }
+
+    // 2. Lookup caregiver rate to calculate accurate total in EUR
     const { data: cgProfile } = await supabase
       .from("caregiver_profiles")
       .select("hourly_rate")
@@ -141,14 +150,12 @@ export async function POST(req: NextRequest) {
     const hourlyRate = Number(cgProfile?.hourly_rate || 25);
     const startMs = new Date(startDate).getTime();
     const endMs = new Date(endDate).getTime();
-    const hours = Math.max(1, Math.ceil((endMs - startMs) / (1000 * 60 * 60)));
-    const calculatedCaregiverPayout = hours * hourlyRate;
-    const calculatedPlatformFee = Number((calculatedCaregiverPayout * 0.12).toFixed(2));
-    const calculatedTotalUSD = Number((calculatedCaregiverPayout + calculatedPlatformFee).toFixed(2));
+    const hours = Math.max(0.5, (endMs - startMs) / (1000 * 60 * 60));
 
-    const finalTotalAmount = Number(totalAmount || calculatedTotalUSD);
-    const finalPlatformFee = Number(platformFee || calculatedPlatformFee);
-    const finalCaregiverPayout = Number(caregiverPayout || calculatedCaregiverPayout);
+    const pricing = calculatePricing(hours, hourlyRate);
+    const finalTotalAmount = Number(totalAmount || pricing.totalAmount);
+    const finalPlatformFee = Number(platformFee || pricing.platformFee);
+    const finalCaregiverPayout = Number(caregiverPayout || pricing.caregiverPayout);
 
     // 3. Insert booking
     const { data: booking, error: insertError } = await supabase
@@ -156,38 +163,40 @@ export async function POST(req: NextRequest) {
       .insert({
         user_id: user.id,
         caregiver_id: caregiverId,
-        service_id: service.id,
+        service_id: matchedService.id,
         start_date: startDate,
         end_date: endDate,
-        location,
+        location: location.trim(),
         status: "pending",
         total_amount: finalTotalAmount,
         platform_fee: finalPlatformFee,
         caregiver_payout: finalCaregiverPayout,
         payment_status: "unpaid",
-        notes,
+        notes: notes || "",
       })
       .select()
       .single();
 
     if (insertError) {
-      console.error("[POST /api/bookings] Insert Error:", insertError);
-      return NextResponse.json({ error: insertError.message }, { status: 400 });
+      return apiError("BOOKING_INSERT_FAILED", "Failed to record booking request. Please check your details.", 400, insertError);
     }
 
-    // 4. Create Notification for the caregiver
+    // 4. Create Notification for the caregiver with EUR currency
     const dateOnly = startDate.split("T")[0];
     await supabase.from("notifications").insert({
       user_id: caregiverId,
       title: "New Booking Request",
-      message: `You received a new request for ${serviceName} ($${finalTotalAmount.toFixed(2)}) from ${user.fullName} on ${dateOnly}.`,
+      message: `You received a new request for ${matchedService.name} (${formatCurrency(finalTotalAmount)}) from ${user.fullName} on ${dateOnly}.`,
       type: "booking_request",
       is_read: false,
     });
 
-    return NextResponse.json({ booking });
-  } catch (err) {
-    console.error("[POST /api/bookings]", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({
+      success: true,
+      booking,
+      data: { booking },
+    });
+  } catch (err: any) {
+    return apiError("INTERNAL_ERROR", "An unexpected error occurred while submitting booking request.", 500, err);
   }
 }
