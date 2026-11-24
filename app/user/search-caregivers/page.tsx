@@ -188,7 +188,7 @@ export default function SearchCaregivers() {
             <div className="space-y-1.5">
               <div className="flex justify-between text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                 <span>Max Hourly Rate</span>
-                <span className="text-blue-600 font-extrabold">€{maxRate}/hr</span>
+                <span className="text-blue-600 font-extrabold">${maxRate}/hr</span>
               </div>
               <input
                 type="range"
@@ -307,7 +307,7 @@ export default function SearchCaregivers() {
                         </div>
                         <div className="flex items-center gap-1 justify-center sm:justify-start bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full self-center">
                           <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-500" />
-                          <span className="text-xs font-bold text-amber-700">{cg.rating ? cg.rating : 'New'}</span>
+                          <span className="text-xs font-bold text-amber-700">{cg.rating ? Number(cg.rating).toFixed(1) : '0.0'}</span>
                         </div>
                       </div>
 
@@ -328,7 +328,7 @@ export default function SearchCaregivers() {
                         <div className="flex items-center gap-3 shrink-0">
                           <div className="text-right">
                             <span className="block text-[9px] font-extrabold text-slate-400 uppercase leading-none">Hourly Rate</span>
-                            <span className="text-sm font-black text-slate-900">€{cg.hourlyRate}<span className="text-[10px] text-slate-500 font-semibold">/hr</span></span>
+                            <span className="text-sm font-black text-slate-900">${cg.hourlyRate}<span className="text-[10px] text-slate-500 font-semibold">/hr</span></span>
                           </div>
                           
                           <Link

@@ -338,20 +338,20 @@ export async function sendBookingConfirmationEmail({
     </table>
 
     <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; margin-top: 22px; margin-bottom: 10px;">
-      Payment Breakdown (EUR)
+      Payment Breakdown (USD)
     </div>
     <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; margin: 18px 0;">
       <tr>
         <td style="padding: 5px 12px; color: #475569; font-size: 13.5px;">Caregiver Service Fee:</td>
-        <td style="padding: 5px 12px; text-align: right; font-weight: 600; font-size: 13.5px;">€${Number(caregiverPayout).toFixed(2)}</td>
+        <td style="padding: 5px 12px; text-align: right; font-weight: 600; font-size: 13.5px;">$${Number(caregiverPayout).toFixed(2)}</td>
       </tr>
       <tr>
         <td style="padding: 5px 12px; color: #475569; font-size: 13.5px;">Platform Service Fee (12%):</td>
-        <td style="padding: 5px 12px; text-align: right; font-weight: 600; font-size: 13.5px;">€${Number(platformFee).toFixed(2)}</td>
+        <td style="padding: 5px 12px; text-align: right; font-weight: 600; font-size: 13.5px;">$${Number(platformFee).toFixed(2)}</td>
       </tr>
       <tr style="border-top: 1px solid #e2e8f0;">
         <td style="padding: 10px 12px 5px; color: #0f172a; font-weight: 800; font-size: 15px;">Total Paid:</td>
-        <td style="padding: 10px 12px 5px; text-align: right; color: #2563eb; font-weight: 800; font-size: 17px;">€${Number(totalAmount).toFixed(2)}</td>
+        <td style="padding: 10px 12px 5px; text-align: right; color: #2563eb; font-weight: 800; font-size: 17px;">$${Number(totalAmount).toFixed(2)}</td>
       </tr>
     </table>
 
@@ -370,7 +370,7 @@ export async function sendBookingConfirmationEmail({
 
   return sendEmail({
     to,
-    subject: `Booking Confirmed & Payment Receipt: €${Number(totalAmount).toFixed(2)} - ${serviceName} ✅`,
+    subject: `Booking Confirmed & Payment Receipt: $${Number(totalAmount).toFixed(2)} - ${serviceName} ✅`,
     html,
   });
 }

@@ -6,6 +6,7 @@ import { useCareConnect } from '@/context/useCareConnect';
 import MediaPicker from '@/components/MediaPicker';
 import CaregiverBankDetailsForm from '@/components/CaregiverBankDetailsForm';
 import LanguageSettingsCard from '@/components/LanguageSettingsCard';
+import AddressAutocompleteInput from '@/components/AddressAutocompleteInput';
 import {
   User, Mail, Phone, MapPin, Lock, Eye, EyeOff, ShieldCheck, AlertCircle,
   CheckCircle2, Clipboard, Stethoscope, Clock,
@@ -32,6 +33,7 @@ export default function CaregiverProfilePage() {
   const [accountPassword, setAccountPassword] = useState('');
   const [accountConfirmPassword, setAccountConfirmPassword] = useState('');
   const [showAccountPassword, setShowAccountPassword] = useState(false);
+  const [showAccountConfirmPassword, setShowAccountConfirmPassword] = useState(false);
   const [accountError, setAccountError] = useState('');
   const [isAccountSaved, setIsAccountSaved] = useState(false);
   const [isAccountSubmitting, setIsAccountSubmitting] = useState(false);
@@ -51,6 +53,11 @@ export default function CaregiverProfilePage() {
     if (!currentUser || isAccountSubmitting) return;
 
     setAccountError('');
+
+    if (!accountFullName.trim() || !accountEmail.trim() || !accountPhone.trim()) {
+      setAccountError('Full Name, Email Address, and Phone Number are strictly required.');
+      return;
+    }
 
     if (accountPassword || accountConfirmPassword) {
       if (accountPassword !== accountConfirmPassword) {
@@ -98,6 +105,7 @@ export default function CaregiverProfilePage() {
 
   // --- Professional Profile Builder State ---
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [profError, setProfError] = useState('');
   const [isProfSaved, setIsProfSaved] = useState(false);
   const [isProfSubmitting, setIsProfSubmitting] = useState(false);
 
@@ -269,6 +277,34 @@ export default function CaregiverProfilePage() {
     e.preventDefault();
     if (!currentUser || isProfSubmitting) return;
 
+    setProfError('');
+
+    if (!bio.trim() || bio.trim().length < 20) {
+      setProfError('Please complete your professional bio (at least 20 characters).');
+      setStep(1);
+      return;
+    }
+    if (!address.trim() || !city.trim()) {
+      setProfError('Both Residential Street Address and City are strictly required.');
+      setStep(1);
+      return;
+    }
+    if (Number(hourlyRate) <= 0) {
+      setProfError('Please enter a valid hourly rate greater than 0.');
+      setStep(2);
+      return;
+    }
+    if (selectedServices.length === 0) {
+      setProfError('Please select at least one care service.');
+      setStep(2);
+      return;
+    }
+    if (documents.length === 0 && !newDocUrl.trim()) {
+      setProfError('Please attach at least one verification document before final submission.');
+      setStep(4);
+      return;
+    }
+
     setIsProfSubmitting(true);
 
     let finalDocs = [...documents];
@@ -310,6 +346,52 @@ export default function CaregiverProfilePage() {
         router.push('/caregiver/dashboard');
       }, 1800);
     }
+  };
+
+  const handleNextStep = () => {
+    setProfError('');
+    if (step === 1) {
+      if (!bio.trim() || bio.trim().length < 20) {
+        setProfError('Please enter a comprehensive professional bio (at least 20 characters) before continuing.');
+        return;
+      }
+      if (!address.trim() || !city.trim()) {
+        setProfError('Both Residential Street Address and City are strictly required.');
+        return;
+      }
+      if (!dob) {
+        setProfError('Date of Birth is required.');
+        return;
+      }
+      if (!gender) {
+        setProfError('Gender is required.');
+        return;
+      }
+    }
+    if (step === 2) {
+      if (Number(hourlyRate) <= 0) {
+        setProfError('Please enter a valid hourly rate greater than 0.');
+        return;
+      }
+      if (selectedServices.length === 0) {
+        setProfError('Please select at least one care service.');
+        return;
+      }
+    }
+    if (step === 3) {
+      const hasAnyAvailability = Object.values(availability).some(day => day.isAvailable);
+      if (!hasAnyAvailability) {
+        setProfError('Please configure your weekly availability (at least 1 active day).');
+        return;
+      }
+    }
+    if (step === 4) {
+      if (documents.length === 0 && !newDocUrl.trim()) {
+        setProfError('Please upload or attach at least one verification document (e.g. ID, license, or diploma).');
+        return;
+      }
+    }
+    setStep((s) => (s + 1) as any);
   };
 
   return (
@@ -503,13 +585,21 @@ export default function CaregiverProfilePage() {
                   <div className="relative">
                     <Lock className="absolute top-3.5 left-3.5 h-4.5 w-4.5 text-blue-600" />
                     <input
-                      type={showAccountPassword ? 'text' : 'password'}
+                      type={showAccountConfirmPassword ? 'text' : 'password'}
                       id="accountConfirmPass"
                       value={accountConfirmPassword}
                       onChange={(e) => setAccountConfirmPassword(e.target.value)}
                       placeholder="Re-enter new password"
                       className="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-10 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:bg-white focus:outline-none transition-all"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowAccountConfirmPassword(!showAccountConfirmPassword)}
+                      className="absolute top-3.5 right-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+                      title={showAccountConfirmPassword ? "Hide password" : "Show password"}
+                    >
+                      {showAccountConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
 
@@ -564,6 +654,7 @@ export default function CaregiverProfilePage() {
               const Icon = s.icon;
               const isActive = step === s.num;
               const isDone = step > s.num;
+
               return (
                 <div key={s.num} className="flex items-center gap-1.5 sm:gap-2">
                   <div className={`
@@ -587,6 +678,14 @@ export default function CaregiverProfilePage() {
             <div className="flex items-center gap-2 rounded-2xl bg-emerald-50 p-4 border border-emerald-200 text-xs font-bold text-emerald-800 animate-fade-in shadow-xs">
               <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
               <span>Caregiver profile saved! Application submitted for administrator audit...</span>
+            </div>
+          )}
+
+          {/* Validation Error Alert */}
+          {profError && (
+            <div className="flex items-center gap-2 rounded-2xl bg-rose-50 p-4 border border-rose-200 text-xs font-bold text-rose-700 animate-fade-in shadow-xs">
+              <AlertCircle className="h-5 w-5 shrink-0 text-rose-600" />
+              <span>{profError}</span>
             </div>
           )}
 
@@ -659,13 +758,16 @@ export default function CaregiverProfilePage() {
                         )}
                       </button>
                     </div>
-                    <input
-                      type="text"
-                      required
+                    <AddressAutocompleteInput
                       value={address}
-                      onChange={(e) => setAddress(e.target.value)}
+                      onChange={setAddress}
+                      onSelectSuggestion={(item) => {
+                        if (item.city) setCity(item.city);
+                      }}
+                      required
                       placeholder="e.g. 123 Health Ave, Medical District"
-                      className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-3.5 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none transition-all"
+                      showIcon={false}
+                      inputClassName="w-full rounded-2xl border border-slate-300 bg-slate-50 px-3.5 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none transition-all"
                     />
                     {locationStatus && (
                       <p className="text-[11px] font-semibold text-blue-600 animate-fade-in">{locationStatus}</p>
@@ -744,6 +846,7 @@ export default function CaregiverProfilePage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     {servicesList.map((service) => {
                       const isChecked = selectedServices.includes(service);
+
                       return (
                         <button
                           key={service}
@@ -915,7 +1018,7 @@ export default function CaregiverProfilePage() {
 
               {step < 5 ? (
                 <button
-                  onClick={() => setStep((s) => (s + 1) as any)}
+                  onClick={handleNextStep}
                   className="rounded-2xl nav-pill-active px-6 py-3 text-xs font-black text-white shadow-md shadow-blue-500/20 inline-flex items-center gap-2 cursor-pointer ml-auto uppercase tracking-wider active:scale-95 transition-all"
                 >
                   <span>Continue</span>

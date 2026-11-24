@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/lib/supabase";
-import { Lock, CheckCircle, ShieldAlert, ArrowRight, Loader2 } from "lucide-react";
+import { Lock, CheckCircle, ShieldAlert, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -109,28 +111,48 @@ export default function ResetPasswordPage() {
             <form onSubmit={handleReset} className="space-y-4">
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-slate-700">New Password</label>
-                <input
-                  type="password"
-                  required
-                  disabled={isSubmitting}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="At least 6 characters"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-4 pr-4 py-3 text-sm focus:border-blue-600 focus:bg-white focus:outline-none"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    disabled={isSubmitting}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="At least 6 characters"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-4 pr-11 py-3 text-sm focus:border-blue-600 focus:bg-white focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute top-3.5 right-3.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                    title={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-slate-700">Confirm New Password</label>
-                <input
-                  type="password"
-                  required
-                  disabled={isSubmitting}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Repeat new password"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-4 pr-4 py-3 text-sm focus:border-blue-600 focus:bg-white focus:outline-none"
-                />
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    required
+                    disabled={isSubmitting}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Repeat new password"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-4 pr-11 py-3 text-sm focus:border-blue-600 focus:bg-white focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute top-3.5 right-3.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                    title={showConfirmPassword ? "Hide password" : "Show password"}
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
+                  </button>
+                </div>
               </div>
 
               <button

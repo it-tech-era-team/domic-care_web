@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
       
       const paymentIntent = await stripe.paymentIntents.create({
         amount: split.totalCents,
-        currency: "eur",
+        currency: "usd",
         payment_method_types: ["card"],
         description: `Domicare Booking: ${serviceName} (${booking.id.slice(0, 8)})`,
         metadata: {

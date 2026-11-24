@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import { useCareConnect } from '@/context/useCareConnect';
-import { Key, Mail, ShieldAlert, ArrowRight, Loader2, Zap, Clock, MapPin, PhoneCall, ShieldCheck, CheckCircle2, X } from 'lucide-react';
+import { Key, Mail, ShieldAlert, ArrowRight, Loader2, Zap, Clock, MapPin, PhoneCall, ShieldCheck, CheckCircle2, X, Eye, EyeOff } from 'lucide-react';
 
 function LoginForm() {
   const router = useRouter();
@@ -14,6 +14,7 @@ function LoginForm() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [bannerNotice, setBannerNotice] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -302,15 +303,23 @@ function LoginForm() {
                     <div className="relative">
                       <Key className="absolute top-3.5 left-3.5 h-4.5 w-4.5 text-slate-400" />
                       <input
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         id="pass"
                         required
                         disabled={isSubmitting}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Enter password"
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50/80 pl-11 pr-4 py-3 text-sm text-slate-900 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/10 transition-all disabled:opacity-60"
+                        className="w-full rounded-2xl border border-slate-200 bg-slate-50/80 pl-11 pr-11 py-3 text-sm text-slate-900 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/10 transition-all disabled:opacity-60"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute top-3.5 right-3.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                        title={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
+                      </button>
                     </div>
                   </div>
 

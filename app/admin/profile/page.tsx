@@ -22,6 +22,8 @@ export default function AdminProfilePage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [formError, setFormError] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
   const [isSaved, setIsSaved] = useState(false);
@@ -41,7 +43,13 @@ export default function AdminProfilePage() {
     e.preventDefault();
     if (!currentUser || isSubmitting) return;
 
+    setFormError('');
     setPasswordError('');
+
+    if (!fullName.trim() || !email.trim() || !phone.trim()) {
+      setFormError('Full Name, Email Address, and Phone Number are strictly required.');
+      return;
+    }
 
     if (newPassword || confirmPassword) {
       if (newPassword !== confirmPassword) {
@@ -115,6 +123,13 @@ export default function AdminProfilePage() {
           <div className="flex items-center gap-2 rounded-2xl bg-emerald-50 p-4 text-xs font-bold text-emerald-700 border border-emerald-200 animate-fade-in">
             <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
             <span>Administrator profile and security password saved successfully!</span>
+          </div>
+        )}
+
+        {formError && (
+          <div className="flex items-center gap-2 rounded-2xl bg-rose-50 p-4 text-xs font-bold text-rose-700 border border-rose-200 animate-fade-in">
+            <AlertCircle className="h-5 w-5 shrink-0 text-rose-600" />
+            <span>{formError}</span>
           </div>
         )}
 
@@ -242,13 +257,21 @@ export default function AdminProfilePage() {
                 <div className="relative">
                   <Lock className="absolute top-3.5 left-3.5 h-4.5 w-4.5 text-blue-600" />
                   <input
-                    type={showPassword ? 'text' : 'password'}
+                    type={showConfirmPassword ? 'text' : 'password'}
                     id="confirmPass"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Re-enter new password"
                     className="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-10 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:bg-white focus:outline-none transition-all"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute top-3.5 right-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+                    title={showConfirmPassword ? "Hide password" : "Show password"}
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
               </div>
 

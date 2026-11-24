@@ -185,11 +185,11 @@ export default function GoogleMap({
               <img src="${cg.avatarUrl}" style="width: 38px; height: 38px; border-radius: 10px; object-fit: cover; border: 1.5px solid #e2e8f0; background: #f8fafc;" />
               <div>
                 <b style="font-size: 13px; color: #0f172a; display: block; line-height: 1.2; font-weight: 800;">${cg.fullName}</b>
-                <span style="font-size: 11.5px; color: #2563eb; font-weight: 800;">€${cg.hourlyRate}/hr</span>
+                <span style="font-size: 11.5px; color: #2563eb; font-weight: 800;">$${cg.hourlyRate}/hr</span>
               </div>
             </div>
             <div style="font-size: 11px; color: #475569; margin-bottom: 10px; font-weight: 600; display: flex; align-items: center; gap: 4px;">
-              ${cg.rating ? `<span style="color: #d97706;">⭐ ${cg.rating} Rating</span>` : '<span style="color: #0284c7; font-weight: 800;">✨ New</span>'} • <span style="color: #64748b;">${cg.experienceYears} yrs exp</span>
+              <span style="color: #d97706;">⭐ ${cg.rating ? Number(cg.rating).toFixed(1) : '0.0'} Rating</span> • <span style="color: #64748b;">${cg.experienceYears} yrs exp</span>
             </div>
             <button id="btn-popup-${cg.id}" style="width: 100%; border: none; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #ffffff; padding: 7.5px 0; border-radius: 10px; font-size: 11px; font-weight: 800; cursor: pointer; transition: transform 0.15s, opacity 0.15s; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);">
               Select Caregiver

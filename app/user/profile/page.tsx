@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useCareConnect } from '@/context/useCareConnect';
 import MediaPicker from '@/components/MediaPicker';
 import LanguageSettingsCard from '@/components/LanguageSettingsCard';
+import AddressAutocompleteInput from '@/components/AddressAutocompleteInput';
 import { User, Mail, Phone, MapPin, CheckCircle2, Lock, Eye, EyeOff, ShieldCheck, AlertCircle, Navigation } from 'lucide-react';
 
 export default function UserProfileEdit() {
@@ -22,6 +23,8 @@ export default function UserProfileEdit() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [formError, setFormError] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
   const [isSaved, setIsSaved] = useState(false);
@@ -88,7 +91,14 @@ export default function UserProfileEdit() {
     e.preventDefault();
     if (!currentUser || isSubmitting) return;
 
+    setFormError('');
     setPasswordError('');
+
+    // Strict Validation: Full Name, Email, Phone, Address are strictly required
+    if (!fullName.trim() || !email.trim() || !phone.trim() || !address.trim()) {
+      setFormError('All profile fields (Full Name, Email Address, Phone Number, and Primary Care Address) are strictly required.');
+      return;
+    }
 
     // If user filled password, validate match and length
     if (newPassword || confirmPassword) {
@@ -105,9 +115,10 @@ export default function UserProfileEdit() {
     setIsSubmitting(true);
 
     const payload: any = {
-      fullName,
-      email,
-      phone,
+      fullName: fullName.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      address: address.trim(),
       avatarUrl,
     };
 
@@ -147,6 +158,13 @@ export default function UserProfileEdit() {
           <div className="flex items-center gap-2 rounded-2xl bg-emerald-50 p-4 text-xs font-bold text-emerald-700 border border-emerald-200 animate-fade-in">
             <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
             <span>Profile details and account security settings saved successfully!</span>
+          </div>
+        )}
+
+        {formError && (
+          <div className="flex items-center gap-2 rounded-2xl bg-rose-50 p-4 text-xs font-bold text-rose-700 border border-rose-200 animate-fade-in">
+            <AlertCircle className="h-5 w-5 shrink-0 text-rose-600" />
+            <span>{formError}</span>
           </div>
         )}
 
@@ -229,7 +247,7 @@ export default function UserProfileEdit() {
               {/* Primary Address */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Primary Care Area</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Primary Care Area *</label>
                   <button
                     type="button"
                     onClick={handleUseCurrentLocation}
@@ -249,16 +267,13 @@ export default function UserProfileEdit() {
                     )}
                   </button>
                 </div>
-                <div className="relative">
-                  <MapPin className="absolute top-3.5 left-3.5 h-4.5 w-4.5 text-blue-600" />
-                  <input
-                    type="text"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="e.g. Pleven, Bulgaria or Sofia, Center"
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-3.5 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:outline-none transition-all"
-                  />
-                </div>
+                <AddressAutocompleteInput
+                  value={address}
+                  onChange={setAddress}
+                  required
+                  placeholder="e.g. Pleven, Bulgaria or Sofia, Center"
+                  showIcon={true}
+                />
                 {locationStatus && (
                   <p className="text-[11px] font-semibold text-blue-600 animate-fade-in">{locationStatus}</p>
                 )}
@@ -312,13 +327,21 @@ export default function UserProfileEdit() {
                 <div className="relative">
                   <Lock className="absolute top-3.5 left-3.5 h-4.5 w-4.5 text-blue-600" />
                   <input
-                    type={showPassword ? 'text' : 'password'}
+                    type={showConfirmPassword ? 'text' : 'password'}
                     id="confirmPass"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Re-enter new password"
                     className="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-10 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:bg-white focus:outline-none transition-all"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute top-3.5 right-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+                    title={showConfirmPassword ? "Hide password" : "Show password"}
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
               </div>
 

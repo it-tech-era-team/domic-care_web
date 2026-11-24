@@ -151,7 +151,7 @@ function CheckoutForm({
       <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3">
         <div className="flex justify-between items-center text-xs font-bold text-slate-600">
           <span>Booking Service Fee</span>
-          <span className="text-slate-900 font-extrabold">€{totalAmountUSD.toFixed(2)}</span>
+          <span className="text-slate-900 font-extrabold">${totalAmountUSD.toFixed(2)}</span>
         </div>
         <div className="flex justify-between items-center text-[11px] text-slate-500 border-t border-slate-200/70 pt-2.5">
           <span className="flex items-center gap-1.5">
@@ -164,7 +164,7 @@ function CheckoutForm({
         </div>
         <div className="flex justify-between items-center text-sm font-black text-slate-900 border-t border-slate-200/70 pt-3">
           <span>Total Amount Due Now</span>
-          <span className="text-blue-600 text-base sm:text-lg">€{totalAmountUSD.toFixed(2)}</span>
+          <span className="text-blue-600 text-base sm:text-lg">${totalAmountUSD.toFixed(2)}</span>
         </div>
       </div>
 
@@ -219,7 +219,7 @@ function CheckoutForm({
             ) : (
               <>
                 <CreditCard className="h-4 w-4" />
-                <span>Pay €{totalAmountUSD.toFixed(2)}</span>
+                <span>Pay ${totalAmountUSD.toFixed(2)}</span>
               </>
             )}
           </button>

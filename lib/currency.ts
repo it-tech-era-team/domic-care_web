@@ -1,33 +1,33 @@
 /**
  * Central Currency and Pricing Logic for DomicCare
- * Default currency: EUR (€)
+ * Default currency: USD ($)
  * Platform fee: 12%
  */
 
 export const CURRENCY = {
-  CODE: "EUR",
-  SYMBOL: "€",
+  CODE: "USD",
+  SYMBOL: "$",
   PLATFORM_FEE_RATE: 0.12,
 } as const;
 
 /**
- * Format any numeric value as standard EUR currency ("€84.00")
+ * Format any numeric value as standard USD currency ("$84.00")
  */
 export function formatCurrency(amount: number | null | undefined): string {
   if (amount === null || amount === undefined || isNaN(amount)) {
-    return "€0.00";
+    return "$0.00";
   }
-  return `€${Number(amount).toFixed(2)}`;
+  return `$${Number(amount).toFixed(2)}`;
 }
 
 /**
- * Format hourly rate as EUR ("€25.00/hr")
+ * Format hourly rate as USD ("$25.00/hr")
  */
 export function formatRate(hourlyRate: number | null | undefined): string {
   if (hourlyRate === null || hourlyRate === undefined || isNaN(hourlyRate)) {
-    return "€0.00/hr";
+    return "$0.00/hr";
   }
-  return `€${Number(hourlyRate).toFixed(2)}/hr`;
+  return `$${Number(hourlyRate).toFixed(2)}/hr`;
 }
 
 /**
