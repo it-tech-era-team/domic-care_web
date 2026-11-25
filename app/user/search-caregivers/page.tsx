@@ -5,14 +5,16 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCareConnect, CaregiverProfile } from '@/context/useCareConnect';
 import GoogleMap from '@/components/GoogleMap';
+import StripePaymentModal from '@/components/StripePaymentModal';
 import {
   Search, Filter, SlidersHorizontal, MapPin,
-  Star, Briefcase, DollarSign, Calendar, Eye
+  Star, Briefcase, DollarSign, Calendar, Eye,
+  Clock, CreditCard, CheckCircle2
 } from 'lucide-react';
 
 export default function SearchCaregivers() {
   const router = useRouter();
-  const { caregivers, services, caregiverFilters, updateCaregiverFilters } = useCareConnect();
+  const { caregivers, services, caregiverFilters, updateCaregiverFilters, bookings, refreshData } = useCareConnect();
   
   // Local temporary states for filter inputs
   const [searchQuery, setSearchQuery] = useState(caregiverFilters.searchQuery || '');
@@ -22,6 +24,7 @@ export default function SearchCaregivers() {
   const [maxDistance, setMaxDistance] = useState(caregiverFilters.maxDistance ?? 250);
   const [selectedDay, setSelectedDay] = useState(caregiverFilters.selectedDay || 'All');
   const [selectedCaregiverId, setSelectedCaregiverId] = useState<string | null>(null);
+  const [payBooking, setPayBooking] = useState<any | null>(null);
 
   const handleApplyFilters = () => {
     updateCaregiverFilters({
@@ -277,6 +280,23 @@ export default function SearchCaregivers() {
             <div className="space-y-4">
               {filteredCaregivers.map((cg) => {
                 const isSelected = selectedCaregiverId === cg.id;
+                const matchingBookings = (bookings || []).filter((b) => b.caregiverId === cg.id);
+                const userBooking = matchingBookings.sort(
+                  (a, b) => new Date(b.createdAt || b.startDate).getTime() - new Date(a.createdAt || a.startDate).getTime()
+                )[0];
+
+                const isPending = userBooking?.status === 'pending';
+                const isAwaitingPayment =
+                  userBooking &&
+                  (userBooking.status === 'awaiting_payment' || userBooking.status === 'accepted') &&
+                  userBooking.paymentStatus !== 'paid';
+                const isPaid =
+                  userBooking &&
+                  (userBooking.paymentStatus === 'paid' ||
+                    ['confirmed', 'in_progress', 'active'].includes(userBooking.status));
+                const isReRequestable =
+                  !userBooking || ['completed', 'rejected', 'cancelled'].includes(userBooking.status);
+
                 return (
                   <div
                     key={cg.id}
@@ -331,13 +351,50 @@ export default function SearchCaregivers() {
                             <span className="text-sm font-black text-slate-900">${cg.hourlyRate}<span className="text-[10px] text-slate-500 font-semibold">/hr</span></span>
                           </div>
                           
-                          <Link
-                            href={`/user/caregiver/${cg.id}`}
-                            className="rounded-xl nav-pill-active p-2.5 text-white transition-colors flex items-center justify-center shadow-xs cursor-pointer"
-                            title="View Profile"
-                          >
-                            <Eye className="h-4.5 w-4.5" />
-                          </Link>
+                          {/* Lifecycle Action Buttons */}
+                          {isPending && (
+                            <span
+                              className="rounded-xl bg-amber-50 border border-amber-200 px-3.5 py-2 text-xs font-bold text-amber-700 flex items-center gap-1.5 shadow-xs"
+                              title="Care request is awaiting caregiver approval"
+                            >
+                              <Clock className="h-3.5 w-3.5 text-amber-500 animate-pulse" />
+                              <span>Requested</span>
+                            </span>
+                          )}
+
+                          {isAwaitingPayment && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPayBooking(userBooking);
+                              }}
+                              className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 px-3.5 py-2 text-xs font-black text-white flex items-center gap-1.5 shadow-md shadow-blue-500/25 cursor-pointer active:scale-95 transition-all"
+                            >
+                              <CreditCard className="h-3.5 w-3.5 text-white" />
+                              <span>Pay Now</span>
+                            </button>
+                          )}
+
+                          {isPaid && (
+                            <span
+                              className="rounded-xl bg-emerald-50 border border-emerald-200 px-3.5 py-2 text-xs font-extrabold text-emerald-800 flex items-center gap-1.5 shadow-xs"
+                              title="Booking is paid & confirmed"
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                              <span>Paid</span>
+                            </span>
+                          )}
+
+                          {isReRequestable && (
+                            <Link
+                              href={`/user/caregiver/${cg.id}`}
+                              className="rounded-xl nav-pill-active px-3.5 py-2 text-white transition-all flex items-center justify-center gap-1.5 text-xs font-bold shadow-xs cursor-pointer hover:shadow-md"
+                              title="Book Caregiver"
+                            >
+                              <span>Request Care</span>
+                              <Eye className="h-3.5 w-3.5" />
+                            </Link>
+                          )}
                         </div>
                       </div>
 
@@ -363,6 +420,21 @@ export default function SearchCaregivers() {
           searchDistance={maxDistance}
         />
       </div>
+
+      {/* Stripe Payment Modal */}
+      {payBooking && (
+        <StripePaymentModal
+          bookingId={payBooking.id}
+          serviceName={payBooking.serviceName || 'Care Category'}
+          caregiverName={payBooking.caregiverFullName}
+          startDate={payBooking.startDate}
+          onSuccess={async () => {
+            setPayBooking(null);
+            await refreshData();
+          }}
+          onClose={() => setPayBooking(null)}
+        />
+      )}
 
     </div>
   );

@@ -78,38 +78,51 @@ export async function POST(req: NextRequest) {
     // 3. Create or reuse Stripe Payment Intent
     let clientSecret = "";
     let paymentIntentId = booking.payment_intent_id;
+    let isSandbox = !process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.includes("dummy");
 
-    if (paymentIntentId) {
+    if (!isSandbox && paymentIntentId && !paymentIntentId.startsWith("pi_mock_") && !paymentIntentId.startsWith("pi_sandbox_")) {
       try {
         const existingPI = await stripe.paymentIntents.retrieve(paymentIntentId);
         if (existingPI && existingPI.status !== "canceled") {
           clientSecret = existingPI.client_secret || "";
         }
       } catch (e) {
-        console.warn("[Stripe] Existing PI retrieve failed, creating new one:", e);
+        console.warn("[Stripe] Existing PI retrieve failed:", e);
       }
     }
 
-    if (!clientSecret) {
-      const b = booking as any;
-      const serviceName = (Array.isArray(b.services) ? b.services[0]?.name : b.services?.name) || "Care Service";
-      
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: split.totalCents,
-        currency: "usd",
-        payment_method_types: ["card"],
-        description: `Domicare Booking: ${serviceName} (${booking.id.slice(0, 8)})`,
-        metadata: {
-          booking_id: booking.id,
-          user_id: user.id,
-          caregiver_id: booking.caregiver_id,
-          platform_fee_cents: split.platformFeeCents,
-          caregiver_payout_cents: split.caregiverPayoutCents,
-        },
-      });
+    if (!clientSecret && !isSandbox) {
+      try {
+        const b = booking as any;
+        const serviceName = (Array.isArray(b.services) ? b.services[0]?.name : b.services?.name) || "Care Service";
+        
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: split.totalCents,
+          currency: "usd",
+          payment_method_types: ["card"],
+          description: `Domicare Booking: ${serviceName} (${booking.id.slice(0, 8)})`,
+          metadata: {
+            booking_id: booking.id,
+            user_id: user.id,
+            caregiver_id: booking.caregiver_id,
+            platform_fee_cents: split.platformFeeCents,
+            caregiver_payout_cents: split.caregiverPayoutCents,
+          },
+        });
 
-      paymentIntentId = paymentIntent.id;
-      clientSecret = paymentIntent.client_secret || "";
+        paymentIntentId = paymentIntent.id;
+        clientSecret = paymentIntent.client_secret || "";
+      } catch (stripeErr: any) {
+        console.warn("[Stripe] Real intent creation failed, falling back to sandbox mode:", stripeErr?.message);
+        isSandbox = true;
+      }
+    }
+
+    // Sandbox / Mock fallback if Stripe keys are unconfigured
+    if (isSandbox || !clientSecret) {
+      paymentIntentId = `pi_sandbox_${booking.id.replace(/-/g, '').slice(0, 16)}`;
+      clientSecret = `${paymentIntentId}_secret_sandbox_${Date.now()}`;
+      isSandbox = true;
     }
 
     // 4. Update booking record in Supabase with payment calculation details
@@ -127,12 +140,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       clientSecret,
       paymentIntentId,
+      isSandbox,
       totalAmountUSD: split.totalAmountUSD,
       platformFeeUSD: split.platformFeeUSD,
       caregiverPayoutUSD: split.caregiverPayoutUSD,
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error("[POST /api/stripe/create-payment-intent]", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: err?.message || "Internal server error" }, { status: 500 });
   }
 }

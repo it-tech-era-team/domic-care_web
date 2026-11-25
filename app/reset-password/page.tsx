@@ -20,6 +20,7 @@ function ResetPasswordForm() {
   const [isVerifying, setIsVerifying] = useState(true);
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userEmail, setUserEmail] = useState<string>("");
 
   useEffect(() => {
     let isMounted = true;
@@ -28,13 +29,18 @@ function ResetPasswordForm() {
       try {
         const tokenHash = searchParams.get("token_hash");
         const exp = searchParams.get("exp");
+        const emailParam = searchParams.get("email");
 
-        // 1. Check 60-second expiration timestamp if present in query params
+        if (emailParam && isMounted) {
+          setUserEmail(decodeURIComponent(emailParam));
+        }
+
+        // 1. Check expiration timestamp if present in query params
         if (exp) {
           const expirationTime = Number(exp);
           if (!isNaN(expirationTime) && Date.now() > expirationTime) {
             if (isMounted) {
-              setError("This password reset link has expired (valid for 60 seconds). Please request a fresh reset link.");
+              setError("This password reset link has expired. Please request a fresh reset link.");
               setIsExpired(true);
               setIsVerifying(false);
             }
@@ -42,23 +48,8 @@ function ResetPasswordForm() {
           }
         }
 
-        // 2. Direct OTP verification if token_hash is present
+        // 2. Validate token_hash presence without pre-consuming OTP on mount
         if (tokenHash) {
-          const { data, error: otpError } = await supabase.auth.verifyOtp({
-            token_hash: tokenHash,
-            type: "recovery",
-          });
-
-          if (otpError) {
-            console.warn("[verifyOtp] Token verification failed:", otpError.message);
-            if (isMounted) {
-              setError("Invalid or expired password reset link. Please request a new one.");
-              setIsExpired(true);
-              setIsVerifying(false);
-            }
-            return;
-          }
-
           if (isMounted) {
             setError("");
             setIsExpired(false);
@@ -67,11 +58,15 @@ function ResetPasswordForm() {
           return;
         }
 
-        // 3. Fallback: Check if recovery access token is in URL hash or session
+        // 3. Fallback: Check if recovery access token is in URL hash or active session
         const { data: sessionData } = await supabase.auth.getSession();
+        if (sessionData?.session?.user?.email && isMounted) {
+          setUserEmail(sessionData.session.user.email);
+        }
+
         if (!sessionData?.session) {
           const hash = typeof window !== "undefined" ? window.location.hash : "";
-          if (!hash.includes("access_token")) {
+          if (!hash.includes("access_token") && !emailParam) {
             if (isMounted) {
               setError("Invalid or expired password reset link. Please request a new one.");
               setIsExpired(true);
@@ -83,6 +78,7 @@ function ResetPasswordForm() {
 
         if (isMounted) {
           setIsVerifying(false);
+          setIsExpired(false);
         }
       } catch (err: any) {
         console.error("[ResetPassword] Verification error:", err);
@@ -119,21 +115,35 @@ function ResetPasswordForm() {
     setIsSubmitting(true);
 
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
+      // 1. Update Supabase Auth user password
+      const { data: updateData, error: updateError } = await supabase.auth.updateUser({
         password: password,
       });
 
-      if (updateError) {
-        // Fallback to server endpoint
-        const res = await fetch("/api/auth/reset-password", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ password }),
-        });
-        const json = await res.json();
-        if (!res.ok) {
-          throw new Error(json.error?.message || json.error || "Failed to reset password.");
-        }
+      // 2. Obtain current session details to authenticate with server endpoint
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      const targetEmail = userEmail || sessionData?.session?.user?.email || updateData?.user?.email;
+
+      // 3. Always synchronize database profiles.password_hash via server endpoint
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (accessToken) {
+        headers["Authorization"] = `Bearer ${accessToken}`;
+      }
+
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          password,
+          email: targetEmail,
+          token_hash: searchParams.get("token_hash"),
+        }),
+      });
+
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(json.error?.message || json.error || updateError?.message || "Failed to reset password.");
       }
 
       setSuccess(true);

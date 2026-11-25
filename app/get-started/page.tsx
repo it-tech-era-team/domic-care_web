@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import { useCareConnect, Role } from '@/context/useCareConnect';
-import { Home, Stethoscope, ArrowRight, CheckCircle2, Zap, Clock, MapPin, PhoneCall, ShieldCheck, UserCheck } from 'lucide-react';
+import { Home, Stethoscope, ArrowRight, CheckCircle2, Zap, Clock, MapPin, PhoneCall, ShieldCheck, UserCheck, Eye, EyeOff } from 'lucide-react';
 
 export default function GetStarted() {
   const router = useRouter();
@@ -17,6 +17,7 @@ export default function GetStarted() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleRoleSelect = (role: Role) => {
     setSelectedRole(role);
@@ -313,15 +314,26 @@ export default function GetStarted() {
                       <label htmlFor="password" className="block text-xs font-bold text-slate-700">
                         Password
                       </label>
-                      <input
-                        type="password"
-                        id="password"
-                        required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Create a password"
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-3.5 py-2.5 text-xs text-slate-900 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/10 transition-all"
-                      />
+                      <div className="relative">
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          id="password"
+                          required
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Create a password"
+                          className="w-full rounded-2xl border border-slate-200 bg-slate-50/80 pl-3.5 pr-10 py-2.5 text-xs text-slate-900 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/10 transition-all"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute top-2.5 right-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+                          tabIndex={-1}
+                          title={showPassword ? 'Hide password' : 'Show password'}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
                     </div>
 
                     <div className="flex items-start gap-2 py-1">

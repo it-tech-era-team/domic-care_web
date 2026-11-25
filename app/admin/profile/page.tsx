@@ -46,8 +46,13 @@ export default function AdminProfilePage() {
     setFormError('');
     setPasswordError('');
 
-    if (!fullName.trim() || !email.trim() || !phone.trim()) {
-      setFormError('Full Name, Email Address, and Phone Number are strictly required.');
+    if (!avatarUrl || !avatarUrl.trim()) {
+      setFormError('Admin profile avatar photo is strictly required. Please upload an avatar.');
+      return;
+    }
+
+    if (!fullName.trim() || !phone.trim()) {
+      setFormError('Full Name and Phone Number are strictly required.');
       return;
     }
 
@@ -149,6 +154,7 @@ export default function AdminProfilePage() {
               onChange={setAvatarUrl}
               type="avatar"
               label="Admin Avatar Photo"
+              required={true}
             />
           </div>
 
@@ -163,7 +169,9 @@ export default function AdminProfilePage() {
               
               {/* Full Name */}
               <div className="space-y-1.5">
-                <label htmlFor="name" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Full Name</label>
+                <label htmlFor="name" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Full Name <span className="text-red-500 font-black">*</span>
+                </label>
                 <div className="relative">
                   <User className="absolute top-3.5 left-3.5 h-4.5 w-4.5 text-blue-600" />
                   <input
@@ -179,23 +187,27 @@ export default function AdminProfilePage() {
 
               {/* Email */}
               <div className="space-y-1.5">
-                <label htmlFor="email" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Email Address</label>
+                <label htmlFor="email" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Email Address <span className="text-[10px] text-slate-400 font-medium normal-case tracking-normal ml-1">(Cannot be changed)</span>
+                </label>
                 <div className="relative">
-                  <Mail className="absolute top-3.5 left-3.5 h-4.5 w-4.5 text-blue-600" />
+                  <Mail className="absolute top-3.5 left-3.5 h-4.5 w-4.5 text-slate-400" />
                   <input
                     type="email"
                     id="email"
-                    required
+                    disabled
+                    readOnly
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-3.5 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:bg-white focus:outline-none transition-all"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-100 pl-10 pr-3.5 py-3 text-xs sm:text-sm font-semibold text-slate-500 placeholder-slate-400 cursor-not-allowed select-none focus:outline-none transition-all"
                   />
                 </div>
               </div>
 
               {/* Phone */}
               <div className="space-y-1.5 sm:col-span-2">
-                <label htmlFor="phone" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Phone Number</label>
+                <label htmlFor="phone" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Phone Number <span className="text-red-500 font-black">*</span>
+                </label>
                 <div className="relative">
                   <Phone className="absolute top-3.5 left-3.5 h-4.5 w-4.5 text-blue-600" />
                   <input

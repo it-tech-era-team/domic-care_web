@@ -161,18 +161,30 @@ export default function UserBookings() {
 
                   <div className="flex flex-wrap items-center gap-2.5">
                     <span className={`
-                      inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-bold border capitalize
+                      inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-bold border capitalize
                       ${b.status === 'pending' && 'bg-amber-50 text-amber-700 border-amber-200'}
                       ${b.status === 'awaiting_payment' && 'bg-purple-50 text-purple-700 border-purple-200 font-extrabold animate-pulse'}
-                      ${b.status === 'accepted' && 'bg-emerald-50 text-emerald-700 border-emerald-200'}
+                      ${b.status === 'accepted' && b.paymentStatus === 'paid' && 'bg-emerald-50 text-emerald-800 border-emerald-200 font-extrabold'}
+                      ${b.status === 'accepted' && b.paymentStatus !== 'paid' && 'bg-blue-50 text-blue-700 border-blue-200 font-bold'}
                       ${b.status === 'completed' && 'bg-slate-100 text-slate-700 border-slate-200'}
                       ${b.status === 'cancelled' && 'bg-rose-50 text-rose-700 border-rose-200'}
                     `}>
-                      {b.status === 'awaiting_payment' ? 'Awaiting Payment' : b.status}
+                      {b.paymentStatus === 'paid' ? (
+                        <>
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                          <span>Paid • Scheduled</span>
+                        </>
+                      ) : b.status === 'awaiting_payment' ? (
+                        'Awaiting Payment'
+                      ) : b.status === 'accepted' ? (
+                        'Accepted (Awaiting Payment)'
+                      ) : (
+                        b.status
+                      )}
                     </span>
 
-                    {/* Pay Now Button when caregiver has accepted */}
-                    {(b.status === 'awaiting_payment' || (b.status === 'accepted' && (b.totalAmount || 0) > 0)) && (
+                    {/* Pay Now Button when caregiver has accepted and NOT paid yet */}
+                    {(b.status === 'awaiting_payment' || b.status === 'accepted') && (b.totalAmount || 0) > 0 && b.paymentStatus !== 'paid' && (
                       <button
                         onClick={() => setPayBooking(b)}
                         className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 px-3.5 py-1.5 text-xs font-black text-white shadow-md shadow-blue-500/20 cursor-pointer active:scale-95 transition-all"

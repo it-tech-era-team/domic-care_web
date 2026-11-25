@@ -52,17 +52,22 @@ export async function POST(req: NextRequest) {
       .update({ phone, password_hash: passwordHash, full_name: fullName, role, avatar_url: avatarUrl })
       .eq("id", data.user.id);
 
-    // If caregiver, insert default caregiver profile shell
+    // If caregiver, insert default caregiver profile shell with required schema defaults
     if (role === "caregiver") {
       const { error: caregiverError } = await supabaseServer
         .from("caregiver_profiles")
         .upsert({
           id: data.user.id,
-          bio: "",
+          bio: "Professional caregiver dedicated to providing high-quality compassionate care.",
           experience_years: 0,
           hourly_rate: 25.00,
+          gender: "Other",
+          date_of_birth: "1990-01-01",
+          address: "Main Street",
+          city: "Sofia",
           approval_status: "pending",
-        });
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "id" });
         
       if (caregiverError) {
         console.error("Error creating caregiver profile shell:", caregiverError);

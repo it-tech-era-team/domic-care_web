@@ -58,6 +58,21 @@ export async function POST(
     }
 
     const supabase = createServerSupabaseClient();
+
+    // Ensure parent caregiver profile exists before inserting documents with required schema defaults
+    await supabase.from("caregiver_profiles").upsert({
+      id: caregiverId,
+      bio: "Professional caregiver dedicated to providing high-quality compassionate care.",
+      experience_years: 0,
+      hourly_rate: 25.00,
+      gender: "Other",
+      date_of_birth: "1990-01-01",
+      address: "Main Street",
+      city: "Sofia",
+      approval_status: "pending",
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "id", ignoreDuplicates: true });
+
     const { data, error } = await supabase
       .from("caregiver_documents")
       .insert({

@@ -25,10 +25,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify password against stored password_hash
-    const isMatch = await bcrypt.compare(password, profile.password_hash || "");
-    if (!isMatch) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-    }
+    let isMatch = await bcrypt.compare(password, profile.password_hash || "");
 
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -37,12 +34,47 @@ export async function POST(req: NextRequest) {
       auth: { persistSession: false },
     });
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    let { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error || !data.session) {
+    // HEALING CASE 1: bcrypt matched database password_hash, but Supabase Auth had desynced password or unconfirmed email
+    if (isMatch && (error || !data?.session)) {
+      try {
+        // Auto-heal Supabase Auth user password & confirm email via admin API
+        await supabaseServer.auth.admin.updateUserById(profile.id, {
+          password,
+          email_confirm: true,
+        });
+        // Retry Supabase Auth sign-in
+        const retryResult = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (retryResult.data?.session && !retryResult.error) {
+          data = retryResult.data;
+          error = null;
+        }
+      } catch (adminSyncErr) {
+        console.warn("[POST /api/auth/login] Supabase Auth auto-heal warning:", adminSyncErr);
+      }
+    }
+
+    // HEALING CASE 2: Supabase Auth succeeded, but database password_hash was out of sync
+    if (!isMatch && data?.session && !error) {
+      // Re-hash and auto-heal the profile password_hash in database
+      try {
+        const salt = await bcrypt.genSalt(10);
+        const newHash = await bcrypt.hash(password, salt);
+        await supabaseServer.from("profiles").update({ password_hash: newHash }).eq("id", profile.id);
+        isMatch = true;
+      } catch (syncErr) {
+        console.warn("[POST /api/auth/login] password_hash auto-sync warning:", syncErr);
+      }
+    }
+
+    if (!isMatch || error || !data?.session) {
       return NextResponse.json({ error: error?.message || "Invalid credentials" }, { status: 401 });
     }
 

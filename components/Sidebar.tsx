@@ -53,14 +53,14 @@ export default function Sidebar({ role }: SidebarProps) {
       { label: 'Find Caregivers', href: '/user/search-caregivers', icon: Search },
       { label: 'Bookings', href: '/user/bookings', icon: CalendarDays },
       { label: 'Messages', href: '/user/messages', icon: MessageSquare, badgeCount: true },
-      { label: 'Profile', href: '/user/profile', icon: UserCircle },
+      { label: 'Profile Settings', href: '/user/profile', icon: Settings },
     ],
     caregiver: [
       { label: 'Dashboard', href: '/caregiver/dashboard', icon: LayoutDashboard },
-      { label: 'My Profile', href: '/caregiver/profile', icon: UserCircle },
       { label: 'Requests', href: '/caregiver/bookings', icon: ClipboardList },
       { label: 'Calendar', href: '/caregiver/calendar', icon: CalendarDays },
       { label: 'Messages', href: '/caregiver/messages', icon: MessageSquare, badgeCount: true },
+      { label: 'Profile Settings', href: '/caregiver/profile', icon: Settings },
     ],
     admin: [
       { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },

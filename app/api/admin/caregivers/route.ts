@@ -151,7 +151,7 @@ export async function GET(req: NextRequest) {
       const ratingSum = reviews.reduce((acc: number, r: any) => acc + (r.rating || 0), 0);
       const averageRating = reviewsCount > 0
         ? parseFloat((ratingSum / reviewsCount).toFixed(1))
-        : 5.0;
+        : 0.0;
 
       const bookings = (cg.bookings || []).map((b: any) => {
         const servObj = Array.isArray(b.services) ? b.services[0] : b.services;

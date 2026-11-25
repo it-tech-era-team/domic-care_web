@@ -45,14 +45,15 @@ interface PendingCaregiver {
 
 export default function AdminVerificationsPage() {
   const router = useRouter();
-  const { currentUser } = useCareConnect();
+  const { currentUser, showToast } = useCareConnect();
 
   const [loading, setLoading] = useState(true);
   const [caregivers, setCaregivers] = useState<PendingCaregiver[]>([]);
   const [selectedCaregiver, setSelectedCaregiver] = useState<PendingCaregiver | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [showRejectModal, setShowRejectModal] = useState(false);
-  const [actionLoading, setActionLoading] = useState(false);
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [processingAction, setProcessingAction] = useState<"approve" | "reject" | null>(null);
   const [actionMessage, setActionMessage] = useState<{ text: string; isError: boolean } | null>(null);
 
   useEffect(() => {
@@ -79,7 +80,8 @@ export default function AdminVerificationsPage() {
   };
 
   const handleApprove = async (id: string) => {
-    setActionLoading(true);
+    setProcessingId(id);
+    setProcessingAction("approve");
     setActionMessage(null);
     try {
       const res = await fetch(`/api/admin/caregivers/${id}/approve`, {
@@ -87,21 +89,27 @@ export default function AdminVerificationsPage() {
       });
       const data = await res.json();
       if (res.ok) {
+        showToast("Caregiver Approved", "Caregiver verified and approved successfully!", "success");
         setActionMessage({ text: "Caregiver verified and approved successfully!", isError: false });
         setCaregivers((prev) => prev.filter((cg) => cg.id !== id));
       } else {
-        setActionMessage({ text: data.error?.message || "Failed to approve caregiver.", isError: true });
+        const msg = data.error?.message || "Failed to approve caregiver.";
+        showToast("Approval Failed", msg, "error");
+        setActionMessage({ text: msg, isError: true });
       }
     } catch {
+      showToast("Network Error", "A network error occurred while approving.", "error");
       setActionMessage({ text: "Network error occurred.", isError: true });
     } finally {
-      setActionLoading(false);
+      setProcessingId(null);
+      setProcessingAction(null);
     }
   };
 
   const handleReject = async () => {
     if (!selectedCaregiver) return;
-    setActionLoading(true);
+    setProcessingId(selectedCaregiver.id);
+    setProcessingAction("reject");
     setActionMessage(null);
     try {
       const res = await fetch(`/api/admin/caregivers/${selectedCaregiver.id}/reject`, {
@@ -111,17 +119,22 @@ export default function AdminVerificationsPage() {
       });
       const data = await res.json();
       if (res.ok) {
+        showToast("Application Rejected", "Caregiver application has been rejected.", "success");
         setActionMessage({ text: "Caregiver application rejected.", isError: false });
         setCaregivers((prev) => prev.filter((cg) => cg.id !== selectedCaregiver.id));
         setShowRejectModal(false);
         setRejectReason("");
       } else {
-        setActionMessage({ text: data.error?.message || "Failed to reject caregiver.", isError: true });
+        const msg = data.error?.message || "Failed to reject caregiver.";
+        showToast("Rejection Failed", msg, "error");
+        setActionMessage({ text: msg, isError: true });
       }
     } catch {
+      showToast("Network Error", "A network error occurred while rejecting.", "error");
       setActionMessage({ text: "Network error occurred.", isError: true });
     } finally {
-      setActionLoading(false);
+      setProcessingId(null);
+      setProcessingAction(null);
     }
   };
 
@@ -208,11 +221,20 @@ export default function AdminVerificationsPage() {
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <button
                     onClick={() => handleApprove(cg.id)}
-                    disabled={actionLoading}
+                    disabled={Boolean(processingId)}
                     className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all disabled:opacity-50 cursor-pointer shadow-sm shadow-emerald-600/20"
                   >
-                    <CheckCircle className="h-4 w-4" />
-                    <span>Approve</span>
+                    {processingId === cg.id && processingAction === "approve" ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin text-white" />
+                        <span>Approving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4" />
+                        <span>Approve</span>
+                      </>
+                    )}
                   </button>
                   <button
                     onClick={() => {
@@ -220,7 +242,7 @@ export default function AdminVerificationsPage() {
                       setRejectReason("");
                       setShowRejectModal(true);
                     }}
-                    disabled={actionLoading}
+                    disabled={Boolean(processingId)}
                     className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold border border-rose-200 transition-all disabled:opacity-50 cursor-pointer"
                   >
                     <XCircle className="h-4 w-4" />
@@ -318,10 +340,17 @@ export default function AdminVerificationsPage() {
               <button
                 type="button"
                 onClick={handleReject}
-                disabled={actionLoading || !rejectReason.trim()}
-                className="px-4 py-2 rounded-2xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 disabled:opacity-50"
+                disabled={Boolean(processingId) || !rejectReason.trim()}
+                className="px-4 py-2 rounded-2xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 disabled:opacity-50 inline-flex items-center gap-1.5 cursor-pointer"
               >
-                {actionLoading ? "Processing..." : "Confirm Rejection"}
+                {processingAction === "reject" ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin text-white" />
+                    <span>Rejecting...</span>
+                  </>
+                ) : (
+                  <span>Confirm Rejection</span>
+                )}
               </button>
             </div>
           </div>

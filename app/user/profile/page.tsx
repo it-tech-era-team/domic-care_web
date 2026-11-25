@@ -4,8 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useCareConnect } from '@/context/useCareConnect';
 import MediaPicker from '@/components/MediaPicker';
 import LanguageSettingsCard from '@/components/LanguageSettingsCard';
-import AddressAutocompleteInput from '@/components/AddressAutocompleteInput';
-import { User, Mail, Phone, MapPin, CheckCircle2, Lock, Eye, EyeOff, ShieldCheck, AlertCircle, Navigation } from 'lucide-react';
+import { User, Mail, Phone, MapPin, CheckCircle2, Lock, Eye, EyeOff, ShieldCheck, AlertCircle } from 'lucide-react';
 
 export default function UserProfileEdit() {
   const { currentUser, updateUserProfile } = useCareConnect();
@@ -16,8 +15,6 @@ export default function UserProfileEdit() {
   const [phone, setPhone] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [address, setAddress] = useState('');
-  const [isLocating, setIsLocating] = useState(false);
-  const [locationStatus, setLocationStatus] = useState<string | null>(null);
 
   // Password State
   const [newPassword, setNewPassword] = useState('');
@@ -37,55 +34,12 @@ export default function UserProfileEdit() {
       setEmail(currentUser.email || '');
       setPhone(currentUser.phone || '');
       setAvatarUrl(currentUser.avatarUrl || '');
-      if ((currentUser as any).address) {
-        setAddress((currentUser as any).address);
-      }
+      const storedArea = typeof localStorage !== 'undefined'
+        ? localStorage.getItem(`domiccare_user_primary_area_${currentUser.id}`)
+        : null;
+      setAddress((currentUser as any).address || storedArea || '');
     }
   }, [currentUser]);
-
-  const handleUseCurrentLocation = () => {
-    if (typeof window === 'undefined' || !navigator.geolocation) {
-      setLocationStatus('Geolocation is not supported by your browser.');
-      return;
-    }
-
-    setIsLocating(true);
-    setLocationStatus(null);
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
-          const res = await fetch(`/api/location/reverse?lat=${latitude}&lon=${longitude}`);
-          if (res.ok) {
-            const json = await res.json();
-            const resolved = json.data?.area || json.data?.displayName;
-            if (resolved) {
-              setAddress(resolved);
-              setLocationStatus('Location updated!');
-              setTimeout(() => setLocationStatus(null), 3000);
-            }
-          } else {
-            setLocationStatus('Could not determine address from location.');
-          }
-        } catch {
-          setLocationStatus('Failed to reverse geocode location.');
-        } finally {
-          setIsLocating(false);
-        }
-      },
-      (err) => {
-        setIsLocating(false);
-        if (err.code === err.PERMISSION_DENIED) {
-          setLocationStatus('Location permission denied. Enter manually.');
-        } else {
-          setLocationStatus('Location unavailable. Enter manually.');
-        }
-        setTimeout(() => setLocationStatus(null), 4000);
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,9 +48,14 @@ export default function UserProfileEdit() {
     setFormError('');
     setPasswordError('');
 
-    // Strict Validation: Full Name, Email, Phone, Address are strictly required
-    if (!fullName.trim() || !email.trim() || !phone.trim() || !address.trim()) {
-      setFormError('All profile fields (Full Name, Email Address, Phone Number, and Primary Care Address) are strictly required.');
+    // Strict Validation: Avatar, Full Name, Phone, Primary Care Area are strictly required
+    if (!avatarUrl || !avatarUrl.trim()) {
+      setFormError('Profile avatar photo is strictly required. Please upload an avatar.');
+      return;
+    }
+
+    if (!fullName.trim() || !phone.trim() || !address.trim()) {
+      setFormError('All profile fields (Full Name, Phone Number, and Primary Care Area) are strictly required.');
       return;
     }
 
@@ -118,7 +77,6 @@ export default function UserProfileEdit() {
       fullName: fullName.trim(),
       email: email.trim(),
       phone: phone.trim(),
-      address: address.trim(),
       avatarUrl,
     };
 
@@ -131,6 +89,9 @@ export default function UserProfileEdit() {
     setIsSubmitting(false);
 
     if (success) {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(`domiccare_user_primary_area_${currentUser.id}`, address.trim());
+      }
       setIsSaved(true);
       setNewPassword('');
       setConfirmPassword('');
@@ -184,6 +145,7 @@ export default function UserProfileEdit() {
               onChange={setAvatarUrl}
               type="avatar"
               label="Profile Avatar Photo"
+              required={true}
             />
           </div>
 
@@ -198,7 +160,9 @@ export default function UserProfileEdit() {
               
               {/* Full Name */}
               <div className="space-y-1.5">
-                <label htmlFor="name" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Full Name</label>
+                <label htmlFor="name" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Full Name <span className="text-red-500 font-black">*</span>
+                </label>
                 <div className="relative">
                   <User className="absolute top-3.5 left-3.5 h-4.5 w-4.5 text-blue-600" />
                   <input
@@ -214,23 +178,27 @@ export default function UserProfileEdit() {
 
               {/* Email */}
               <div className="space-y-1.5">
-                <label htmlFor="email" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Email Address</label>
+                <label htmlFor="email" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Email Address <span className="text-[10px] text-slate-400 font-medium normal-case tracking-normal ml-1">(Cannot be changed)</span>
+                </label>
                 <div className="relative">
-                  <Mail className="absolute top-3.5 left-3.5 h-4.5 w-4.5 text-blue-600" />
+                  <Mail className="absolute top-3.5 left-3.5 h-4.5 w-4.5 text-slate-400" />
                   <input
                     type="email"
                     id="email"
-                    required
+                    disabled
+                    readOnly
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-3.5 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:bg-white focus:outline-none transition-all"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-100 pl-10 pr-3.5 py-3 text-xs sm:text-sm font-semibold text-slate-500 placeholder-slate-400 cursor-not-allowed select-none focus:outline-none transition-all"
                   />
                 </div>
               </div>
 
               {/* Phone */}
               <div className="space-y-1.5">
-                <label htmlFor="phone" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Phone Number</label>
+                <label htmlFor="phone" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Phone Number <span className="text-red-500 font-black">*</span>
+                </label>
                 <div className="relative">
                   <Phone className="absolute top-3.5 left-3.5 h-4.5 w-4.5 text-blue-600" />
                   <input
@@ -244,39 +212,23 @@ export default function UserProfileEdit() {
                 </div>
               </div>
 
-              {/* Primary Address */}
+              {/* Primary Care Area (Manual Text Input) */}
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Primary Care Area *</label>
-                  <button
-                    type="button"
-                    onClick={handleUseCurrentLocation}
-                    disabled={isLocating}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer disabled:opacity-50"
-                  >
-                    {isLocating ? (
-                      <>
-                        <div className="h-3 w-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                        <span>Detecting...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Navigation className="h-3 w-3" />
-                        <span>Use my current location</span>
-                      </>
-                    )}
-                  </button>
+                <label htmlFor="primaryArea" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Primary Care Area <span className="text-red-500 font-black">*</span>
+                </label>
+                <div className="relative">
+                  <MapPin className="absolute top-3.5 left-3.5 h-4.5 w-4.5 text-blue-600" />
+                  <input
+                    type="text"
+                    id="primaryArea"
+                    required
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="e.g. Pleven, Bulgaria or Sofia, Center"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-3.5 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:bg-white focus:outline-none transition-all"
+                  />
                 </div>
-                <AddressAutocompleteInput
-                  value={address}
-                  onChange={setAddress}
-                  required
-                  placeholder="e.g. Pleven, Bulgaria or Sofia, Center"
-                  showIcon={true}
-                />
-                {locationStatus && (
-                  <p className="text-[11px] font-semibold text-blue-600 animate-fade-in">{locationStatus}</p>
-                )}
               </div>
 
             </div>

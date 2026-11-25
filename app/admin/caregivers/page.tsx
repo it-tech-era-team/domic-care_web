@@ -919,21 +919,90 @@ export default function AdminCaregiversPage() {
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-                    <p className="text-xs font-bold uppercase text-slate-400">Availability</p>
-                    <p className="mt-1 text-sm text-slate-600">
-                      {selectedCaregiver.availability
-                        ? typeof selectedCaregiver.availability === "string"
-                          ? selectedCaregiver.availability
-                          : JSON.stringify(selectedCaregiver.availability)
-                        : "Not specified."}
-                    </p>
+                  <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Clock3 className="h-4 w-4 text-blue-600" />
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-700">Weekly Working Schedule</p>
+                    </div>
+                    {(() => {
+                      const avail = selectedCaregiver.availability;
+                      if (!avail) {
+                        return <p className="text-xs text-slate-400 italic">No schedule specified.</p>;
+                      }
+                      let parsed: any = avail;
+                      if (typeof avail === "string") {
+                        try {
+                          parsed = JSON.parse(avail);
+                        } catch {
+                          return (
+                            <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs font-semibold text-slate-700">
+                              {avail}
+                            </div>
+                          );
+                        }
+                      }
+                      if (typeof parsed !== "object" || parsed === null) {
+                        return <p className="text-xs text-slate-400 italic">No schedule specified.</p>;
+                      }
+                      const daysOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+                      const dayKeys = Object.keys(parsed);
+                      if (dayKeys.length === 0) {
+                        return <p className="text-xs text-slate-400 italic">No schedule specified.</p>;
+                      }
+                      const sortedDays = [
+                        ...daysOrder.filter((d) => d in parsed),
+                        ...dayKeys.filter((d) => !daysOrder.includes(d)),
+                      ];
+                      return (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 pt-1">
+                          {sortedDays.map((day) => {
+                            const slot = parsed[day];
+                            const isAvail = slot?.isAvailable === true || slot?.available === true;
+                            const start = slot?.start || "";
+                            const end = slot?.end || "";
+                            return (
+                              <div
+                                key={day}
+                                className={`rounded-2xl p-3 border transition-all ${
+                                  isAvail
+                                    ? "bg-emerald-50/50 border-emerald-200/80 text-emerald-950 shadow-2xs"
+                                    : "bg-slate-50 border-slate-200/80 text-slate-500 opacity-75"
+                                }`}
+                              >
+                                <div className="flex items-center justify-between gap-1 mb-1.5">
+                                  <span className="text-[11px] font-black uppercase tracking-wider">{day}</span>
+                                  <span
+                                    className={`h-2 w-2 rounded-full shrink-0 ${
+                                      isAvail ? "bg-emerald-500" : "bg-slate-300"
+                                    }`}
+                                  />
+                                </div>
+                                {isAvail ? (
+                                  <div className="space-y-0.5">
+                                    <span className="inline-block text-[10px] font-extrabold text-emerald-700 uppercase tracking-tight">
+                                      Available
+                                    </span>
+                                    <p className="text-xs font-black text-slate-900 leading-tight">
+                                      {start && end ? `${start} – ${end}` : "Full Day"}
+                                    </p>
+                                  </div>
+                                ) : (
+                                  <span className="inline-block text-[11px] font-bold text-slate-400 py-1">
+                                    Off / Unavailable
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                     {[
                       ["Documents", selectedCaregiver.documents?.length ?? 0],
-                      ["Avg Rating", (selectedCaregiver.averageRating || 0).toFixed(1)],
+                      ["Avg Rating", (selectedCaregiver.totalReviews ?? 0) > 0 ? (selectedCaregiver.averageRating || 0).toFixed(1) : "0.0"],
                       ["Total Reviews", selectedCaregiver.totalReviews ?? 0],
                       ["Total Bookings", selectedCaregiver.totalBookings ?? 0],
                       ["Completed", selectedCaregiver.completedBookings ?? 0],
@@ -1153,7 +1222,8 @@ export default function AdminCaregiversPage() {
                     const cancellationRate = total
                       ? Math.round((selectedCaregiver.cancelledBookings / total) * 100)
                       : 0;
-                    const ratingPct = ((selectedCaregiver.averageRating || 0) / 5) * 100;
+                    const displayRating = (selectedCaregiver.totalReviews ?? 0) > 0 ? (selectedCaregiver.averageRating || 0) : 0;
+                    const ratingPct = (displayRating / 5) * 100;
 
                     return (
                       <div className="space-y-5 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
@@ -1161,7 +1231,7 @@ export default function AdminCaregiversPage() {
                         <ProgressRow
                           icon={<Award size={15} className="text-blue-600" />}
                           label="Rating Progress"
-                          value={`${(selectedCaregiver.averageRating || 0).toFixed(1)} / 5.0`}
+                          value={`${displayRating.toFixed(1)} / 5.0`}
                           pct={ratingPct}
                           color="bg-blue-600"
                         />

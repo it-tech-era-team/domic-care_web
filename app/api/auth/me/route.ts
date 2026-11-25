@@ -34,6 +34,23 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const { fullName, email, phone, avatarUrl, password } = body;
 
+    // Reject email modification attempts
+    if (email !== undefined && email.trim().toLowerCase() !== user.email.toLowerCase()) {
+      return NextResponse.json({ error: "Email address cannot be changed." }, { status: 400 });
+    }
+
+    if (fullName !== undefined && !fullName.trim()) {
+      return NextResponse.json({ error: "Full name is strictly required." }, { status: 400 });
+    }
+
+    if (phone !== undefined && !phone.trim()) {
+      return NextResponse.json({ error: "Phone number is strictly required." }, { status: 400 });
+    }
+
+    if (avatarUrl !== undefined && !avatarUrl.trim()) {
+      return NextResponse.json({ error: "Profile avatar is strictly required." }, { status: 400 });
+    }
+
     const supabase = createServerSupabaseClient();
 
     // Prepare updates for profiles table
@@ -41,10 +58,9 @@ export async function PATCH(req: NextRequest) {
       updated_at: new Date().toISOString(),
     };
 
-    if (fullName !== undefined) updates.full_name = fullName;
-    if (email !== undefined) updates.email = email;
-    if (phone !== undefined) updates.phone = phone;
-    if (avatarUrl !== undefined) updates.avatar_url = avatarUrl;
+    if (fullName !== undefined) updates.full_name = fullName.trim();
+    if (phone !== undefined) updates.phone = phone.trim();
+    if (avatarUrl !== undefined) updates.avatar_url = avatarUrl.trim();
 
     // Update password in Auth and password_hash in profiles if provided
     if (password && password.trim().length > 0) {
@@ -58,17 +74,7 @@ export async function PATCH(req: NextRequest) {
       updates.password_hash = await bcrypt.hash(password, 10);
     }
 
-    // Update email in Auth if it has changed
-    if (email && email !== user.email) {
-      const { error: authError } = await supabase.auth.admin.updateUserById(user.id, {
-        email: email,
-        email_confirm: true,
-      });
-      if (authError) {
-        console.error("[PATCH /api/auth/me] Supabase Auth update error:", authError);
-        return NextResponse.json({ error: authError.message }, { status: 400 });
-      }
-    }
+
 
     // Update profiles table
     const { data: updatedProfile, error: profileError } = await supabase

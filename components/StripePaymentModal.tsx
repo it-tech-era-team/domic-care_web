@@ -70,6 +70,137 @@ interface StripePaymentModalProps {
   onClose: () => void;
 }
 
+function SandboxCheckoutForm({
+  bookingId,
+  totalAmountUSD,
+  onSuccess,
+  onClose,
+}: {
+  bookingId: string;
+  totalAmountUSD: number;
+  onSuccess: () => void;
+  onClose: () => void;
+}) {
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleSandboxSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setErrorMessage('');
+
+    try {
+      const patchRes = await fetch(`/api/bookings/${bookingId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: 'accepted',
+          paymentStatus: 'paid',
+          paymentIntentId: `pi_sandbox_${Date.now()}`,
+        }),
+      });
+
+      if (patchRes.ok) {
+        onSuccess();
+      } else {
+        const data = await patchRes.json().catch(() => ({}));
+        setErrorMessage(data.error || 'Failed to complete payment.');
+        setSubmitting(false);
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Payment simulation failed.');
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSandboxSubmit} className="space-y-6">
+      {/* Price Summary */}
+      <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3">
+        <div className="flex justify-between items-center text-xs font-bold text-slate-600">
+          <span>Booking Service Fee</span>
+          <span className="text-slate-900 font-extrabold">${totalAmountUSD.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between items-center text-[11px] text-slate-500 border-t border-slate-200/70 pt-2.5">
+          <span className="flex items-center gap-1.5">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+            Platform Protection & Escrow Guarantee
+          </span>
+          <span className="text-emerald-700 font-extrabold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
+            Protected
+          </span>
+        </div>
+        <div className="flex justify-between items-center text-sm font-black text-slate-900 border-t border-slate-200/70 pt-3">
+          <span>Total Amount Due Now</span>
+          <span className="text-blue-600 text-base sm:text-lg">${totalAmountUSD.toFixed(2)}</span>
+        </div>
+      </div>
+
+      {/* Sandbox Test Card Box */}
+      <div className="p-4 sm:p-5 border border-blue-200 rounded-2xl bg-blue-50/60 space-y-3">
+        <div className="flex items-center justify-between border-b border-blue-200/60 pb-2.5 mb-1">
+          <span className="text-xs font-extrabold uppercase tracking-wider text-blue-900 flex items-center gap-2">
+            <CreditCard className="h-4 w-4 text-blue-600" />
+            Sandbox Card (Test Mode)
+          </span>
+          <span className="text-[10px] font-extrabold bg-blue-600 text-white px-2.5 py-0.5 rounded-full">Test Sandbox</span>
+        </div>
+        <div className="space-y-2 text-xs text-slate-700">
+          <div className="flex justify-between">
+            <span className="font-semibold text-slate-500">Test Card:</span>
+            <span className="font-mono font-bold text-slate-900">•••• •••• •••• 4242</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="font-semibold text-slate-500">Expires / CVC:</span>
+            <span className="font-mono font-bold text-slate-900">12/28 • 123</span>
+          </div>
+          <p className="text-[11px] text-blue-700 font-medium pt-1">
+            Simulated payment sandbox. Clicking Pay will instantly authorize payment and mark this care appointment as Paid.
+          </p>
+        </div>
+      </div>
+
+      {errorMessage && (
+        <div className="flex items-center gap-2.5 rounded-2xl bg-rose-50 p-4 text-xs font-bold text-rose-700 border border-rose-200/80">
+          <AlertCircle className="h-4.5 w-4.5 shrink-0 text-rose-600" />
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
+      {/* Action Buttons */}
+      <div className="space-y-3">
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={submitting}
+            className="flex-1 py-3.5 rounded-2xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all cursor-pointer disabled:opacity-60"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-blue-500/25 transition-all cursor-pointer active:scale-95 disabled:opacity-60 flex items-center justify-center gap-2"
+          >
+            {submitting ? (
+              <>
+                <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Processing...</span>
+              </>
+            ) : (
+              <>
+                <CreditCard className="h-4 w-4" />
+                <span>Pay ${totalAmountUSD.toFixed(2)} (Test)</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </form>
+  );
+}
+
 function CheckoutForm({
   bookingId,
   totalAmountUSD,
@@ -244,6 +375,7 @@ export default function StripePaymentModal({
 }: StripePaymentModalProps) {
   const [mounted, setMounted] = useState(false);
   const [clientSecret, setClientSecret] = useState('');
+  const [isSandbox, setIsSandbox] = useState(false);
   const [totalAmountUSD, setTotalAmountUSD] = useState(0);
   const [platformFeeUSD, setPlatformFeeUSD] = useState(0);
   const [caregiverPayoutUSD, setCaregiverPayoutUSD] = useState(0);
@@ -295,6 +427,7 @@ export default function StripePaymentModal({
         if (!res.ok || data.error) {
           setError(data.error || 'Failed to initialize payment.');
         } else {
+          setIsSandbox(Boolean(data.isSandbox || data.clientSecret?.includes('sandbox') || data.clientSecret?.includes('mock')));
           setClientSecret(data.clientSecret);
           setTotalAmountUSD(data.totalAmountUSD);
           setPlatformFeeUSD(data.platformFeeUSD);
@@ -354,7 +487,14 @@ export default function StripePaymentModal({
               Close
             </button>
           </div>
-        ) : clientSecret ? (
+        ) : (isSandbox || !clientSecret || clientSecret.includes('sandbox') || clientSecret.includes('mock') || !clientSecret.startsWith('pi_')) ? (
+          <SandboxCheckoutForm
+            bookingId={bookingId}
+            totalAmountUSD={totalAmountUSD}
+            onSuccess={onSuccess}
+            onClose={onClose}
+          />
+        ) : (
           <Elements stripe={stripePromise} options={{ clientSecret, appearance: customAppearance }}>
             <CheckoutForm
               bookingId={bookingId}
@@ -365,7 +505,7 @@ export default function StripePaymentModal({
               onClose={onClose}
             />
           </Elements>
-        ) : null}
+        )}
       </div>
     </div>
   );

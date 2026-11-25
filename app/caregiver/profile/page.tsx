@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useCareConnect } from '@/context/useCareConnect';
 import MediaPicker from '@/components/MediaPicker';
 import CaregiverBankDetailsForm from '@/components/CaregiverBankDetailsForm';
-import LanguageSettingsCard from '@/components/LanguageSettingsCard';
+import LanguageSettingsCard, { getActiveLanguage } from '@/components/LanguageSettingsCard';
 import AddressAutocompleteInput from '@/components/AddressAutocompleteInput';
 import {
   User, Mail, Phone, MapPin, Lock, Eye, EyeOff, ShieldCheck, AlertCircle,
@@ -54,8 +54,13 @@ export default function CaregiverProfilePage() {
 
     setAccountError('');
 
-    if (!accountFullName.trim() || !accountEmail.trim() || !accountPhone.trim()) {
-      setAccountError('Full Name, Email Address, and Phone Number are strictly required.');
+    if (!accountAvatarUrl || !accountAvatarUrl.trim()) {
+      setAccountError('Caregiver profile avatar photo is strictly required. Please upload a profile picture.');
+      return;
+    }
+
+    if (!accountFullName.trim() || !accountPhone.trim()) {
+      setAccountError('Full Name and Phone Number are strictly required.');
       return;
     }
 
@@ -131,7 +136,8 @@ export default function CaregiverProfilePage() {
       async (position) => {
         try {
           const { latitude, longitude } = position.coords;
-          const res = await fetch(`/api/location/reverse?lat=${latitude}&lon=${longitude}`);
+          const lang = getActiveLanguage();
+          const res = await fetch(`/api/location/reverse?lat=${latitude}&lon=${longitude}&lang=${lang}`);
           if (res.ok) {
             const json = await res.json();
             if (json.data) {
@@ -163,11 +169,12 @@ export default function CaregiverProfilePage() {
     );
   };
 
-  // Step 2: Experience
+  // Step 2: Experience & Qualifications
   const [experienceYears, setExperienceYears] = useState(existingProfile?.experienceYears || 2);
+  const [qualifications, setQualifications] = useState('');
 
   // Step 3: Services & Rate
-  const [hourlyRate, setHourlyRate] = useState(existingProfile?.hourlyRate || 20);
+  const [hourlyRate, setHourlyRate] = useState(existingProfile?.hourlyRate || 25);
   const [selectedServices, setSelectedServices] = useState<string[]>(existingProfile?.services || []);
 
   const servicesList = services.map(s => s.name);
@@ -226,13 +233,21 @@ export default function CaregiverProfilePage() {
           const data = await res.json();
           if (data.profile) {
             const p = data.profile;
-            setBio(p.bio || '');
+            let rawBio = p.bio || '';
+            let rawQuals = '';
+            if (rawBio.includes('\n\nQualifications & Certifications:\n')) {
+              const parts = rawBio.split('\n\nQualifications & Certifications:\n');
+              rawBio = parts[0];
+              rawQuals = parts[1] || '';
+            }
+            setBio(rawBio);
+            setQualifications(rawQuals);
             setGender(p.gender || 'Female');
             setDob(p.dob || '1990-01-01');
             setAddress(p.address || '');
-            setCity(p.city || 'New York');
+            setCity(p.city || 'Sofia');
             setExperienceYears(p.experienceYears || 2);
-            setHourlyRate(p.hourlyRate || 20);
+            setHourlyRate(p.hourlyRate && p.hourlyRate > 0 ? p.hourlyRate : 25);
             if (p.services && p.services.length > 0) setSelectedServices(p.services);
             if (p.availability && Object.keys(p.availability).length > 0) setAvailability(p.availability);
             setDocuments(p.documents || []);
@@ -273,35 +288,126 @@ export default function CaregiverProfilePage() {
     setDocuments(prev => prev.filter(d => d.id !== docId));
   };
 
+  const validateCurrentStep = (targetStep: number): string | null => {
+    if (targetStep === 1) {
+      if (!bio.trim() || bio.trim().length < 30) {
+        return 'Please enter a comprehensive professional bio (at least 30 characters) before continuing.';
+      }
+      if (!gender) {
+        return 'Please select your gender.';
+      }
+      if (!dob) {
+        return 'Date of Birth is required.';
+      }
+      if (!address.trim()) {
+        return 'Residential Street Address is strictly required.';
+      }
+      if (!city.trim()) {
+        return 'City is strictly required.';
+      }
+      return null;
+    }
+    if (targetStep === 2) {
+      if (experienceYears === undefined || experienceYears === null || isNaN(Number(experienceYears)) || Number(experienceYears) < 0) {
+        return 'Please enter a valid number of years of experience (0 or more).';
+      }
+      if (!qualifications.trim()) {
+        return 'Qualifications and certifications summary is strictly required.';
+      }
+      return null;
+    }
+    if (targetStep === 3) {
+      if (isNaN(Number(hourlyRate)) || Number(hourlyRate) <= 0) {
+        return 'Please enter a valid hourly rate greater than $0.';
+      }
+      if (selectedServices.length === 0) {
+        return 'Please select at least one care service.';
+      }
+      return null;
+    }
+    if (targetStep === 4) {
+      const hasAnyAvailability = Object.values(availability).some(day => day.isAvailable);
+      if (!hasAnyAvailability) {
+        return 'Please configure your weekly availability (at least 1 active day required).';
+      }
+      return null;
+    }
+    if (targetStep === 5) {
+      if (documents.length === 0 && !newDocUrl.trim()) {
+        return 'Please upload or attach at least one verification credential document before submitting.';
+      }
+      return null;
+    }
+    return null;
+  };
+
+  const handleNextStep = () => {
+    const error = validateCurrentStep(step);
+    if (error) {
+      setProfError(error);
+      return;
+    }
+    setProfError('');
+    setStep((s) => Math.min(5, s + 1) as any);
+  };
+
+  const handlePrevStep = () => {
+    setProfError('');
+    setStep((s) => Math.max(1, s - 1) as any);
+  };
+
+  const handleJumpToStep = (targetStep: number) => {
+    if (targetStep < step) {
+      setProfError('');
+      setStep(targetStep as any);
+    } else if (targetStep > step) {
+      for (let i = step; i < targetStep; i++) {
+        const error = validateCurrentStep(i);
+        if (error) {
+          setProfError(error);
+          setStep(i as any);
+          return;
+        }
+      }
+      setProfError('');
+      setStep(targetStep as any);
+    }
+  };
+
   const handleProfFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser || isProfSubmitting) return;
 
     setProfError('');
 
-    if (!bio.trim() || bio.trim().length < 20) {
-      setProfError('Please complete your professional bio (at least 20 characters).');
+    const err1 = validateCurrentStep(1);
+    if (err1) {
+      setProfError(err1);
       setStep(1);
       return;
     }
-    if (!address.trim() || !city.trim()) {
-      setProfError('Both Residential Street Address and City are strictly required.');
-      setStep(1);
-      return;
-    }
-    if (Number(hourlyRate) <= 0) {
-      setProfError('Please enter a valid hourly rate greater than 0.');
+    const err2 = validateCurrentStep(2);
+    if (err2) {
+      setProfError(err2);
       setStep(2);
       return;
     }
-    if (selectedServices.length === 0) {
-      setProfError('Please select at least one care service.');
-      setStep(2);
+    const err3 = validateCurrentStep(3);
+    if (err3) {
+      setProfError(err3);
+      setStep(3);
       return;
     }
-    if (documents.length === 0 && !newDocUrl.trim()) {
-      setProfError('Please attach at least one verification document before final submission.');
+    const err4 = validateCurrentStep(4);
+    if (err4) {
+      setProfError(err4);
       setStep(4);
+      return;
+    }
+    const err5 = validateCurrentStep(5);
+    if (err5) {
+      setProfError(err5);
+      setStep(5);
       return;
     }
 
@@ -319,10 +425,14 @@ export default function CaregiverProfilePage() {
       setNewDocUrl('');
     }
 
+    const fullBio = qualifications.trim()
+      ? `${bio.trim()}\n\nQualifications & Certifications:\n${qualifications.trim()}`
+      : bio.trim();
+
     const updatedData = {
       fullName: currentUser.fullName,
       avatarUrl: currentUser.avatarUrl,
-      bio,
+      bio: fullBio,
       experienceYears: Number(experienceYears),
       hourlyRate: Number(hourlyRate),
       gender,
@@ -346,52 +456,6 @@ export default function CaregiverProfilePage() {
         router.push('/caregiver/dashboard');
       }, 1800);
     }
-  };
-
-  const handleNextStep = () => {
-    setProfError('');
-    if (step === 1) {
-      if (!bio.trim() || bio.trim().length < 20) {
-        setProfError('Please enter a comprehensive professional bio (at least 20 characters) before continuing.');
-        return;
-      }
-      if (!address.trim() || !city.trim()) {
-        setProfError('Both Residential Street Address and City are strictly required.');
-        return;
-      }
-      if (!dob) {
-        setProfError('Date of Birth is required.');
-        return;
-      }
-      if (!gender) {
-        setProfError('Gender is required.');
-        return;
-      }
-    }
-    if (step === 2) {
-      if (Number(hourlyRate) <= 0) {
-        setProfError('Please enter a valid hourly rate greater than 0.');
-        return;
-      }
-      if (selectedServices.length === 0) {
-        setProfError('Please select at least one care service.');
-        return;
-      }
-    }
-    if (step === 3) {
-      const hasAnyAvailability = Object.values(availability).some(day => day.isAvailable);
-      if (!hasAnyAvailability) {
-        setProfError('Please configure your weekly availability (at least 1 active day).');
-        return;
-      }
-    }
-    if (step === 4) {
-      if (documents.length === 0 && !newDocUrl.trim()) {
-        setProfError('Please upload or attach at least one verification document (e.g. ID, license, or diploma).');
-        return;
-      }
-    }
-    setStep((s) => (s + 1) as any);
   };
 
   return (
@@ -477,6 +541,7 @@ export default function CaregiverProfilePage() {
                 onChange={setAccountAvatarUrl}
                 type="avatar"
                 label="Profile Picture"
+                required={true}
               />
             </div>
 
@@ -491,7 +556,9 @@ export default function CaregiverProfilePage() {
                 
                 {/* Full Name */}
                 <div className="space-y-1.5">
-                  <label htmlFor="accountName" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Full Name</label>
+                  <label htmlFor="accountName" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Full Name <span className="text-red-500 font-black">*</span>
+                  </label>
                   <div className="relative">
                     <User className="absolute top-3.5 left-3.5 h-4.5 w-4.5 text-blue-600" />
                     <input
@@ -507,23 +574,27 @@ export default function CaregiverProfilePage() {
 
                 {/* Email */}
                 <div className="space-y-1.5">
-                  <label htmlFor="accountEmail" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Email Address</label>
+                  <label htmlFor="accountEmail" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Email Address <span className="text-[10px] text-slate-400 font-medium normal-case tracking-normal ml-1">(Cannot be changed)</span>
+                  </label>
                   <div className="relative">
-                    <Mail className="absolute top-3.5 left-3.5 h-4.5 w-4.5 text-blue-600" />
+                    <Mail className="absolute top-3.5 left-3.5 h-4.5 w-4.5 text-slate-400" />
                     <input
                       type="email"
                       id="accountEmail"
-                      required
+                      disabled
+                      readOnly
                       value={accountEmail}
-                      onChange={(e) => setAccountEmail(e.target.value)}
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-3.5 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:bg-white focus:outline-none transition-all"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-100 pl-10 pr-3.5 py-3 text-xs sm:text-sm font-semibold text-slate-500 placeholder-slate-400 cursor-not-allowed select-none focus:outline-none transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Phone */}
                 <div className="space-y-1.5 sm:col-span-2">
-                  <label htmlFor="accountPhone" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Phone Number</label>
+                  <label htmlFor="accountPhone" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Phone Number <span className="text-red-500 font-black">*</span>
+                  </label>
                   <div className="relative">
                     <Phone className="absolute top-3.5 left-3.5 h-4.5 w-4.5 text-blue-600" />
                     <input
@@ -656,19 +727,25 @@ export default function CaregiverProfilePage() {
               const isDone = step > s.num;
 
               return (
-                <div key={s.num} className="flex items-center gap-1.5 sm:gap-2">
+                <button
+                  key={s.num}
+                  type="button"
+                  onClick={() => handleJumpToStep(s.num)}
+                  className="flex items-center gap-1.5 sm:gap-2 cursor-pointer group focus:outline-none"
+                  title={`Jump to step ${s.num}: ${s.name}`}
+                >
                   <div className={`
                     h-7 w-7 rounded-full flex items-center justify-center font-black text-xs transition-all
                     ${isActive && 'nav-pill-active text-white shadow-md shadow-blue-500/20 scale-105'}
-                    ${isDone && 'bg-emerald-500 text-white shadow-xs'}
-                    ${!isActive && !isDone && 'bg-slate-100 text-slate-500 border border-slate-200'}
+                    ${isDone && 'bg-emerald-500 text-white shadow-xs group-hover:scale-105'}
+                    ${!isActive && !isDone && 'bg-slate-100 text-slate-500 border border-slate-200 group-hover:border-slate-400'}
                   `}>
                     {isDone ? '✓' : s.num}
                   </div>
                   <span className={`hidden sm:inline font-bold ${isActive ? 'text-blue-600 font-black' : isDone ? 'text-emerald-600' : 'text-slate-400'}`}>
                     {s.name}
                   </span>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -700,21 +777,28 @@ export default function CaregiverProfilePage() {
                 </h3>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="bio" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Biography / Care Intro</label>
+                  <label htmlFor="bio" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Biography / Care Intro <span className="text-red-500 font-black">*</span>
+                  </label>
                   <textarea
                     id="bio"
                     required
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
-                    placeholder="Describe your caregiving background, qualifications, languages spoken, and senior care philosophy..."
+                    placeholder="Describe your caregiving background, qualifications, languages spoken, and senior care philosophy (at least 30 characters)..."
                     rows={4}
                     className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-3.5 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none transition-all"
                   />
+                  <p className="text-[11px] text-slate-400 font-medium">
+                    Minimum 30 characters describing your caregiving capabilities and approach.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Gender</label>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Gender <span className="text-red-500 font-black">*</span>
+                    </label>
                     <select
                       value={gender}
                       onChange={(e) => setGender(e.target.value)}
@@ -727,7 +811,9 @@ export default function CaregiverProfilePage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Date of Birth</label>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Date of Birth <span className="text-red-500 font-black">*</span>
+                    </label>
                     <input
                       type="date"
                       value={dob}
@@ -738,7 +824,9 @@ export default function CaregiverProfilePage() {
 
                   <div className="space-y-1.5 sm:col-span-2">
                     <div className="flex items-center justify-between">
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Residential Street Address</label>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                        Residential Street Address <span className="text-red-500 font-black">*</span>
+                      </label>
                       <button
                         type="button"
                         onClick={handleUseCurrentLocation}
@@ -774,8 +862,10 @@ export default function CaregiverProfilePage() {
                     )}
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">City</label>
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      City <span className="text-red-500 font-black">*</span>
+                    </label>
                     <input
                       type="text"
                       required
@@ -796,7 +886,9 @@ export default function CaregiverProfilePage() {
                 </h3>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="exp" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Years of Experience</label>
+                  <label htmlFor="exp" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Years of Experience <span className="text-red-500 font-black">*</span>
+                  </label>
                   <input
                     type="number"
                     id="exp"
@@ -810,9 +902,14 @@ export default function CaregiverProfilePage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Qualifications & Certifications Summary</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Qualifications & Certifications Summary <span className="text-red-500 font-black">*</span>
+                  </label>
                   <textarea
-                    placeholder="e.g. CPR Certified, Licensed Practical Nurse (LPN), Alzheimer Care Specialization"
+                    required
+                    value={qualifications}
+                    onChange={(e) => setQualifications(e.target.value)}
+                    placeholder="e.g. CPR Certified, Licensed Practical Nurse (LPN), Alzheimer Care Specialization, First Aid"
                     rows={3}
                     className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-3.5 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none transition-all"
                   />
@@ -828,21 +925,26 @@ export default function CaregiverProfilePage() {
                 </h3>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="rate" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Hourly Rate (€ EUR)</label>
+                  <label htmlFor="rate" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Hourly Rate ($ USD) <span className="text-red-500 font-black">*</span>
+                  </label>
                   <input
                     type="number"
                     id="rate"
                     required
-                    min="10"
-                    max="100"
+                    min="5"
+                    max="200"
                     value={hourlyRate}
                     onChange={(e) => setHourlyRate(Number(e.target.value))}
                     className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-3.5 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none transition-all"
                   />
+                  <p className="text-[11px] text-slate-400 font-medium">Standard baseline rate per hour in USD ($).</p>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Select Care Services</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Select Care Services <span className="text-red-500 font-black">*</span>
+                  </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     {servicesList.map((service) => {
                       const isChecked = selectedServices.includes(service);
@@ -877,9 +979,12 @@ export default function CaregiverProfilePage() {
             {/* Step 4: Availability Toggles */}
             {step === 4 && (
               <div className="space-y-4">
-                <h3 className="font-heading font-black text-base text-slate-900 border-b border-slate-200 pb-2.5">
-                  Step 4: Weekly Working Availability
-                </h3>
+                <div className="border-b border-slate-200 pb-2.5 flex items-center justify-between">
+                  <h3 className="font-heading font-black text-base text-slate-900">
+                    Step 4: Weekly Working Availability <span className="text-red-500 font-black">*</span>
+                  </h3>
+                  <span className="text-[11px] font-bold text-slate-400">At least 1 active day required</span>
+                </div>
 
                 <div className="space-y-3">
                   {Object.entries(availability).map(([day, slot]) => (
@@ -924,12 +1029,17 @@ export default function CaregiverProfilePage() {
             {/* Step 5: Verification Documents */}
             {step === 5 && (
               <div className="space-y-5">
-                <h3 className="font-heading font-black text-base text-slate-900 border-b border-slate-200 pb-2.5">
-                  Step 5: Verification Credentials
-                </h3>
+                <div className="border-b border-slate-200 pb-2.5 flex items-center justify-between">
+                  <h3 className="font-heading font-black text-base text-slate-900">
+                    Step 5: Verification Credentials <span className="text-red-500 font-black">*</span>
+                  </h3>
+                  <span className="text-[11px] font-bold text-slate-400">At least 1 credential required</span>
+                </div>
 
                 <div className="space-y-2">
-                  <span className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Uploaded Verification Files</span>
+                  <span className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Uploaded Verification Files <span className="text-red-500 font-black">*</span>
+                  </span>
                   {documents.length === 0 ? (
                     <p className="text-xs text-slate-500 italic">No verification files uploaded yet.</p>
                   ) : (
@@ -965,11 +1075,15 @@ export default function CaregiverProfilePage() {
                 </div>
 
                 <div className="p-5 border border-dashed border-slate-300 rounded-3xl bg-slate-50 space-y-4 shadow-xs">
-                  <span className="block text-xs font-bold text-slate-900 uppercase tracking-wider">Add New Verification File</span>
+                  <span className="block text-xs font-bold text-slate-900 uppercase tracking-wider">
+                    Add New Verification File <span className="text-red-500 font-black">*</span>
+                  </span>
                   
                   <div className="space-y-4">
                     <div className="space-y-1.5">
-                      <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">Document Type</label>
+                      <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+                        Document Type <span className="text-red-500 font-black">*</span>
+                      </label>
                       <select
                         value={newDocType}
                         onChange={(e) => setNewDocType(e.target.value)}
@@ -987,6 +1101,7 @@ export default function CaregiverProfilePage() {
                       onChange={setNewDocUrl}
                       type="document"
                       label="Document Verification File"
+                      required={true}
                     />
                   </div>
 
@@ -1006,7 +1121,8 @@ export default function CaregiverProfilePage() {
             <div className="flex justify-between items-center border-t border-slate-200 pt-6">
               {step > 1 ? (
                 <button
-                  onClick={() => setStep((s) => (s - 1) as any)}
+                  type="button"
+                  onClick={handlePrevStep}
                   className="rounded-2xl border border-slate-200 bg-slate-100 hover:bg-slate-200 px-5 py-3 text-xs font-bold text-slate-700 shadow-xs inline-flex items-center gap-1.5 cursor-pointer transition-all"
                 >
                   <ArrowLeft className="h-4 w-4 text-blue-600" />

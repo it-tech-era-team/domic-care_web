@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { MapPin, Loader2 } from 'lucide-react';
+import { getActiveLanguage } from '@/components/LanguageSettingsCard';
 
 export interface AddressSuggestion {
   id: string;
@@ -62,7 +63,8 @@ export default function AddressAutocompleteInput({
     const timer = setTimeout(async () => {
       try {
         setIsLoading(true);
-        const res = await fetch(`/api/location/autocomplete?q=${encodeURIComponent(value.trim())}`);
+        const lang = getActiveLanguage();
+        const res = await fetch(`/api/location/autocomplete?q=${encodeURIComponent(value.trim())}&lang=${lang}`);
         if (res.ok) {
           const json = await res.json();
           const items: AddressSuggestion[] = json.data || [];

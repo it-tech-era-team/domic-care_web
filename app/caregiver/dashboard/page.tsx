@@ -243,7 +243,9 @@ export default function CaregiverDashboard() {
               <span className="rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider">Rating</span>
             </div>
             <div className="mt-4">
-              <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">{profile?.rating ? `${profile.rating}★` : "5.0★"}</h2>
+              <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+                {profile?.rating && profile.rating > 0 ? `${Number(profile.rating).toFixed(1)}★` : "0.0★"}
+              </h2>
               <p className="mt-1 text-xs text-slate-500 font-semibold">{completedJobs.length} Completed Jobs</p>
             </div>
           </div>

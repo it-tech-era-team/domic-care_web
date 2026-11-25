@@ -8,6 +8,9 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const lat = searchParams.get("lat");
     const lon = searchParams.get("lon");
+    const requestedLang = searchParams.get("lang")?.toLowerCase();
+    const cookieLang = req.cookies.get("googtrans")?.value?.includes("bg") ? "bg" : "en";
+    const lang = requestedLang === "bg" || cookieLang === "bg" ? "bg" : "en";
 
     if (!lat || !lon) {
       return apiError("INVALID_PARAMS", "Both 'lat' and 'lon' query parameters are required", 400);
@@ -18,11 +21,12 @@ export async function GET(req: NextRequest) {
     nominatimUrl.searchParams.set("lon", lon);
     nominatimUrl.searchParams.set("format", "json");
     nominatimUrl.searchParams.set("addressdetails", "1");
+    nominatimUrl.searchParams.set("accept-language", lang);
 
     const res = await fetch(nominatimUrl.toString(), {
       headers: {
         "User-Agent": "DomicCare/1.0 (support@domiccare.bg)",
-        "Accept-Language": "bg,en;q=0.8",
+        "Accept-Language": lang === "bg" ? "bg,en;q=0.5" : "en,bg;q=0.5",
       },
     });
 

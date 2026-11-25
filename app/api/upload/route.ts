@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { apiSuccess, apiError } from "@/lib/api-response";
 
@@ -82,10 +82,14 @@ export async function POST(req: NextRequest) {
       fileUrl = publicData.publicUrl;
     }
 
-    return apiSuccess({
+    return NextResponse.json({
+      success: true,
       url: fileUrl,
-      path: `${bucket}/${fileName}`,
-      fileName,
+      data: {
+        url: fileUrl,
+        path: `${bucket}/${fileName}`,
+        fileName,
+      },
     });
   } catch (err: any) {
     return apiError("INTERNAL_ERROR", "An error occurred while uploading file.", 500, err);

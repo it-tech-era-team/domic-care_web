@@ -8,7 +8,8 @@ import { formatRate } from '@/lib/currency';
 import AddressAutocompleteInput from '@/components/AddressAutocompleteInput';
 import {
   Star, ShieldCheck, Heart, ArrowLeft, Mail,
-  Calendar, Clock, DollarSign, FileText, CheckCircle2, MapPin
+  Calendar, Clock, DollarSign, FileText, CheckCircle2, MapPin,
+  CreditCard
 } from 'lucide-react';
 
 interface ClientProps {
@@ -17,7 +18,16 @@ interface ClientProps {
 
 export default function CaregiverClient({ id }: ClientProps) {
   const router = useRouter();
-  const { caregivers, requestBooking, createConversation } = useCareConnect();
+  const { caregivers, requestBooking, createConversation, bookings } = useCareConnect();
+
+  // Active / latest booking for this caregiver
+  const latestBooking = (bookings || [])
+    .filter((b) => b.caregiverId === id)
+    .sort((a, b) => new Date(b.createdAt || b.startDate).getTime() - new Date(a.createdAt || a.startDate).getTime())[0];
+
+  const isPending = latestBooking?.status === 'pending';
+  const isAccepted = (latestBooking?.status === 'accepted' || latestBooking?.status === 'awaiting_payment') && latestBooking?.paymentStatus !== 'paid';
+  const isPaid = latestBooking && (latestBooking.paymentStatus === 'paid' || ['confirmed', 'in_progress', 'active'].includes(latestBooking.status));
 
   // Local state for fetched caregiver details
   const [caregiver, setCaregiver] = useState<CaregiverProfile | null>(() => {
@@ -118,8 +128,8 @@ export default function CaregiverClient({ id }: ClientProps) {
     if (ok) {
       setIsSuccess(true);
       setTimeout(() => {
-        router.push('/user/bookings');
-      }, 1800);
+        router.push('/user/search-caregivers');
+      }, 1500);
     }
   };
 
@@ -331,8 +341,56 @@ export default function CaregiverClient({ id }: ClientProps) {
               </div>
               <h4 className="font-black text-slate-900 text-base">Request Submitted!</h4>
               <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                Your scheduling request has been forwarded to {caregiver.fullName.split(' ')[0]}. Redirecting...
+                Your scheduling request has been forwarded to {caregiver.fullName.split(' ')[0]}. Redirecting to search...
               </p>
+            </div>
+          ) : isPending ? (
+            <div className="py-6 text-center space-y-3 bg-amber-50 rounded-2xl border border-amber-200 p-4 animate-fade-in">
+              <div className="mx-auto h-12 w-12 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center">
+                <Clock className="h-6 w-6 animate-pulse" />
+              </div>
+              <h4 className="font-black text-amber-900 text-sm">Request Already Submitted</h4>
+              <p className="text-xs text-amber-700 font-medium">
+                You have a care request awaiting approval from {caregiver.fullName.split(' ')[0]}. You can view the status on your Bookings page.
+              </p>
+              <Link
+                href="/user/bookings"
+                className="inline-block rounded-xl bg-amber-600 hover:bg-amber-700 px-4 py-2 text-xs font-bold text-white shadow-xs"
+              >
+                Go to My Bookings
+              </Link>
+            </div>
+          ) : isAccepted ? (
+            <div className="py-6 text-center space-y-3 bg-blue-50 rounded-2xl border border-blue-200 p-4 animate-fade-in">
+              <div className="mx-auto h-12 w-12 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
+                <CreditCard className="h-6 w-6" />
+              </div>
+              <h4 className="font-black text-blue-900 text-sm">Request Accepted by Caregiver!</h4>
+              <p className="text-xs text-blue-700 font-medium">
+                {caregiver.fullName.split(' ')[0]} has accepted your booking request. Please complete payment to confirm your schedule.
+              </p>
+              <Link
+                href="/user/bookings"
+                className="inline-block rounded-xl nav-pill-active px-4 py-2 text-xs font-bold text-white shadow-xs"
+              >
+                Pay on Bookings Page
+              </Link>
+            </div>
+          ) : isPaid ? (
+            <div className="py-6 text-center space-y-3 bg-emerald-50 rounded-2xl border border-emerald-200 p-4 animate-fade-in">
+              <div className="mx-auto h-12 w-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                <CheckCircle2 className="h-6 w-6" />
+              </div>
+              <h4 className="font-black text-emerald-900 text-sm">Care Session Paid & Active</h4>
+              <p className="text-xs text-emerald-700 font-medium">
+                Your appointment with {caregiver.fullName.split(' ')[0]} is confirmed and paid. Once this care treatment is completed, you will be able to book another session.
+              </p>
+              <Link
+                href="/user/bookings"
+                className="inline-block rounded-xl bg-emerald-600 hover:bg-emerald-700 px-4 py-2 text-xs font-bold text-white shadow-xs"
+              >
+                View Appointment
+              </Link>
             </div>
           ) : (
             <form onSubmit={handleBookingSubmit} className="space-y-4">

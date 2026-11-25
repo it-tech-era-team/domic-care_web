@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { Upload, X, FileText, Image as ImageIcon, Camera, Sparkles, Loader2, AlertCircle } from 'lucide-react';
+import { Upload, X, FileText, Camera, Loader2, AlertCircle } from 'lucide-react';
 import { uploadMediaToStorage } from '@/lib/storage';
 
 interface MediaPickerProps {
@@ -9,26 +9,12 @@ interface MediaPickerProps {
   onChange: (val: string) => void;
   type: 'avatar' | 'document';
   label?: string;
+  required?: boolean;
 }
 
-const PRESET_AVATARS = [
-  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150', // Female companion
-  'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150', // Male caregiver
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150', // Female nurse
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150', // Male nurse
-  'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150', // Female user
-];
-
-const PRESET_DOCUMENTS = [
-  { name: 'CNIC / Identity Mock', url: 'https://placehold.co/600x400/png?text=CNIC+Verification+Mock' },
-  { name: 'Nursing License Mock', url: 'https://placehold.co/600x400/png?text=LPN+Nursing+License+Mock' },
-  { name: 'CPR Training Cert Mock', url: 'https://placehold.co/600x400/png?text=CPR+Training+Certificate+Mock' },
-];
-
-export default function MediaPicker({ value, onChange, type, label }: MediaPickerProps) {
+export default function MediaPicker({ value, onChange, type, label, required }: MediaPickerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
-  const [showPresets, setShowPresets] = useState(false);
 
   const [isUploading, setIsUploading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -83,13 +69,11 @@ export default function MediaPicker({ value, onChange, type, label }: MediaPicke
     }
   };
 
-  const isBase64 = Boolean(value && value.startsWith('data:'));
-
   return (
     <div className="space-y-3 w-full animate-fade-in text-slate-900">
       {label && (
         <span className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-          {label}
+          {label} {required && <span className="text-red-500 font-black ml-0.5">*</span>}
         </span>
       )}
 
@@ -166,18 +150,6 @@ export default function MediaPicker({ value, onChange, type, label }: MediaPicke
               Supports JPEG, PNG, or PDFs up to 5MB.
             </p>
           </div>
-
-          {/* Preset trigger */}
-          <div className="pt-2 border-t border-slate-200/80 w-full flex justify-center">
-            <button
-              type="button"
-              onClick={() => setShowPresets(!showPresets)}
-              className="inline-flex items-center gap-1.5 text-[10px] font-bold text-blue-700 hover:text-blue-900 cursor-pointer bg-blue-100/70 hover:bg-blue-100 px-3.5 py-1.5 rounded-full border border-blue-200 transition-all"
-            >
-              <Sparkles className="h-3 w-3 text-amber-500" />
-              <span>Or choose from sandbox presets</span>
-            </button>
-          </div>
         </div>
       )}
 
@@ -189,51 +161,6 @@ export default function MediaPicker({ value, onChange, type, label }: MediaPicke
         onChange={handleFileChange}
         className="hidden"
       />
-
-      {/* Presets Grid */}
-      {showPresets && !value && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3.5 animate-fade-in shadow-xs">
-          <span className="block text-[10px] font-black text-blue-700 uppercase tracking-wider">
-            Sandbox Templates Library
-          </span>
-          
-          {type === 'avatar' ? (
-            <div className="flex flex-wrap gap-2.5">
-              {PRESET_AVATARS.map((url, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => {
-                    onChange(url);
-                    setShowPresets(false);
-                  }}
-                  className="rounded-xl overflow-hidden border border-slate-200 hover:border-blue-600 hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer shrink-0 bg-slate-100"
-                >
-                  <img src={url} alt={`Preset ${i}`} className="h-10 w-10 object-cover" />
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-              {PRESET_DOCUMENTS.map((doc, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => {
-                    onChange(doc.url);
-                    setShowPresets(false);
-                  }}
-                  className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-left hover:border-blue-500 hover:bg-blue-50 hover:shadow-xs active:scale-[0.99] transition-all cursor-pointer space-y-1"
-                >
-                  <span className="block font-extrabold text-[10px] text-slate-900 leading-none truncate">{doc.name}</span>
-                  <span className="block text-[8px] text-slate-500 truncate">Template link</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
-
