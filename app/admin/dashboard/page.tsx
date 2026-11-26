@@ -7,7 +7,7 @@ import {
   Users, Stethoscope, Calendar, DollarSign,
   Check, X, Eye, Clock, Activity, AlertCircle,
   FileText, TrendingUp, TrendingDown, ArrowRight,
-  FolderCheck, Sparkles, UserCheck
+  FolderCheck, Sparkles, UserCheck, Loader2
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -18,6 +18,7 @@ export default function AdminDashboard() {
 
   // Selected Caregiver for Document Review Modal
   const [selectedCG, setSelectedCG] = useState<CaregiverProfile | null>(null);
+  const [isProcessingAction, setIsProcessingAction] = useState<boolean>(false);
 
   // Audit Logs Modal state
   const [showAuditLogsModal, setShowAuditLogsModal] = useState(false);
@@ -62,13 +63,17 @@ export default function AdminDashboard() {
     });
   };
 
-  const handleApprove = (cgId: string) => {
-    approveCaregiver(cgId);
+  const handleApprove = async (cgId: string) => {
+    setIsProcessingAction(true);
+    await approveCaregiver(cgId);
+    setIsProcessingAction(false);
     setSelectedCG(null);
   };
 
-  const handleReject = (cgId: string) => {
-    rejectCaregiver(cgId);
+  const handleReject = async (cgId: string) => {
+    setIsProcessingAction(true);
+    await rejectCaregiver(cgId);
+    setIsProcessingAction(false);
     setSelectedCG(null);
   };
 
@@ -635,7 +640,7 @@ export default function AdminDashboard() {
                 <div className="space-y-1">
                   <span className="block font-heading font-extrabold text-base text-slate-900">{selectedCG.fullName}</span>
                   <span className="block text-xs text-slate-500 font-semibold">{selectedCG.address}, {selectedCG.city}</span>
-                  <span className="block text-[11px] font-bold text-blue-600">Hourly Rate: €{selectedCG.hourlyRate}/hr • Exp: {selectedCG.experienceYears} Years</span>
+                  <span className="block text-[11px] font-bold text-blue-600">Hourly Rate: ${selectedCG.hourlyRate}/hr • Exp: {selectedCG.experienceYears} Years</span>
                 </div>
               </div>
               <button
@@ -717,17 +722,19 @@ export default function AdminDashboard() {
             {/* Accept / Decline actions (Pinned Bottom) */}
             <div className="p-4 px-6 border-t border-slate-200 bg-slate-50 shrink-0 flex justify-end gap-3">
               <button
+                disabled={isProcessingAction}
                 onClick={() => handleReject(selectedCG.id)}
-                className="rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-600 px-4 py-2.5 text-xs font-bold text-rose-700 hover:text-white flex items-center gap-1.5 cursor-pointer transition-colors"
+                className="rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-600 px-4 py-2.5 text-xs font-bold text-rose-700 hover:text-white flex items-center gap-1.5 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <X className="h-4 w-4" />
+                {isProcessingAction ? <Loader2 className="h-4 w-4 animate-spin text-rose-700" /> : <X className="h-4 w-4" />}
                 <span>Reject Application</span>
               </button>
               <button
+                disabled={isProcessingAction}
                 onClick={() => handleApprove(selectedCG.id)}
-                className="rounded-xl nav-pill-active px-5 py-2.5 text-xs font-black text-white flex items-center gap-1.5 cursor-pointer shadow-md shadow-blue-500/20 transition-colors"
+                className="rounded-xl nav-pill-active px-5 py-2.5 text-xs font-black text-white flex items-center gap-1.5 cursor-pointer shadow-md shadow-blue-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Check className="h-4 w-4" />
+                {isProcessingAction ? <Loader2 className="h-4 w-4 animate-spin text-white" /> : <Check className="h-4 w-4" />}
                 <span>Approve & Authorize</span>
               </button>
             </div>

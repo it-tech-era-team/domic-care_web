@@ -9,7 +9,7 @@ import AddressAutocompleteInput from '@/components/AddressAutocompleteInput';
 import {
   Star, ShieldCheck, Heart, ArrowLeft, Mail,
   Calendar, Clock, DollarSign, FileText, CheckCircle2, MapPin,
-  CreditCard
+  CreditCard, Loader2
 } from 'lucide-react';
 
 interface ClientProps {
@@ -128,7 +128,7 @@ export default function CaregiverClient({ id }: ClientProps) {
     if (ok) {
       setIsSuccess(true);
       setTimeout(() => {
-        router.push('/user/search-caregivers');
+        router.push('/user/bookings');
       }, 1500);
     }
   };
@@ -341,8 +341,14 @@ export default function CaregiverClient({ id }: ClientProps) {
               </div>
               <h4 className="font-black text-slate-900 text-base">Request Submitted!</h4>
               <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                Your scheduling request has been forwarded to {caregiver.fullName.split(' ')[0]}. Redirecting to search...
+                Your scheduling request has been forwarded to {caregiver.fullName.split(' ')[0]}. Redirecting to your bookings...
               </p>
+              <Link
+                href="/user/bookings"
+                className="inline-block rounded-xl bg-blue-600 hover:bg-blue-700 px-4 py-2 text-xs font-bold text-white shadow-xs"
+              >
+                View in My Bookings
+              </Link>
             </div>
           ) : isPending ? (
             <div className="py-6 text-center space-y-3 bg-amber-50 rounded-2xl border border-amber-200 p-4 animate-fade-in">
@@ -500,6 +506,7 @@ export default function CaregiverClient({ id }: ClientProps) {
                 disabled={isBookingSubmitting}
                 className="w-full flex items-center justify-center gap-2 rounded-2xl nav-pill-active py-3.5 text-xs font-black text-white uppercase tracking-wider shadow-md shadow-blue-500/20 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
               >
+                {isBookingSubmitting && <Loader2 className="h-4 w-4 animate-spin text-white" />}
                 <span>{isBookingSubmitting ? "Submitting Care Request..." : "Submit Care Request"}</span>
               </button>
             </form>

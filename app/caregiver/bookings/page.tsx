@@ -1,19 +1,71 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { useCareConnect } from '@/context/useCareConnect';
+import { useCareConnect, Booking } from '@/context/useCareConnect';
 import {
   Calendar, Clock, Star, AlertTriangle, CheckCircle2,
-  XCircle, ChevronRight, MessageSquare, ClipboardList, MapPin
+  XCircle, ChevronRight, MessageSquare, ClipboardList, MapPin,
+  Check, Loader2, X
 } from 'lucide-react';
 
 export default function CaregiverBookings() {
   const router = useRouter();
-  const { currentUser, bookings, updateBookingStatus, createConversation } = useCareConnect();
+  const { currentUser, bookings, updateBookingStatus, createConversation, submitReview } = useCareConnect();
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<'all' | 'accepted' | 'completed' | 'cancelled'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'accepted' | 'completed' | 'cancelled'>('all');
+
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [actionType, setActionType] = useState<'accept' | 'reject' | 'complete' | null>(null);
+
+  // Rate Client Modal State
+  const [reviewBooking, setReviewBooking] = useState<Booking | null>(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewBooking || isSubmittingReview) return;
+    setIsSubmittingReview(true);
+    const success = await submitReview(reviewBooking.id, rating, comment);
+    setIsSubmittingReview(false);
+    if (success) {
+      setReviewBooking(null);
+      setComment('');
+    }
+  };
+
+  const handleAccept = async (bookingId: string) => {
+    setActionLoadingId(bookingId);
+    setActionType('accept');
+    await updateBookingStatus(bookingId, 'awaiting_payment');
+    setActionLoadingId(null);
+    setActionType(null);
+  };
+
+  const handleDecline = async (bookingId: string) => {
+    setActionLoadingId(bookingId);
+    setActionType('reject');
+    await updateBookingStatus(bookingId, 'rejected');
+    setActionLoadingId(null);
+    setActionType(null);
+  };
+
+  const handleComplete = async (bookingId: string) => {
+    setActionLoadingId(bookingId);
+    setActionType('complete');
+    await updateBookingStatus(bookingId, 'completed');
+    setActionLoadingId(null);
+    setActionType(null);
+  };
 
   if (!currentUser) {
     return (
@@ -59,7 +111,7 @@ export default function CaregiverBookings() {
 
       {/* Tabs Menu */}
       <div className="flex flex-wrap border-b border-slate-200 gap-1 sm:gap-2">
-        {(['all', 'accepted', 'completed', 'cancelled'] as const).map((tab) => (
+        {(['all', 'pending', 'accepted', 'completed', 'cancelled'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -70,7 +122,7 @@ export default function CaregiverBookings() {
                 : 'border-transparent text-slate-500 hover:text-slate-900'}
             `}
           >
-            {tab === 'accepted' ? 'Active / Scheduled' : tab}
+            {tab === 'pending' ? 'Pending Requests' : tab === 'accepted' ? 'Active / Scheduled' : tab}
           </button>
         ))}
       </div>
@@ -119,15 +171,30 @@ export default function CaregiverBookings() {
                   )}
 
                   {/* Rating left by family */}
-                  {b.rating !== undefined && (
-                    <div className="bg-amber-50 border border-amber-200 p-2.5 rounded-xl space-y-1 w-full max-w-md">
-                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-900">
+                  {b.status === 'completed' && (b.clientRating || b.rating) && (
+                    <div className="bg-amber-50 border border-amber-200 p-2.5 rounded-xl space-y-1 w-full max-w-md mt-2 shadow-2xs">
+                      <div className="flex items-center gap-1.5 text-xs font-black text-amber-900">
                         <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-500" />
-                        <span>Rating: {b.rating} / 5</span>
+                        <span>Client Review: {b.clientRating || b.rating} / 5</span>
                       </div>
-                      {b.comment && (
+                      {(b.clientComment || b.comment) && (
                         <p className="text-2xs text-slate-600 italic font-medium">
-                          &ldquo;{b.comment}&rdquo;
+                          &ldquo;{b.clientComment || b.comment}&rdquo;
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Rating left by caregiver for client */}
+                  {b.status === 'completed' && b.caregiverRating && (
+                    <div className="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl space-y-1 w-full max-w-md mt-2 shadow-2xs">
+                      <div className="flex items-center gap-1.5 text-xs font-black text-emerald-900">
+                        <Star className="h-3.5 w-3.5 fill-emerald-500 text-emerald-600" />
+                        <span>Your Rating for Client: {b.caregiverRating} / 5</span>
+                      </div>
+                      {b.caregiverComment && (
+                        <p className="text-2xs text-slate-600 italic font-medium">
+                          &ldquo;{b.caregiverComment}&rdquo;
                         </p>
                       )}
                     </div>
@@ -168,6 +235,43 @@ export default function CaregiverBookings() {
                   </span>
 
                   {/* Actions */}
+                  {b.status === 'pending' && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        disabled={actionLoadingId === b.id}
+                        onClick={() => handleDecline(b.id)}
+                        className="rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-600 px-3.5 py-1.5 text-[11px] font-bold text-rose-700 hover:text-white transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
+                      >
+                        {actionLoadingId === b.id && actionType === 'reject' ? (
+                          <>
+                            <Loader2 className="h-3 w-3 animate-spin text-rose-700" />
+                            <span>Declining...</span>
+                          </>
+                        ) : (
+                          <span>Decline</span>
+                        )}
+                      </button>
+
+                      <button
+                        disabled={actionLoadingId === b.id}
+                        onClick={() => handleAccept(b.id)}
+                        className="rounded-xl nav-pill-active text-white px-4 py-1.5 text-[11px] font-bold shadow-xs cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {actionLoadingId === b.id && actionType === 'accept' ? (
+                          <>
+                            <Loader2 className="h-3 w-3 animate-spin text-white" />
+                            <span>Accepting...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Check size={13} />
+                            <span>Accept</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+
                   {b.status === 'accepted' && (
                     <div className="flex items-center gap-2">
                       <button
@@ -186,17 +290,56 @@ export default function CaregiverBookings() {
                       </button>
 
                       <button
-                        onClick={() => updateBookingStatus(b.id, 'completed')}
-                        disabled={new Date() < new Date(b.endDate)}
-                        className={`rounded-xl px-3.5 py-1.5 text-[11px] font-black shadow-xs transition-all
-                          ${
-                            new Date() >= new Date(b.endDate)
-                              ? "bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer active:scale-95"
-                              : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-200"
-                          }`}
+                        onClick={() => handleComplete(b.id)}
+                        disabled={actionLoadingId === b.id}
+                        className="rounded-xl px-3.5 py-1.5 text-[11px] font-black shadow-xs transition-all inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer active:scale-95 disabled:opacity-50"
                       >
-                        {new Date() < new Date(b.endDate) ? "In Progress" : "Mark Completed"}
+                        {actionLoadingId === b.id && actionType === 'complete' && (
+                          <Loader2 className="h-3 w-3 animate-spin text-white" />
+                        )}
+                        <span>
+                          {actionLoadingId === b.id && actionType === 'complete'
+                            ? "Completing..."
+                            : "Mark Completed"}
+                        </span>
                       </button>
+                    </div>
+                  )}
+
+                  {b.status === 'completed' && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      {/* 1. Caregiver's Rating of Client */}
+                      {b.caregiverRating ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-xs font-extrabold text-emerald-800 shadow-2xs">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                          <span>You Rated Client: {b.caregiverRating}/5</span>
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setReviewBooking(b);
+                            setRating(5);
+                            setComment('');
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95"
+                        >
+                          <Star className="h-3.5 w-3.5 fill-white text-white" />
+                          <span>Rate Client</span>
+                        </button>
+                      )}
+
+                      {/* 2. Client's Rating of Caregiver */}
+                      {(b.clientRating || b.rating) ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-xl bg-amber-50 border border-amber-200 px-3 py-1.5 text-xs font-extrabold text-amber-800 shadow-2xs">
+                          <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-500" />
+                          <span>Client Rated: {b.clientRating || b.rating}/5</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-500">
+                          <Clock className="h-3.5 w-3.5 text-slate-400" />
+                          <span>Awaiting Client Rating</span>
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
@@ -206,6 +349,80 @@ export default function CaregiverBookings() {
           ))
         )}
       </div>
+
+      {/* Rate Client Modal - Attached to body via Portal for 100% viewport backdrop */}
+      {mounted && reviewBooking && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl border border-slate-200 max-w-md w-full max-h-[90dvh] overflow-y-auto p-5 sm:p-6 space-y-5 sm:space-y-6 shadow-2xl relative text-slate-900 my-auto animate-fade-in">
+            <button
+              onClick={() => setReviewBooking(null)}
+              className="absolute right-4 top-4 p-1.5 text-slate-400 hover:text-slate-700 rounded-lg cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="space-y-1">
+              <h2 className="font-heading font-extrabold text-lg text-slate-900">Rate & Review Client</h2>
+              <p className="text-xs text-slate-500">
+                Share your feedback for client <span className="font-bold text-slate-800">{reviewBooking.userFullName}</span> regarding this completed care session.
+              </p>
+            </div>
+
+            <form onSubmit={handleReviewSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-slate-700">Rating Stars</label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setRating(star)}
+                      className="p-1 cursor-pointer transition-transform hover:scale-110"
+                    >
+                      <Star
+                        className={`h-7 w-7 ${
+                          star <= rating ? 'fill-amber-400 text-amber-400' : 'text-slate-300'
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700">Feedback Comments</label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder="Share details about client communication, home environment, and experience..."
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-3.5 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setReviewBooking(null)}
+                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingReview}
+                  className="rounded-xl nav-pill-active px-5 py-2.5 text-xs font-bold text-white shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+                >
+                  {isSubmittingReview && <Loader2 className="h-4 w-4 animate-spin text-white" />}
+                  <span>{isSubmittingReview ? "Submitting..." : "Submit Client Review"}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>,
+        document.body
+      )}
 
     </div>
   );

@@ -8,7 +8,8 @@ import {
   LayoutDashboard, Search, CalendarDays,
   MessageSquare, UserCircle, Bell, ShieldCheck,
   ClipboardList, LogOut, Menu, X, Users, Globe,
-  BarChart3, Store, FileText, Settings
+  BarChart3, Store, FileText, Settings,
+  Mail, HelpCircle
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -119,14 +120,14 @@ export default function Sidebar({ role }: SidebarProps) {
       {/* Sidebar Container */}
       <aside
         className={`
-          fixed top-0 bottom-0 left-0 z-50 w-64 border-r border-blue-900/30 bg-gradient-to-b from-blue-700 via-blue-800 to-indigo-900 text-white p-5 flex flex-col justify-between
-          transition-transform duration-300 md:translate-x-0 md:static md:h-screen md:shrink-0 overflow-hidden shadow-xl
+          fixed top-0 bottom-0 left-0 z-50 w-64 border-r border-blue-900/30 bg-gradient-to-b from-blue-700 via-blue-800 to-indigo-900 text-white p-4 sm:p-5 flex flex-col justify-between
+          transition-transform duration-300 md:translate-x-0 md:static md:h-screen md:shrink-0 overflow-y-auto overflow-x-hidden shadow-xl
           ${isOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none md:pointer-events-auto'}
         `}
       >
-        <div className="space-y-6 relative z-10">
+        <div className="space-y-4 sm:space-y-5 relative z-10 shrink-0">
           {/* Logo & Notification Section */}
-          <div className="hidden md:flex items-center justify-between pb-4 border-b border-white/15">
+          <div className="hidden md:flex items-center justify-between pb-3 border-b border-white/15">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-white/15 backdrop-blur-md p-0.5 flex items-center justify-center shadow-inner border border-white/20">
                 <div className="h-full w-full bg-white rounded-[10px] flex items-center justify-center overflow-hidden p-0.5">
@@ -177,7 +178,7 @@ export default function Sidebar({ role }: SidebarProps) {
                   href={item.href}
                   onClick={() => setIsOpen(false)}
                   className={`
-                    flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition-all cursor-pointer
+                    flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-semibold transition-all cursor-pointer
                     ${isActive 
                       ? 'bg-white text-blue-700 font-extrabold shadow-lg shadow-blue-950/30 scale-[1.02]' 
                       : 'text-blue-100 hover:bg-white/10 hover:text-white'}
@@ -222,7 +223,7 @@ export default function Sidebar({ role }: SidebarProps) {
         </div>
 
         {/* User Profile Footer & Logout */}
-        <div className="border border-white/15 bg-white/10 backdrop-blur-md pt-3.5 pb-3 px-3 space-y-3 relative z-10 rounded-2xl shadow-inner text-white">
+        <div className="shrink-0 mt-3 border border-white/15 bg-white/10 backdrop-blur-md pt-3 pb-2.5 px-3 space-y-2.5 relative z-10 rounded-2xl shadow-inner text-white">
           {currentUser && (
             <div className="flex items-center gap-3 px-1">
               <div className="relative">
@@ -251,6 +252,21 @@ export default function Sidebar({ role }: SidebarProps) {
             <LogOut className="h-4 w-4 text-blue-200" />
             <span>Logout</span>
           </button>
+
+          {/* Need Support Section */}
+          <div className="pt-2 border-t border-white/15">
+            <div className="flex items-center justify-between px-1 mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-200">Need Support?</span>
+              <HelpCircle className="h-3.5 w-3.5 text-blue-300" />
+            </div>
+            <a
+              href="mailto:support@domiccare.com"
+              className="flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs text-blue-100 bg-white/10 hover:bg-white/20 hover:text-white border border-white/15 transition-all group"
+            >
+              <Mail className="h-3.5 w-3.5 text-blue-300 group-hover:text-blue-100 shrink-0" />
+              <span className="text-[11px] font-semibold truncate">support@domiccare.com</span>
+            </a>
+          </div>
         </div>
       </aside>
 

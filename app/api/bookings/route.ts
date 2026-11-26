@@ -44,8 +44,7 @@ export async function GET(req: NextRequest) {
           name
         ),
         reviews (
-          rating,
-          comment
+          *
         )
       `);
 
@@ -63,7 +62,10 @@ export async function GET(req: NextRequest) {
     }
 
     const formattedBookings = (bookingsData || []).map((b: any) => {
-      const reviewObj = Array.isArray(b.reviews) ? b.reviews[0] : b.reviews;
+      const revList: any[] = Array.isArray(b.reviews) ? b.reviews : (b.reviews ? [b.reviews] : []);
+      const userReview = revList.find(r => r.reviewer_role === 'user') || 
+        (revList.length > 0 && (!revList[0].reviewer_role || revList[0].reviewer_role === 'user') ? revList[0] : null);
+      const caregiverReview = revList.find(r => r.reviewer_role === 'caregiver') || null;
       const cgProf = Array.isArray(b.caregiver_profiles) ? b.caregiver_profiles[0] : b.caregiver_profiles;
 
       return {
@@ -84,14 +86,18 @@ export async function GET(req: NextRequest) {
         totalAmount: b.total_amount ? Number(b.total_amount) : 0,
         platformFee: b.platform_fee ? Number(b.platform_fee) : 0,
         caregiverPayout: b.caregiver_payout ? Number(b.caregiver_payout) : 0,
-        currency: "EUR",
+        currency: "USD",
         formattedTotal: formatCurrency(b.total_amount ? Number(b.total_amount) : 0),
         paymentStatus: b.payment_status || "unpaid",
         paymentIntentId: b.payment_intent_id || null,
         transferId: b.transfer_id || null,
         createdAt: b.created_at,
-        rating: reviewObj?.rating ?? null,
-        comment: reviewObj?.comment ?? null,
+        rating: userReview?.rating ?? null,
+        comment: userReview?.comment ?? null,
+        clientRating: userReview?.rating ?? null,
+        clientComment: userReview?.comment ?? null,
+        caregiverRating: caregiverReview?.rating ?? null,
+        caregiverComment: caregiverReview?.comment ?? null,
       };
     });
 

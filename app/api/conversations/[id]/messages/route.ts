@@ -115,10 +115,22 @@ export async function POST(
 
     // 3. Send Notification to receiver
     const recipientId = user.id === conv.user_id ? conv.caregiver_id : conv.user_id;
+    const isImageOrFile =
+      message.startsWith("data:image/") ||
+      (message.startsWith("http") && (
+        message.includes("/storage/") ||
+        message.includes("supabase.co") ||
+        /\.(jpeg|jpg|png|webp|gif|pdf)($|\?)/i.test(message)
+      ));
+
+    const notificationText = isImageOrFile
+      ? `You received an image from ${user.fullName}.`
+      : `You received a message from ${user.fullName}: "${message.slice(0, 40)}${message.length > 40 ? "..." : ""}"`;
+
     await supabase.from("notifications").insert({
       user_id: recipientId,
       title: "New Chat Message",
-      message: `You received a message from ${user.fullName}: "${message.slice(0, 40)}${message.length > 40 ? "..." : ""}"`,
+      message: notificationText,
       type: "chat_message",
       is_read: false,
     });

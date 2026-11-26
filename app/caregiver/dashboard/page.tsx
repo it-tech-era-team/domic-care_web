@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCareConnect, Booking } from '@/context/useCareConnect';
@@ -20,12 +20,41 @@ import {
   User,
   CalendarDays,
   TrendingUp,
-  MapPin
+  MapPin,
+  Loader2
 } from 'lucide-react';
 
 export default function CaregiverDashboard() {
   const router = useRouter();
   const { currentUser, bookings, caregivers, updateBookingStatus, createConversation } = useCareConnect();
+
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [actionType, setActionType] = useState<'accept' | 'reject' | 'complete' | null>(null);
+  const [dismissedAlertIds, setDismissedAlertIds] = useState<string[]>([]);
+
+  const handleAccept = async (bookingId: string) => {
+    setActionLoadingId(bookingId);
+    setActionType('accept');
+    await updateBookingStatus(bookingId, 'awaiting_payment');
+    setActionLoadingId(null);
+    setActionType(null);
+  };
+
+  const handleDecline = async (bookingId: string) => {
+    setActionLoadingId(bookingId);
+    setActionType('reject');
+    await updateBookingStatus(bookingId, 'rejected');
+    setActionLoadingId(null);
+    setActionType(null);
+  };
+
+  const handleComplete = async (bookingId: string) => {
+    setActionLoadingId(bookingId);
+    setActionType('complete');
+    await updateBookingStatus(bookingId, 'completed');
+    setActionLoadingId(null);
+    setActionType(null);
+  };
 
   if (!currentUser) {
     return (
@@ -37,14 +66,15 @@ export default function CaregiverDashboard() {
   }
 
   const canCompleteBooking = (endDate: string) => {
-    if (!endDate) return false;
-    return new Date() >= new Date(endDate);
+    // Allows completing active accepted job
+    return true;
   };
 
   const profile = caregivers.find((cg) => cg.id === currentUser.id);
   const caregiverBookings = bookings.filter((b) => b.caregiverId === currentUser.id);
 
   const pendingRequests = caregiverBookings.filter((b) => b.status === 'pending');
+  const pendingAlertBooking = pendingRequests.find((r) => !dismissedAlertIds.includes(r.id)) || null;
   const activeJobs = caregiverBookings.filter((b) => b.status === 'accepted');
   const completedJobs = caregiverBookings.filter((b) => b.status === 'completed');
 
@@ -324,17 +354,35 @@ export default function CaregiverDashboard() {
 
                       <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-200">
                         <button
-                          onClick={() => updateBookingStatus(req.id, 'rejected')}
-                          className="rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-600 px-4 py-2.5 text-xs font-bold text-rose-700 hover:text-white transition cursor-pointer"
+                          disabled={actionLoadingId === req.id}
+                          onClick={() => handleDecline(req.id)}
+                          className="rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-600 px-4 py-2.5 text-xs font-bold text-rose-700 hover:text-white transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
                         >
-                          Decline Request
+                          {actionLoadingId === req.id && actionType === 'reject' ? (
+                            <>
+                              <Loader2 className="h-3.5 w-3.5 animate-spin text-rose-700" />
+                              <span>Declining...</span>
+                            </>
+                          ) : (
+                            <span>Decline Request</span>
+                          )}
                         </button>
                         <button
-                          onClick={() => updateBookingStatus(req.id, 'awaiting_payment')}
-                          className="rounded-xl nav-pill-active text-white px-5 py-2.5 text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5"
+                          disabled={actionLoadingId === req.id}
+                          onClick={() => handleAccept(req.id)}
+                          className="rounded-xl nav-pill-active text-white px-5 py-2.5 text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          <Check size={15} />
-                          <span>Accept Request</span>
+                          {actionLoadingId === req.id && actionType === 'accept' ? (
+                            <>
+                              <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
+                              <span>Accepting...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Check size={15} />
+                              <span>Accept Request</span>
+                            </>
+                          )}
                         </button>
                       </div>
                     </div>
@@ -417,15 +465,20 @@ export default function CaregiverDashboard() {
                         </button>
 
                         <button
-                          onClick={() => updateBookingStatus(job.id, "completed")}
-                          disabled={!canCompleteBooking(job.endDate)}
-                          className={`rounded-xl px-4 py-2.5 text-xs font-bold shadow-xs transition
-                            ${canCompleteBooking(job.endDate)
+                          onClick={() => handleComplete(job.id)}
+                          disabled={!canCompleteBooking(job.endDate) || actionLoadingId === job.id}
+                          className={`rounded-xl px-4 py-2.5 text-xs font-bold shadow-xs transition inline-flex items-center gap-1.5
+                            ${actionLoadingId === job.id
+                              ? "bg-emerald-600 text-white opacity-80 cursor-not-allowed"
+                              : canCompleteBooking(job.endDate)
                               ? "bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer"
                               : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-200"
                             }`}
                         >
-                          Complete
+                          {actionLoadingId === job.id && actionType === 'complete' && (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
+                          )}
+                          <span>{actionLoadingId === job.id && actionType === 'complete' ? "Completing..." : "Complete"}</span>
                         </button>
                       </div>
                     </div>
@@ -438,6 +491,101 @@ export default function CaregiverDashboard() {
         </div>
 
       </div>
+
+      {/* INCOMING BOOKING REQUEST POPUP ALERT MODAL */}
+      {pendingAlertBooking && (
+        <div className="fixed inset-0 z-[99998] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-3 sm:p-6 overflow-y-auto animate-fade-in">
+          <div className="bg-white rounded-3xl border border-amber-200/80 shadow-2xl max-w-md w-full max-h-[90dvh] overflow-y-auto p-5 sm:p-8 space-y-5 sm:space-y-6 relative text-slate-900 my-auto">
+            {/* Top Bar Accent */}
+            <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-amber-500 via-indigo-600 to-blue-600" />
+
+            <div className="flex justify-between items-start pt-1">
+              <div className="flex items-center gap-2.5">
+                <div className="h-10 w-10 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shrink-0">
+                  <AlertTriangle className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-heading font-black text-lg text-slate-900">New Booking Request</h3>
+                  <p className="text-xs text-slate-500">Client awaits your approval</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setDismissedAlertIds((prev) => [...prev, pendingAlertBooking.id])}
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 cursor-pointer transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center gap-3">
+                <img
+                  src={pendingAlertBooking.userAvatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(pendingAlertBooking.userFullName || 'Client')}`}
+                  alt={pendingAlertBooking.userFullName}
+                  className="h-10 w-10 rounded-xl object-cover border border-slate-200 bg-white shrink-0"
+                />
+                <div>
+                  <span className="font-extrabold text-sm text-slate-900 block">{pendingAlertBooking.userFullName}</span>
+                  <span className="text-xs text-blue-600 font-bold">{pendingAlertBooking.serviceName} Care</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs font-semibold text-slate-600 pt-1">
+                <div className="flex items-center gap-1.5">
+                  <Calendar size={13} className="text-blue-600 shrink-0" />
+                  <span>{formatDate(pendingAlertBooking.startDate)}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Clock size={13} className="text-blue-600 shrink-0" />
+                  <span>{formatTime(pendingAlertBooking.startDate)} - {formatTime(pendingAlertBooking.endDate)}</span>
+                </div>
+              </div>
+
+              {pendingAlertBooking.location && (
+                <div className="flex items-center gap-1.5 text-xs text-slate-700 font-medium pt-1 border-t border-slate-200/60">
+                  <MapPin size={13} className="text-blue-500 shrink-0" />
+                  <span className="truncate">{pendingAlertBooking.location}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-1">
+              <button
+                onClick={() => handleDecline(pendingAlertBooking.id)}
+                disabled={actionLoadingId === pendingAlertBooking.id}
+                className="flex-1 py-3 px-4 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/80 font-bold text-xs transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60"
+              >
+                {actionLoadingId === pendingAlertBooking.id && actionType === 'reject' ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin text-rose-700" />
+                    <span>Declining...</span>
+                  </>
+                ) : (
+                  <span>Decline Request</span>
+                )}
+              </button>
+
+              <button
+                onClick={() => handleAccept(pendingAlertBooking.id)}
+                disabled={actionLoadingId === pendingAlertBooking.id}
+                className="flex-1 py-3 px-4 rounded-2xl nav-pill-active text-white font-extrabold text-xs shadow-md shadow-blue-500/20 transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60"
+              >
+                {actionLoadingId === pendingAlertBooking.id && actionType === 'accept' ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin text-white" />
+                    <span>Accepting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check size={15} />
+                    <span>Accept Request</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

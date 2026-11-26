@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { useCareConnect, Booking } from '@/context/useCareConnect';
 import StripePaymentModal from '@/components/StripePaymentModal';
 import { formatCurrency } from '@/lib/currency';
 import {
   Calendar, Clock, Star, AlertTriangle, CheckCircle2,
-  XCircle, ChevronRight, MessageSquare, CalendarDays, X, Check, CreditCard, ShieldCheck
+  XCircle, ChevronRight, MessageSquare, CalendarDays, X, Check, CreditCard, ShieldCheck, Loader2
 } from 'lucide-react';
 
 export default function UserBookings() {
@@ -24,6 +25,13 @@ export default function UserBookings() {
   const [reviewBooking, setReviewBooking] = useState<Booking | null>(null);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (!currentUser) {
     return (
@@ -54,12 +62,23 @@ export default function UserBookings() {
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const handleReviewSubmit = (e: React.FormEvent) => {
+  const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!reviewBooking) return;
-    submitReview(reviewBooking.id, rating, comment);
-    setReviewBooking(null);
-    setComment('');
+    if (!reviewBooking || isSubmittingReview) return;
+    setIsSubmittingReview(true);
+    const success = await submitReview(reviewBooking.id, rating, comment);
+    setIsSubmittingReview(false);
+    if (success) {
+      setReviewBooking(null);
+      setComment('');
+    }
+  };
+
+  const handleCancelRequest = async (bookingId: string) => {
+    if (!confirm("Are you sure you want to cancel this request?")) return;
+    setCancellingBookingId(bookingId);
+    await updateBookingStatus(bookingId, 'cancelled');
+    setCancellingBookingId(null);
   };
 
   const handlePaymentSuccess = async () => {
@@ -143,6 +162,16 @@ export default function UserBookings() {
                         &ldquo;{b.notes}&rdquo;
                       </p>
                     )}
+                    {b.status === 'completed' && b.caregiverComment && (
+                      <div className="bg-emerald-50/70 border border-emerald-200/80 p-2.5 rounded-xl max-w-lg mt-2 space-y-0.5">
+                        <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wide flex items-center gap-1">
+                          <CheckCircle2 className="h-3 w-3 text-emerald-600" /> Caregiver Feedback:
+                        </span>
+                        <p className="text-xs text-slate-700 italic font-medium">
+                          &ldquo;{b.caregiverComment}&rdquo;
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -196,15 +225,16 @@ export default function UserBookings() {
 
                     {b.status === 'pending' && (
                       <button
-                        onClick={async () => {
-                          if (confirm("Are you sure you want to cancel this request?")) {
-                            updateBookingStatus(b.id, 'cancelled');
-                          }
-                        }}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 text-xs font-bold transition-all cursor-pointer"
+                        disabled={cancellingBookingId === b.id}
+                        onClick={() => handleCancelRequest(b.id)}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 text-xs font-bold transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <X className="h-3.5 w-3.5" />
-                        <span>Cancel Request</span>
+                        {cancellingBookingId === b.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-rose-700" />
+                        ) : (
+                          <X className="h-3.5 w-3.5" />
+                        )}
+                        <span>{cancellingBookingId === b.id ? "Cancelling..." : "Cancel Request"}</span>
                       </button>
                     )}
 
@@ -225,14 +255,28 @@ export default function UserBookings() {
                       </button>
                     )}
 
-                    {b.status === 'completed' && b.rating === undefined && (
+                    {b.status === 'completed' && (b.clientRating === undefined || b.clientRating === null) && (b.rating === undefined || b.rating === null) && (
                       <button
                         onClick={() => setReviewBooking(b)}
-                        className="inline-flex items-center gap-1 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 px-3 py-1.5 text-xs font-bold transition-all cursor-pointer"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 px-3 py-1.5 text-xs font-bold transition-all cursor-pointer"
                       >
                         <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-500" />
                         <span>Leave Review</span>
                       </button>
+                    )}
+
+                    {b.status === 'completed' && (b.clientRating || b.rating) && (
+                      <div className="inline-flex items-center gap-1.5 rounded-xl bg-amber-50 border border-amber-200 px-3 py-1.5 text-xs font-bold text-amber-800">
+                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-500" />
+                        <span>Rated {b.clientRating || b.rating}/5</span>
+                      </div>
+                    )}
+
+                    {b.status === 'completed' && b.caregiverRating && (
+                      <div className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-xs font-bold text-emerald-800">
+                        <Star className="h-3.5 w-3.5 fill-emerald-500 text-emerald-600" />
+                        <span>Caregiver Rated You: {b.caregiverRating}/5</span>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -256,10 +300,10 @@ export default function UserBookings() {
         />
       )}
 
-      {/* Leave Review Modal */}
-      {reviewBooking && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-fade-in">
-          <div className="bg-white rounded-3xl border border-slate-200 max-w-md w-full max-h-[90dvh] overflow-y-auto p-5 sm:p-6 space-y-5 sm:space-y-6 shadow-2xl relative text-slate-900 my-auto">
+      {/* Leave Review Modal - Attached to body via Portal for full viewport backdrop */}
+      {mounted && reviewBooking && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl border border-slate-200 max-w-md w-full max-h-[90dvh] overflow-y-auto p-5 sm:p-6 space-y-5 sm:space-y-6 shadow-2xl relative text-slate-900 my-auto animate-fade-in">
             <button
               onClick={() => setReviewBooking(null)}
               className="absolute right-4 top-4 p-1.5 text-slate-400 hover:text-slate-700 rounded-lg cursor-pointer"
@@ -317,14 +361,17 @@ export default function UserBookings() {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl nav-pill-active px-5 py-2.5 text-xs font-bold text-white shadow-md cursor-pointer"
+                  disabled={isSubmittingReview}
+                  className="rounded-xl nav-pill-active px-5 py-2.5 text-xs font-bold text-white shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
                 >
-                  Submit Review
+                  {isSubmittingReview && <Loader2 className="h-4 w-4 animate-spin text-white" />}
+                  <span>{isSubmittingReview ? "Submitting..." : "Submit Review"}</span>
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

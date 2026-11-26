@@ -30,6 +30,7 @@ import {
   Award,
   ChevronRight,
   ImageOff,
+  Loader2,
 } from "lucide-react";
 
 interface Review {
@@ -883,7 +884,7 @@ export default function AdminCaregiversPage() {
                       ["Gender", selectedCaregiver.gender || "—"],
                       ["Date of Birth", formatDate(selectedCaregiver.dob)],
                       ["Experience", `${selectedCaregiver.experienceYears} Years`],
-                      ["Hourly Rate", `€${selectedCaregiver.hourlyRate}/hr`],
+                      ["Hourly Rate", `$${selectedCaregiver.hourlyRate}/hr`],
                       ["City", selectedCaregiver.city || "—"],
                       ["Joined Date", formatDate(selectedCaregiver.joinedAt)],
                     ].map(([label, value]) => (
@@ -1323,19 +1324,19 @@ export default function AdminCaregiversPage() {
                   <button
                     disabled={actionLoading}
                     onClick={() => approveCaregiver(selectedCaregiver.id)}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-green-700 disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-green-700 disabled:opacity-50 cursor-pointer"
                   >
-                    <CheckCircle size={15} />
-                    Approve
+                    {actionLoading ? <Loader2 size={15} className="animate-spin text-white" /> : <CheckCircle size={15} />}
+                    <span>Approve</span>
                   </button>
 
                   <button
                     disabled={actionLoading}
                     onClick={() => rejectCaregiver(selectedCaregiver.id)}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-red-100 px-4 py-2.5 text-sm font-bold text-red-700 transition hover:-translate-y-0.5 hover:bg-red-200 disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-red-100 px-4 py-2.5 text-sm font-bold text-red-700 transition hover:-translate-y-0.5 hover:bg-red-200 disabled:opacity-50 cursor-pointer"
                   >
-                    <XCircle size={15} />
-                    Reject
+                    {actionLoading ? <Loader2 size={15} className="animate-spin text-red-700" /> : <XCircle size={15} />}
+                    <span>Reject</span>
                   </button>
                 </>
               )}

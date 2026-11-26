@@ -66,6 +66,10 @@ export interface Booking {
   createdAt: string;
   rating?: number;
   comment?: string;
+  clientRating?: number | null;
+  clientComment?: string | null;
+  caregiverRating?: number | null;
+  caregiverComment?: string | null;
 }
 
 export interface Message {
@@ -145,8 +149,8 @@ interface CareConnectContextType {
   logout: () => Promise<void>;
   signupUser: (fullName: string, email: string, phone: string, password: string, role: Role) => Promise<boolean>;
   requestBooking: (caregiverId: string, serviceName: string, date: string, timeSlot: string, location: string, notes: string) => Promise<boolean>;
-  updateBookingStatus: (bookingId: string, status: Booking['status']) => Promise<void>;
-  submitReview: (bookingId: string, rating: number, comment: string) => Promise<void>;
+  updateBookingStatus: (bookingId: string, status: Booking['status']) => Promise<boolean>;
+  submitReview: (bookingId: string, rating: number, comment: string) => Promise<boolean>;
   sendMessage: (conversationId: string, senderId: string, text: string) => Promise<void>;
   fetchMessages: (conversationId: string) => Promise<void>;
   createConversation: (caregiverId: string) => Promise<string>;
@@ -498,7 +502,7 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
-  const updateBookingStatus = async (bookingId: string, status: Booking['status']) => {
+  const updateBookingStatus = async (bookingId: string, status: Booking['status']): Promise<boolean> => {
     try {
       const res = await fetch(`/api/bookings/${bookingId}`, {
         method: 'PATCH',
@@ -509,16 +513,19 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
       if (res.ok) {
         showToast('Booking Status Updated', `Booking has been marked as ${status}.`, status === 'accepted' ? 'success' : 'warning');
         await refreshData();
+        return true;
       } else {
         const data = await res.json().catch(() => ({}));
         showToast('Update Failed', data.error || 'Failed to update status', 'error');
+        return false;
       }
     } catch (err) {
       showToast('Update Error', 'Could not update booking status.', 'error');
+      return false;
     }
   };
 
-  const submitReview = async (bookingId: string, rating: number, comment: string) => {
+  const submitReview = async (bookingId: string, rating: number, comment: string): Promise<boolean> => {
     try {
       const res = await fetch(`/api/bookings/${bookingId}/review`, {
         method: 'POST',
@@ -529,12 +536,15 @@ export const CareConnectProvider: React.FC<{ children: React.ReactNode }> = ({ c
       if (res.ok) {
         showToast('Review Submitted', 'Thank you for your rating and feedback!', 'success');
         await refreshData();
+        return true;
       } else {
         const data = await res.json().catch(() => ({}));
         showToast('Review Failed', data.error || 'Failed to submit review', 'error');
+        return false;
       }
     } catch (err) {
       showToast('Review Error', 'Could not submit review.', 'error');
+      return false;
     }
   };
 

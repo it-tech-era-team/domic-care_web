@@ -26,11 +26,19 @@ export async function POST(req: NextRequest) {
     }
 
     // Determine MIME type and safe extension
-    const mimeType = file.type || "application/octet-stream";
+    let mimeType = file.type || "application/octet-stream";
     const ext = ALLOWED_MIME_TYPES[mimeType] || (file instanceof File && file.name.includes(".") ? file.name.split(".").pop()?.toLowerCase() : "jpg");
 
     if (!["jpg", "jpeg", "png", "pdf"].includes(ext || "")) {
       return apiError("INVALID_FILE_TYPE", "Only JPG, PNG images and PDF documents are supported.", 400);
+    }
+
+    // Resolve canonical MIME type accepted by Supabase bucket policies
+    let canonicalContentType = mimeType;
+    if (canonicalContentType === "application/octet-stream" || !ALLOWED_MIME_TYPES[canonicalContentType]) {
+      if (ext === "pdf") canonicalContentType = "application/pdf";
+      else if (ext === "png") canonicalContentType = "image/png";
+      else canonicalContentType = "image/jpeg";
     }
 
     const supabase = createServerSupabaseClient();
@@ -61,7 +69,7 @@ export async function POST(req: NextRequest) {
       .from(bucket)
       .upload(fileName, buffer, {
         upsert: true,
-        contentType: mimeType,
+        contentType: canonicalContentType,
         cacheControl: "3600",
       });
 
