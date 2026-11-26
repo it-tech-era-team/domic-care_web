@@ -13,6 +13,35 @@ import {
   ArrowRight, ArrowLeft, Plus, Trash, Building2, Navigation
 } from 'lucide-react';
 
+const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const;
+
+const DEFAULT_AVAILABILITY: Record<string, { start: string; end: string; isAvailable: boolean }> = {
+  Monday: { start: '09:00', end: '17:00', isAvailable: true },
+  Tuesday: { start: '09:00', end: '17:00', isAvailable: true },
+  Wednesday: { start: '09:00', end: '17:00', isAvailable: true },
+  Thursday: { start: '09:00', end: '17:00', isAvailable: true },
+  Friday: { start: '09:00', end: '17:00', isAvailable: true },
+  Saturday: { start: '10:00', end: '14:00', isAvailable: false },
+  Sunday: { start: '10:00', end: '14:00', isAvailable: false },
+};
+
+function normalizeAvailability(raw: any): Record<string, { start: string; end: string; isAvailable: boolean }> {
+  if (!raw || typeof raw !== 'object' || Object.keys(raw).length === 0) {
+    return { ...DEFAULT_AVAILABILITY };
+  }
+  const result: Record<string, { start: string; end: string; isAvailable: boolean }> = { ...DEFAULT_AVAILABILITY };
+  for (const day of DAYS_OF_WEEK) {
+    if (raw[day]) {
+      result[day] = {
+        start: raw[day].start || DEFAULT_AVAILABILITY[day].start,
+        end: raw[day].end || DEFAULT_AVAILABILITY[day].end,
+        isAvailable: raw[day].isAvailable !== undefined ? Boolean(raw[day].isAvailable) : false,
+      };
+    }
+  }
+  return result;
+}
+
 export default function CaregiverProfilePage() {
   const router = useRouter();
   const { currentUser, caregivers, submitCaregiverApplication, updateCaregiverProfile, updateUserProfile, services, showToast } = useCareConnect();
@@ -188,36 +217,34 @@ export default function CaregiverProfilePage() {
   };
 
   // Step 4: Availability
-  const [availability, setAvailability] = useState(
-    existingProfile?.availability || {
-      Monday: { start: '09:00', end: '17:00', isAvailable: true },
-      Tuesday: { start: '09:00', end: '17:00', isAvailable: true },
-      Wednesday: { start: '09:00', end: '17:00', isAvailable: true },
-      Thursday: { start: '09:00', end: '17:00', isAvailable: true },
-      Friday: { start: '09:00', end: '17:00', isAvailable: true },
-      Saturday: { start: '10:00', end: '14:00', isAvailable: false },
-      Sunday: { start: '10:00', end: '14:00', isAvailable: false },
-    }
+  const [availability, setAvailability] = useState<Record<string, { start: string; end: string; isAvailable: boolean }>>(
+    () => normalizeAvailability(existingProfile?.availability)
   );
 
   const handleAvailabilityToggle = (day: string) => {
-    setAvailability(prev => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        isAvailable: !prev[day].isAvailable
-      }
-    }));
+    setAvailability(prev => {
+      const current = prev[day] || DEFAULT_AVAILABILITY[day];
+      return {
+        ...prev,
+        [day]: {
+          ...current,
+          isAvailable: !current.isAvailable
+        }
+      };
+    });
   };
 
   const handleTimeChange = (day: string, type: 'start' | 'end', val: string) => {
-    setAvailability(prev => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [type]: val
-      }
-    }));
+    setAvailability(prev => {
+      const current = prev[day] || DEFAULT_AVAILABILITY[day];
+      return {
+        ...prev,
+        [day]: {
+          ...current,
+          [type]: val
+        }
+      };
+    });
   };
 
   // Step 5: Verification Documents
@@ -249,7 +276,7 @@ export default function CaregiverProfilePage() {
             setExperienceYears(p.experienceYears || 2);
             setHourlyRate(p.hourlyRate && p.hourlyRate > 0 ? p.hourlyRate : 25);
             if (p.services && p.services.length > 0) setSelectedServices(p.services);
-            if (p.availability && Object.keys(p.availability).length > 0) setAvailability(p.availability);
+            if (p.availability) setAvailability(normalizeAvailability(p.availability));
             setDocuments(p.documents || []);
           }
         }
@@ -987,41 +1014,44 @@ export default function CaregiverProfilePage() {
                 </div>
 
                 <div className="space-y-3">
-                  {Object.entries(availability).map(([day, slot]) => (
-                    <div key={day} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl border border-slate-200 bg-slate-50 shadow-xs">
-                      <div className="flex items-center gap-3">
-                        <button
-                          type="button"
-                          onClick={() => handleAvailabilityToggle(day)}
-                          className={`
-                            rounded-xl px-3 py-1 text-[10px] font-black uppercase cursor-pointer transition-all shadow-xs
-                            ${slot.isAvailable ? 'nav-pill-active text-white' : 'bg-slate-200 text-slate-600 border border-slate-300'}
-                          `}
-                        >
-                          {slot.isAvailable ? 'Available' : 'Unavailable'}
-                        </button>
-                        <span className="font-extrabold text-slate-900 text-xs">{day}</span>
-                      </div>
-
-                      {slot.isAvailable && (
-                        <div className="flex items-center gap-2 text-xs">
-                          <input
-                            type="time"
-                            value={slot.start}
-                            onChange={(e) => handleTimeChange(day, 'start', e.target.value)}
-                            className="rounded-xl border border-slate-300 bg-white px-2.5 py-1 text-slate-900 font-semibold focus:outline-none"
-                          />
-                          <span className="text-slate-400 font-bold">-</span>
-                          <input
-                            type="time"
-                            value={slot.end}
-                            onChange={(e) => handleTimeChange(day, 'end', e.target.value)}
-                            className="rounded-xl border border-slate-300 bg-white px-2.5 py-1 text-slate-900 font-semibold focus:outline-none"
-                          />
+                  {DAYS_OF_WEEK.map((day) => {
+                    const slot = availability[day] || DEFAULT_AVAILABILITY[day];
+                    return (
+                      <div key={day} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl border border-slate-200 bg-slate-50 shadow-xs">
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => handleAvailabilityToggle(day)}
+                            className={`
+                              rounded-xl px-3 py-1 text-[10px] font-black uppercase cursor-pointer transition-all shadow-xs
+                              ${slot.isAvailable ? 'nav-pill-active text-white' : 'bg-slate-200 text-slate-600 border border-slate-300'}
+                            `}
+                          >
+                            {slot.isAvailable ? 'Available' : 'Unavailable'}
+                          </button>
+                          <span className="font-extrabold text-slate-900 text-xs">{day}</span>
                         </div>
-                      )}
-                    </div>
-                  ))}
+
+                        {slot.isAvailable && (
+                          <div className="flex items-center gap-2 text-xs">
+                            <input
+                              type="time"
+                              value={slot.start}
+                              onChange={(e) => handleTimeChange(day, 'start', e.target.value)}
+                              className="rounded-xl border border-slate-300 bg-white px-2.5 py-1 text-slate-900 font-semibold focus:outline-none"
+                            />
+                            <span className="text-slate-400 font-bold">-</span>
+                            <input
+                              type="time"
+                              value={slot.end}
+                              onChange={(e) => handleTimeChange(day, 'end', e.target.value)}
+                              className="rounded-xl border border-slate-300 bg-white px-2.5 py-1 text-slate-900 font-semibold focus:outline-none"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

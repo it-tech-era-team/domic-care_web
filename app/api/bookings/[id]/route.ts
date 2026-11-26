@@ -6,7 +6,10 @@ import {
   calculateBookingSplit,
   ensureStripeCaregiverAccount,
 } from "@/lib/stripe";
-import { sendBookingConfirmationEmail } from "@/lib/email";
+import {
+  sendClientPaymentReceiptEmail,
+  sendCaregiverPaymentReceivedEmail,
+} from "@/lib/email";
 
 export async function PATCH(
   req: NextRequest,
@@ -172,7 +175,8 @@ export async function PATCH(
     const cgProfSub = cgProf ? (Array.isArray(cgProf.profiles) ? cgProf.profiles[0] : cgProf.profiles) : null;
     const caregiverName = cgProfSub?.full_name || "Caregiver";
 
-    if (targetStatus === "awaiting_payment") {
+    if (targetStatus === "awaiting_payment" && booking.status === "pending") {
+      // 1. Notification on Caregiver Accept
       await supabase.from("notifications").insert({
         user_id: b.user_id,
         title: "Booking Request Accepted!",
@@ -180,8 +184,8 @@ export async function PATCH(
         type: "booking_update",
         is_read: false,
       });
-    } else if (targetStatus === "accepted" || paymentStatus === "paid") {
-      // Create chat conversation when payment confirmed
+
+      // 2. Chat Conversation Setup on Accept (strictly NO "paid" text)
       try {
         const { data: existingConv } = await supabase
           .from("conversations")
@@ -209,39 +213,89 @@ export async function PATCH(
           await supabase.from("messages").insert({
             conversation_id: conversationId,
             sender_id: b.caregiver_id,
-            message: `Booking Paid & Confirmed! 🎉 Payment for ${serviceName} on ${dateOnly} is complete. You can chat here anytime!`,
+            message: `Booking Confirmed! The caregiver has accepted your request. Please complete payment to confirm your appointment schedule.`,
             read: false,
           });
         }
       } catch (convErr) {
         console.error("[PATCH /api/bookings/[id]] Auto-Chat Error:", convErr);
       }
-
-      // Dispatch branded DomicCare Booking & Payment Receipt Email via Nodemailer
+      // Note: NO email dispatched on booking request or accept.
+    } else if (paymentStatus === "paid") {
+      // Payment Completed - Auto-Chat Message
       try {
-        const clientEmail = (b.profiles as any)?.email;
-        const clientName = (b.profiles as any)?.full_name || "Client";
-        if (clientEmail) {
-          const appointmentDate = new Date(b.start_date);
-          const formattedDate = !isNaN(appointmentDate.getTime())
-            ? appointmentDate.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
-            : dateOnly;
+        const { data: existingConv } = await supabase
+          .from("conversations")
+          .select("id")
+          .eq("user_id", b.user_id)
+          .eq("caregiver_id", b.caregiver_id)
+          .maybeSingle();
 
-          sendBookingConfirmationEmail({
-            to: clientEmail,
-            userName: clientName,
-            caregiverName,
-            serviceName,
-            appointmentDateTime: formattedDate,
-            location: b.location || "Client address",
-            caregiverPayout: updatePayload.caregiver_payout || booking.caregiver_payout || 0,
-            platformFee: updatePayload.platform_fee || booking.platform_fee || 0,
-            totalAmount: updatePayload.total_amount || booking.total_amount || 0,
-            bookingId: booking.id,
-          }).catch((emailErr) => console.error("[PATCH /api/bookings/[id]] Email send error:", emailErr));
+        let conversationId = existingConv?.id;
+
+        if (!conversationId) {
+          const { data: newConv } = await supabase
+            .from("conversations")
+            .insert({
+              user_id: b.user_id,
+              caregiver_id: b.caregiver_id,
+            })
+            .select("id")
+            .single();
+
+          conversationId = newConv?.id;
         }
-      } catch (emailErr) {
-        console.error("[PATCH /api/bookings/[id]] Email dispatch exception:", emailErr);
+
+        if (conversationId) {
+          await supabase.from("messages").insert({
+            conversation_id: conversationId,
+            sender_id: b.caregiver_id,
+            message: `Payment Confirmed! 🎉 Payment for ${serviceName} on ${dateOnly} is complete. Your schedule is locked in!`,
+            read: false,
+          });
+        }
+      } catch (convErr) {
+        console.error("[PATCH /api/bookings/[id]] Payment Auto-Chat Error:", convErr);
+      }
+
+      // Dispatch Dual Role-Specific Emails via Nodemailer
+      const clientEmail = (b.profiles as any)?.email;
+      const clientName = (b.profiles as any)?.full_name || "Client";
+      const caregiverEmail = (cgProfSub as any)?.email;
+
+      const appointmentDate = new Date(b.start_date);
+      const formattedDate = !isNaN(appointmentDate.getTime())
+        ? appointmentDate.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+        : dateOnly;
+
+      // 1. Client Receipt Email
+      if (clientEmail) {
+        sendClientPaymentReceiptEmail({
+          to: clientEmail,
+          userName: clientName,
+          caregiverName,
+          serviceName,
+          appointmentDateTime: formattedDate,
+          location: b.location || "Client address",
+          caregiverPayout: updatePayload.caregiver_payout || booking.caregiver_payout || 0,
+          platformFee: updatePayload.platform_fee || booking.platform_fee || 0,
+          totalAmount: updatePayload.total_amount || booking.total_amount || 0,
+          bookingId: booking.id,
+        }).catch((emailErr) => console.error("[PATCH /api/bookings/[id]] Client email error:", emailErr));
+      }
+
+      // 2. Caregiver Payment Received Email
+      if (caregiverEmail) {
+        sendCaregiverPaymentReceivedEmail({
+          to: caregiverEmail,
+          caregiverName,
+          clientName,
+          serviceName,
+          appointmentDateTime: formattedDate,
+          location: b.location || "Client address",
+          caregiverPayout: updatePayload.caregiver_payout || booking.caregiver_payout || 0,
+          bookingId: booking.id,
+        }).catch((emailErr) => console.error("[PATCH /api/bookings/[id]] Caregiver email error:", emailErr));
       }
     }
 

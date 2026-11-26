@@ -350,56 +350,32 @@ export default function CaregiverClient({ id }: ClientProps) {
                 View in My Bookings
               </Link>
             </div>
-          ) : isPending ? (
-            <div className="py-6 text-center space-y-3 bg-amber-50 rounded-2xl border border-amber-200 p-4 animate-fade-in">
-              <div className="mx-auto h-12 w-12 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center">
-                <Clock className="h-6 w-6 animate-pulse" />
-              </div>
-              <h4 className="font-black text-amber-900 text-sm">Request Already Submitted</h4>
-              <p className="text-xs text-amber-700 font-medium">
-                You have a care request awaiting approval from {caregiver.fullName.split(' ')[0]}. You can view the status on your Bookings page.
-              </p>
-              <Link
-                href="/user/bookings"
-                className="inline-block rounded-xl bg-amber-600 hover:bg-amber-700 px-4 py-2 text-xs font-bold text-white shadow-xs"
-              >
-                Go to My Bookings
-              </Link>
-            </div>
-          ) : isAccepted ? (
-            <div className="py-6 text-center space-y-3 bg-blue-50 rounded-2xl border border-blue-200 p-4 animate-fade-in">
-              <div className="mx-auto h-12 w-12 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
-                <CreditCard className="h-6 w-6" />
-              </div>
-              <h4 className="font-black text-blue-900 text-sm">Request Accepted by Caregiver!</h4>
-              <p className="text-xs text-blue-700 font-medium">
-                {caregiver.fullName.split(' ')[0]} has accepted your booking request. Please complete payment to confirm your schedule.
-              </p>
-              <Link
-                href="/user/bookings"
-                className="inline-block rounded-xl nav-pill-active px-4 py-2 text-xs font-bold text-white shadow-xs"
-              >
-                Pay on Bookings Page
-              </Link>
-            </div>
-          ) : isPaid ? (
-            <div className="py-6 text-center space-y-3 bg-emerald-50 rounded-2xl border border-emerald-200 p-4 animate-fade-in">
-              <div className="mx-auto h-12 w-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                <CheckCircle2 className="h-6 w-6" />
-              </div>
-              <h4 className="font-black text-emerald-900 text-sm">Care Session Paid & Active</h4>
-              <p className="text-xs text-emerald-700 font-medium">
-                Your appointment with {caregiver.fullName.split(' ')[0]} is confirmed and paid. Once this care treatment is completed, you will be able to book another session.
-              </p>
-              <Link
-                href="/user/bookings"
-                className="inline-block rounded-xl bg-emerald-600 hover:bg-emerald-700 px-4 py-2 text-xs font-bold text-white shadow-xs"
-              >
-                View Appointment
-              </Link>
-            </div>
           ) : (
-            <form onSubmit={handleBookingSubmit} className="space-y-4">
+            <div className="space-y-4">
+              {/* Non-blocking Status Notice if an active booking exists */}
+              {isAccepted && (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-2xl flex items-center justify-between text-xs animate-fade-in">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-blue-600 shrink-0" />
+                    <span className="text-blue-900 font-medium">
+                      You have an accepted session awaiting payment. You can pay anytime on <Link href="/user/bookings" className="font-bold underline text-blue-700">Bookings</Link>, or request a new appointment below.
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {isPaid && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between text-xs animate-fade-in">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span className="text-emerald-900 font-medium">
+                      Active care session booked with {caregiver.fullName.split(' ')[0]}. Schedule an additional appointment below:
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <form onSubmit={handleBookingSubmit} className="space-y-4">
 
               {/* Select Service */}
               <div className="space-y-1.5">
@@ -510,7 +486,8 @@ export default function CaregiverClient({ id }: ClientProps) {
                 <span>{isBookingSubmitting ? "Submitting Care Request..." : "Submit Care Request"}</span>
               </button>
             </form>
-          )}
+          </div>
+        )}
         </div>
 
       </div>

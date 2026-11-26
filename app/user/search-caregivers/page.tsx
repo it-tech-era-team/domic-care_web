@@ -351,13 +351,13 @@ export default function SearchCaregivers() {
                             <span className="text-sm font-black text-slate-900">${cg.hourlyRate}<span className="text-[10px] text-slate-500 font-semibold">/hr</span></span>
                           </div>
                           
-                          {/* Lifecycle Action Buttons */}
+                          {/* Lifecycle Status Badges & Action Buttons */}
                           {isPending && (
                             <span
-                              className="rounded-xl bg-amber-50 border border-amber-200 px-3.5 py-2 text-xs font-bold text-amber-700 flex items-center gap-1.5 shadow-xs"
+                              className="rounded-xl bg-amber-50 border border-amber-200 px-2.5 py-1.5 text-[11px] font-bold text-amber-700 flex items-center gap-1 shadow-xs"
                               title="Care request is awaiting caregiver approval"
                             >
-                              <Clock className="h-3.5 w-3.5 text-amber-500 animate-pulse" />
+                              <Clock className="h-3 w-3 text-amber-500 animate-pulse" />
                               <span>Requested</span>
                             </span>
                           )}
@@ -368,7 +368,8 @@ export default function SearchCaregivers() {
                                 e.stopPropagation();
                                 setPayBooking(userBooking);
                               }}
-                              className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 px-3.5 py-2 text-xs font-black text-white flex items-center gap-1.5 shadow-md shadow-blue-500/25 cursor-pointer active:scale-95 transition-all"
+                              className="rounded-xl bg-amber-500 hover:bg-amber-600 px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1 shadow-xs cursor-pointer active:scale-95 transition-all"
+                              title="Pay for previous accepted booking"
                             >
                               <CreditCard className="h-3.5 w-3.5 text-white" />
                               <span>Pay Now</span>
@@ -377,24 +378,23 @@ export default function SearchCaregivers() {
 
                           {isPaid && (
                             <span
-                              className="rounded-xl bg-emerald-50 border border-emerald-200 px-3.5 py-2 text-xs font-extrabold text-emerald-800 flex items-center gap-1.5 shadow-xs"
-                              title="Booking is paid & confirmed"
+                              className="rounded-xl bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 text-[11px] font-extrabold text-emerald-800 flex items-center gap-1 shadow-xs"
+                              title="Has active paid booking"
                             >
-                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                              <CheckCircle2 className="h-3 w-3 text-emerald-600" />
                               <span>Paid</span>
                             </span>
                           )}
 
-                          {isReRequestable && (
-                            <Link
-                              href={`/user/caregiver/${cg.id}`}
-                              className="rounded-xl nav-pill-active px-3.5 py-2 text-white transition-all flex items-center justify-center gap-1.5 text-xs font-bold shadow-xs cursor-pointer hover:shadow-md"
-                              title="Book Caregiver"
-                            >
-                              <span>Request Care</span>
-                              <Eye className="h-3.5 w-3.5" />
-                            </Link>
-                          )}
+                          {/* Always allow requesting new care appointment */}
+                          <Link
+                            href={`/user/caregiver/${cg.id}`}
+                            className="rounded-xl nav-pill-active px-3.5 py-2 text-white transition-all flex items-center justify-center gap-1.5 text-xs font-bold shadow-xs cursor-pointer hover:shadow-md"
+                            title="Book Caregiver"
+                          >
+                            <span>Request Care</span>
+                            <Eye className="h-3.5 w-3.5" />
+                          </Link>
                         </div>
                       </div>
 

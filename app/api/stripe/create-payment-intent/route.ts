@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
         start_date,
         end_date,
         total_amount,
+        payment_status,
         payment_intent_id,
         caregiver_profiles (
           hourly_rate
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Forbidden: You do not own this booking" }, { status: 403 });
     }
 
-    if (booking.status !== "awaiting_payment" && booking.status !== "pending") {
+    if (!["awaiting_payment", "accepted", "pending"].includes(booking.status) || booking.payment_status === "paid") {
       return NextResponse.json({ error: `Cannot pay for booking with status: ${booking.status}` }, { status: 400 });
     }
 

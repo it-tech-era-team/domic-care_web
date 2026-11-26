@@ -124,14 +124,26 @@ export async function GET(req: NextRequest) {
     // Format
     const services = cg.caregiver_services?.map((cs: any) => cs.services?.name).filter(Boolean) || [];
     
-    const availability: any = {};
-    cg.caregiver_availability?.forEach((av: any) => {
-      availability[av.day_of_week] = {
-        start: av.start_time?.slice(0, 5) || "09:00",
-        end: av.end_time?.slice(0, 5) || "17:00",
-        isAvailable: av.is_available,
-      };
-    });
+    const defaultAvailability: Record<string, { start: string; end: string; isAvailable: boolean }> = {
+      Monday: { start: "09:00", end: "17:00", isAvailable: true },
+      Tuesday: { start: "09:00", end: "17:00", isAvailable: true },
+      Wednesday: { start: "09:00", end: "17:00", isAvailable: true },
+      Thursday: { start: "09:00", end: "17:00", isAvailable: true },
+      Friday: { start: "09:00", end: "17:00", isAvailable: true },
+      Saturday: { start: "10:00", end: "14:00", isAvailable: false },
+      Sunday: { start: "10:00", end: "14:00", isAvailable: false },
+    };
+
+    const availability: any = { ...defaultAvailability };
+    if (cg.caregiver_availability && cg.caregiver_availability.length > 0) {
+      cg.caregiver_availability.forEach((av: any) => {
+        availability[av.day_of_week] = {
+          start: av.start_time?.slice(0, 5) || "09:00",
+          end: av.end_time?.slice(0, 5) || "17:00",
+          isAvailable: av.is_available,
+        };
+      });
+    }
 
     const documents = cg.caregiver_documents?.map((doc: any) => ({
       id: doc.id,

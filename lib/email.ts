@@ -278,9 +278,13 @@ export async function sendPasswordResetEmail({
 }
 
 /**
- * 3. Booking & Payment Confirmation Email
+ * 3. Booking & Payment Confirmation Email (Client Receipt)
  */
-export async function sendBookingConfirmationEmail({
+export async function sendBookingConfirmationEmail(params: Parameters<typeof sendClientPaymentReceiptEmail>[0]) {
+  return sendClientPaymentReceiptEmail(params);
+}
+
+export async function sendClientPaymentReceiptEmail({
   to,
   userName,
   caregiverName,
@@ -306,9 +310,9 @@ export async function sendBookingConfirmationEmail({
   dashboardUrl?: string;
 }) {
   const contentHtml = `
-    <div class="greeting">Appointment Confirmed! 🎉</div>
+    <div class="greeting">Appointment Confirmed & Paid! 🎉</div>
     <p style="font-size: 14px; color: #475569; margin: 0 0 16px;">
-      Thank you, ${userName}. Your booking and payment have been successfully processed. Here is your receipt summary:
+      Thank you, <strong>${userName}</strong>. Your care session with <strong>${caregiverName}</strong> is officially booked and your payment has been processed. Here is your receipt summary:
     </p>
 
     <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; margin-top: 22px; margin-bottom: 10px;">
@@ -346,22 +350,22 @@ export async function sendBookingConfirmationEmail({
         <td style="padding: 5px 12px; text-align: right; font-weight: 600; font-size: 13.5px;">$${Number(caregiverPayout).toFixed(2)}</td>
       </tr>
       <tr>
-        <td style="padding: 5px 12px; color: #475569; font-size: 13.5px;">Platform Service Fee (12%):</td>
+        <td style="padding: 5px 12px; color: #475569; font-size: 13.5px;">Platform Guarantee & Escrow:</td>
         <td style="padding: 5px 12px; text-align: right; font-weight: 600; font-size: 13.5px;">$${Number(platformFee).toFixed(2)}</td>
       </tr>
       <tr style="border-top: 1px solid #e2e8f0;">
         <td style="padding: 10px 12px 5px; color: #0f172a; font-weight: 800; font-size: 15px;">Total Paid:</td>
-        <td style="padding: 10px 12px 5px; text-align: right; color: #2563eb; font-weight: 800; font-size: 17px;">$${Number(totalAmount).toFixed(2)}</td>
+        <td style="padding: 10px 12px 5px; text-align: right; color: #2563eb; font-weight: 800; font-size: 17px;">$${Number(totalAmount).toFixed(2)} USD</td>
       </tr>
     </table>
 
     <div style="text-align: center; margin: 26px 0 10px;">
-      <a href="${dashboardUrl}" class="button" target="_blank">View Booking in Portal &rarr;</a>
+      <a href="${dashboardUrl}" class="button" target="_blank">View in Family Portal &rarr;</a>
     </div>
   `;
 
   const html = renderEmailShell({
-    badgeText: "✔ Paid & Booked",
+    badgeText: "✔ Booked",
     badgeBg: "#ecfdf5",
     badgeColor: "#059669",
     badgeBorder: "1px solid #a7f3d0",
@@ -370,7 +374,97 @@ export async function sendBookingConfirmationEmail({
 
   return sendEmail({
     to,
-    subject: `Booking Confirmed & Payment Receipt: $${Number(totalAmount).toFixed(2)} - ${serviceName} ✅`,
+    subject: `Booking Confirmed & Payment Receipt - DomicCare`,
+    html,
+  });
+}
+
+/**
+ * 4. Caregiver Payment Received & Schedule Confirmation Email
+ */
+export async function sendCaregiverPaymentReceivedEmail({
+  to,
+  caregiverName,
+  clientName,
+  serviceName,
+  appointmentDateTime,
+  location,
+  caregiverPayout,
+  bookingId,
+  dashboardUrl = `${APP_URL}/caregiver/bookings`,
+}: {
+  to: string;
+  caregiverName: string;
+  clientName: string;
+  serviceName: string;
+  appointmentDateTime: string;
+  location: string;
+  caregiverPayout: number | string;
+  bookingId: string;
+  dashboardUrl?: string;
+}) {
+  const contentHtml = `
+    <div class="greeting">Payment Received & Appointment Confirmed! 🎉</div>
+    <p style="font-size: 14px; color: #475569; margin: 0 0 16px;">
+      Hello <strong>${caregiverName}</strong>, great news! <strong>${clientName}</strong> has completed payment for their upcoming care session. Your appointment schedule is locked in and your earnings are secured in escrow.
+    </p>
+
+    <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; margin-top: 22px; margin-bottom: 10px;">
+      Appointment Details
+    </div>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin-bottom: 18px;">
+      <tr>
+        <td style="padding: 9px 10px; border-bottom: 1px solid #f1f5f9; font-size: 13.5px; color: #64748b; font-weight: 600; width: 38%;">Booking ID</td>
+        <td style="padding: 9px 10px; border-bottom: 1px solid #f1f5f9; font-size: 13.5px; color: #0f172a; font-weight: 700;">#${bookingId.slice(0, 8).toUpperCase()}</td>
+      </tr>
+      <tr>
+        <td style="padding: 9px 10px; border-bottom: 1px solid #f1f5f9; font-size: 13.5px; color: #64748b; font-weight: 600;">Client Name</td>
+        <td style="padding: 9px 10px; border-bottom: 1px solid #f1f5f9; font-size: 13.5px; color: #0f172a; font-weight: 700;">${clientName}</td>
+      </tr>
+      <tr>
+        <td style="padding: 9px 10px; border-bottom: 1px solid #f1f5f9; font-size: 13.5px; color: #64748b; font-weight: 600;">Service</td>
+        <td style="padding: 9px 10px; border-bottom: 1px solid #f1f5f9; font-size: 13.5px; color: #0f172a; font-weight: 700;">${serviceName}</td>
+      </tr>
+      <tr>
+        <td style="padding: 9px 10px; border-bottom: 1px solid #f1f5f9; font-size: 13.5px; color: #64748b; font-weight: 600;">Date & Time</td>
+        <td style="padding: 9px 10px; border-bottom: 1px solid #f1f5f9; font-size: 13.5px; color: #0f172a; font-weight: 700;">${appointmentDateTime}</td>
+      </tr>
+      <tr>
+        <td style="padding: 9px 10px; border-bottom: 1px solid #f1f5f9; font-size: 13.5px; color: #64748b; font-weight: 600;">Care Location</td>
+        <td style="padding: 9px 10px; border-bottom: 1px solid #f1f5f9; font-size: 13.5px; color: #0f172a; font-weight: 700;">${location}</td>
+      </tr>
+    </table>
+
+    <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #065f46; margin-top: 22px; margin-bottom: 10px;">
+      Caregiver Earnings Summary
+    </div>
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 12px; padding: 14px 16px; margin: 18px 0;">
+      <tr>
+        <td style="padding: 5px 12px; color: #065f46; font-size: 13.5px;">Your Payout:</td>
+        <td style="padding: 5px 12px; text-align: right; color: #047857; font-weight: 800; font-size: 16px;">$${Number(caregiverPayout).toFixed(2)} USD</td>
+      </tr>
+      <tr>
+        <td style="padding: 5px 12px; color: #047857; font-size: 12px;">Escrow Status:</td>
+        <td style="padding: 5px 12px; text-align: right; font-weight: 700; color: #059669; font-size: 12px;">Secured (Payout released on completion)</td>
+      </tr>
+    </table>
+
+    <div style="text-align: center; margin: 26px 0 10px;">
+      <a href="${dashboardUrl}" class="button" target="_blank">Open Caregiver Schedule &rarr;</a>
+    </div>
+  `;
+
+  const html = renderEmailShell({
+    badgeText: "✔ Booked",
+    badgeBg: "#ecfdf5",
+    badgeColor: "#059669",
+    badgeBorder: "1px solid #a7f3d0",
+    contentHtml,
+  });
+
+  return sendEmail({
+    to,
+    subject: `Payment Received & Appointment Confirmed - DomicCare`,
     html,
   });
 }
